@@ -44,6 +44,7 @@ Sigue estos pasos para levantar el entorno de desarrollo en tu máquina local.
 
 4.  Generar el Cliente de Prisma y Sincronizar BD:
     ```bash
+    npm install @prisma/client
     npx prisma generate
     npx prisma db push
     ```
