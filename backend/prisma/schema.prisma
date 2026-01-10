@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-
 }
 
 // ----------------------
@@ -54,6 +53,12 @@ enum EstadoEntrega {
 enum EstadoVenta {
   REGISTRADA
   PAGADA
+  CANCELADA
+}
+
+enum EstadoCompra {
+  PENDIENTE
+  CONFIRMADA
   CANCELADA
 }
 
@@ -110,9 +115,11 @@ model Usuario {
   estado         EstadoGenerico @default(ACTIVO)
   fecha_creacion DateTime       @default(now())
 
-  ventas          Venta[]
-  compras         Compra[]
-  notificaciones  Notificacion[]
+  ventas         Venta[]
+  compras        Compra[]
+  notificaciones Notificacion[]
+
+  @@index([tenant_id])
 }
 
 model Cliente {
@@ -129,6 +136,8 @@ model Cliente {
   estado         EstadoGenerico @default(ACTIVO)
 
   ventas Venta[]
+
+  @@index([tenant_id])
 }
 
 model Categoria {
@@ -152,48 +161,52 @@ model Proveedor {
 }
 
 model Producto {
-  producto_id   Int            @id @default(autoincrement())
-  tenant_id     Int
-  tenant        Tenant         @relation(fields: [tenant_id], references: [tenant_id])
-  categoria_id  Int
-  categoria     Categoria      @relation(fields: [categoria_id], references: [categoria_id])
-  proveedor_id  Int?
-  proveedor     Proveedor?     @relation(fields: [proveedor_id], references: [proveedor_id])
-  nombre        String
-  descripcion   String?
-  precio        Decimal        @db.Decimal(10, 2)
-  stock_actual  Int            @default(0)
-  stock_minimo  Int            @default(5)
-  estado        EstadoGenerico @default(ACTIVO)
+  producto_id  Int            @id @default(autoincrement())
+  tenant_id    Int
+  tenant       Tenant         @relation(fields: [tenant_id], references: [tenant_id])
+  categoria_id Int
+  categoria    Categoria      @relation(fields: [categoria_id], references: [categoria_id])
+  proveedor_id Int?
+  proveedor    Proveedor?     @relation(fields: [proveedor_id], references: [proveedor_id])
+  nombre       String
+  descripcion  String?
+  precio       Decimal        @db.Decimal(10, 2)
+  stock_actual Int            @default(0)
+  stock_minimo Int            @default(5)
+  estado       EstadoGenerico @default(ACTIVO)
 
   detalles_venta  DetalleVenta[]
   detalles_compra DetalleCompra[]
+
+  @@index([tenant_id])
 }
 
 model Compra {
-  compra_id    Int      @id @default(autoincrement())
-  tenant_id    Int      // Para saber de qué tenant es la compra (aunque el usuario lo linkea, es bueno tenerlo directo)
-  tenant       Tenant   @relation(fields: [tenant_id], references: [tenant_id])
+  compra_id    Int          @id @default(autoincrement())
+  tenant_id    Int // Para saber de qué tenant es la compra (aunque el usuario lo linkea, es bueno tenerlo directo)
+  tenant       Tenant       @relation(fields: [tenant_id], references: [tenant_id])
   proveedor_id Int
-  proveedor    Proveedor @relation(fields: [proveedor_id], references: [proveedor_id])
+  proveedor    Proveedor    @relation(fields: [proveedor_id], references: [proveedor_id])
   usuario_id   Int
-  usuario      Usuario   @relation(fields: [usuario_id], references: [usuario_id])
-  fecha_compra DateTime  @default(now())
-  total        Decimal   @db.Decimal(10, 2)
-  estado       String?   // Confirmada, Pendiente?
+  usuario      Usuario      @relation(fields: [usuario_id], references: [usuario_id])
+  fecha_compra DateTime     @default(now())
+  total        Decimal      @db.Decimal(10, 2)
+  estado       EstadoCompra @default(PENDIENTE)
 
-  detalles     DetalleCompra[]
+  detalles DetalleCompra[]
+
+  @@index([tenant_id])
 }
 
 model DetalleCompra {
-  detalle_compra_id Int     @id @default(autoincrement())
+  detalle_compra_id Int      @id @default(autoincrement())
   compra_id         Int
-  compra            Compra  @relation(fields: [compra_id], references: [compra_id])
+  compra            Compra   @relation(fields: [compra_id], references: [compra_id])
   producto_id       Int
   producto          Producto @relation(fields: [producto_id], references: [producto_id])
   cantidad          Int
-  precio_unitario   Decimal @db.Decimal(10, 2)
-  subtotal          Decimal @db.Decimal(10, 2)
+  precio_unitario   Decimal  @db.Decimal(10, 2)
+  subtotal          Decimal  @db.Decimal(10, 2)
 }
 
 model Venta {
@@ -209,11 +222,13 @@ model Venta {
   tipo_venta      TipoVenta     @default(FISICA)
   metodo_pago     MetodoPago    @default(EFECTIVO)
   estado_entrega  EstadoEntrega @default(PENDIENTE)
-  qr_pago         String?       // URL o base64
-  comprobante_pdf String?       // URL
+  qr_pago         String? // URL o base64
+  comprobante_pdf String? // URL
   estado          EstadoVenta   @default(REGISTRADA)
 
   detalles DetalleVenta[]
+
+  @@index([tenant_id])
 }
 
 model DetalleVenta {
@@ -231,7 +246,7 @@ model Notificacion {
   notificacion_id Int      @id @default(autoincrement())
   usuario_id      Int
   usuario         Usuario  @relation(fields: [usuario_id], references: [usuario_id])
-  tipo            String   // Ejemplo: STOCK_BAJO, NUEVA_VENTA
+  tipo            String // Ejemplo: STOCK_BAJO, NUEVA_VENTA
   mensaje         String
   fecha_envio     DateTime @default(now())
   leida           Boolean  @default(false)
