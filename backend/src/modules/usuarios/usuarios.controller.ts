@@ -19,7 +19,7 @@ export class UsuariosController {
     @Post()
     create(@Body() createUserDto: CreateUserDto, @Request() req) {
         const tenantId = this.getTenantId(req);
-        return this.usuariosService.create(createUserDto, tenantId);
+        return this.usuariosService.create(createUserDto, tenantId, req.user);
     }
 
     @Get()

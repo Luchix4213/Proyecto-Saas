@@ -6,30 +6,30 @@ Este módulo es la puerta de entrada al sistema SaaS. Gestiona el registro de nu
 
 ### 1. Configuración de Seguridad
 
-- [ ] **Configurar `JwtModule`**: Definir secreto, tiempo de expiración y estrategia de firma.
-- [ ] **Implementar `JwtStrategy`**: Para validar tokens en cada petición.
-- [ ] **Implementar `BcryptService`**: Para el hashing seguro de contraseñas.
+- [x] **Configurar `JwtModule`**: Definir secreto, tiempo de expiración y estrategia de firma. (Implementado en `AutenticacionModule`).
+- [x] **Implementar `JwtStrategy`**: Para validar tokens en cada petición. (Implementado).
+- [x] **Implementar `BcryptService`**: Para el hashing seguro de contraseñas. (Usado directamente `bcrypt` en Servicios).
 
 ### 2. Módulo de Autenticación (`src/modules/autenticacion`)
 
-- [ ] **Registro de Microempresa (`POST /auth/register`)**:
+- [x] **Registro de Microempresa (`POST /auth/register`)**:
   - Implementar transacción en Prisma para:
     1. Validar disponibilidad de email.
     2. Crear el `Tenant` con un plan por defecto (`FREE` o `BASICO`).
     3. Crear el primer `Usuario` con rol `PROPIETARIO` vinculado al nuevo Tenant.
-- [ ] **Inicio de Sesión (`POST /auth/login`)**:
+- [x] **Inicio de Sesión (`POST /auth/login`)**:
   - Validar credenciales.
   - Verificar que tanto el `Tenant` como el `Usuario` estén en estado `ACTIVO`.
   - Retornar JWT con `usuario_id`, `tenant_id` y `rol`.
-- [ ] **Recuperación de Contraseña**:
+- [x] **Recuperación de Contraseña**:
   - Implementar lógica de generación de tokens temporales (Mock de envío de correos por ahora).
 
 ### 3. Módulo de Microempresas/Planes (`src/modules/microempresas`)
 
-- [ ] **Gestión de Planes**:
-  - `PATCH /tenants/plan`: Cambiar el plan de la empresa (Upgrade/Downgrade).
-- [ ] **Estado de la Empresa**:
-  - `PATCH /tenants/estado`: Activar o desactivar el acceso total al tenant (Solo visible para Admin SaaS).
+- [x] **Gestión de Planes**:
+  - `PATCH /tenants/plan`: Cambiar el plan de la empresa (Upgrade/Downgrade). (Nota: Implementado en `TenantsModule`)
+- [x] **Estado de la Empresa**:
+  - `PATCH /tenants/estado`: Activar o desactivar el acceso total al tenant (Solo visible para Admin SaaS). (Nota: Implementado en `TenantsModule`)
 
 ---
 
@@ -37,25 +37,25 @@ Este módulo es la puerta de entrada al sistema SaaS. Gestiona el registro de nu
 
 ### 1. Gestión de Estado y sesión
 
-- [ ] **`AuthContext.tsx`**:
+- [x] **`AuthContext.tsx`**:
   - Manejo de token en `localStorage`.
   - Funciones `login()`, `logout()` y `refreshSession()`.
   - Persistencia del estado del usuario.
 
 ### 2. Vistas de Autenticación
 
-- [ ] **Página de Login**:
+- [x] **Página de Login**:
   - Formulario con validaciones.
   - Manejo de errores (Credenciales inválidas, Empresa inactiva).
-- [ ] **Página de Registro (Onboarding)**:
+- [x] **Página de Registro (Onboarding)**:
   - Formulario dividido en secciones: "Datos de la Empresa" y "Datos del Administrador".
   - Selección de plan inicial.
-- [ ] **Recuperación de Contraseña**:
+- [x] **Recuperación de Contraseña**:
   - Formulario de "Olvidé mi contraseña" y "Restablecer contraseña".
 
 ### 3. Configuración de Suscripción
 
-- [ ] **Panel de Configuración de Cuenta**:
+- [x] **Panel de Configuración de Cuenta**:
   - Mostrar plan actual y sus límites.
   - Botón para solicitar cambio de plan.
 
@@ -63,9 +63,17 @@ Este módulo es la puerta de entrada al sistema SaaS. Gestiona el registro de nu
 
 ## 🧪 Verificación
 
-- [ ] **Pruebas de Registro**:
+- [x] **Pruebas de Registro**:
   - Validar que no se puedan registrar dos empresas con el mismo email.
-- [ ] **Pruebas de Acceso**:
+- [x] **Pruebas de Acceso**:
   - Desactivar una empresa desde la BD y verificar que ningún usuario de esa empresa pueda loguearse.
-- [ ] **Pruebas de Seguridad**:
+- [x] **Pruebas de Seguridad**:
   - Verificar que el JWT contenga la información necesaria para el multi-tenancy.
+
+### 4. Administración SaaS (Nuevo)
+
+- [x] **Aprobación de Tenants**:
+  - Flujo de registro con estado `PENDIENTE`.
+  - Página de administración para aprobar/rechazar tenants.
+- [x] **Restricciones de Roles**:
+  - Propietarios limitados a crear solo Vendedores.

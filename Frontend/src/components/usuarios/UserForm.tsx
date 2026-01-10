@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { userService } from '../../services/userService';
+import { useAuth } from '../../context/AuthContext';
 import type { Usuario } from '../../services/userService';
 
 interface UserFormProps {
@@ -11,6 +12,7 @@ interface UserFormProps {
 }
 
 export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormProps) => {
+    const { user } = useAuth();
     const [formData, setFormData] = useState({
         nombre: '',
         paterno: '',
@@ -41,12 +43,12 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
                 materno: '',
                 email: '',
                 password: '',
-                rol: 'VENDEDOR',
+                rol: user?.rol === 'PROPIETARIO' ? 'VENDEDOR' : 'VENDEDOR',
                 estado: 'ACTIVO'
             });
         }
         setError('');
-    }, [userToEdit, isOpen]);
+    }, [userToEdit, isOpen, user]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -122,13 +124,14 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
                             <select
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                                 value={formData.rol}
                                 onChange={(e) => setFormData({ ...formData, rol: e.target.value })}
+                                disabled={user?.rol === 'PROPIETARIO'}
                             >
                                 <option value="VENDEDOR">Vendedor</option>
-                                <option value="MICROEMPRESA_P">Propietario</option>
-                                <option value="ADMIN">Admin</option>
+                                <option value="PROPIETARIO" disabled={user?.rol === 'PROPIETARIO'}>Propietario</option>
+                                <option value="ADMIN" disabled={user?.rol === 'PROPIETARIO'}>Admin</option>
                             </select>
                         </div>
                     </div>

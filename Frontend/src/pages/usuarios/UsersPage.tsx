@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { userService } from '../../services/userService';
+import { useAuth } from '../../context/AuthContext';
 import type { Usuario } from '../../services/userService';
 import { Plus, Pencil, Trash2, KeyRound, Ban } from 'lucide-react';
 import { UserForm } from '../../components/usuarios/UserForm';
@@ -8,6 +9,9 @@ import { ChangePasswordModal } from '../../components/usuarios/ChangePasswordMod
 export const UsersPage = () => {
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const { user: currentUser } = useAuth(); // Obtener usuario actual
+    const isAdminOrOwner = currentUser?.rol === 'ADMIN' || currentUser?.rol === 'PROPIETARIO';
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isPasswordOpen, setIsPasswordOpen] = useState(false);
@@ -76,13 +80,15 @@ export const UsersPage = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-800">Gestión de Usuarios</h2>
-                <button
-                    onClick={handleCreate}
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-                >
-                    <Plus size={20} />
-                    Nuevo Usuario
-                </button>
+                {isAdminOrOwner && (
+                    <button
+                        onClick={handleCreate}
+                        className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                        <Plus size={20} />
+                        Nuevo Usuario
+                    </button>
+                )}
             </div>
 
             <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">

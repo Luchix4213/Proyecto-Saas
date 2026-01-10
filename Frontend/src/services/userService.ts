@@ -6,7 +6,7 @@ export interface Usuario {
     paterno?: string;
     materno?: string;
     email: string;
-    rol: 'ADMIN' | 'MICROEMPRESA_P' | 'VENDEDOR';
+    rol: 'ADMIN' | 'PROPIETARIO' | 'VENDEDOR';
     estado: 'ACTIVO' | 'INACTIVO';
 }
 

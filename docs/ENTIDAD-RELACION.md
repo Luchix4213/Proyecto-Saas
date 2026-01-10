@@ -81,11 +81,11 @@ Usuarios internos del tenant.
   - `nombre`, `paterno`, `materno`
   - `email`
   - `password_hash`
-  - `rol` (ADMIN, MICROEMPRESA_P, VENDEDOR)
+  - `rol` (ADMIN, PROPIETARIO, VENDEDOR)
   - `estado` (activo/inactivo)
   - `fecha_creacion`
 - **Reglas:**
-  - MICROEMPRESA_P: Dueño del tenant.
+  - PROPIETARIO: Dueño del tenant.
   - VENDEDOR: Solo puede vender y comprar.
 
 ### 4. ENTIDAD: CLIENTE

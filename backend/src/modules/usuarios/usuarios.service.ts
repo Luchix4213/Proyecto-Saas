@@ -1,15 +1,22 @@
-import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
+import { RolUsuario } from '@prisma/client';
 
 @Injectable()
 export class UsuariosService {
     constructor(private prisma: PrismaService) { }
 
-    async create(createUserDto: CreateUserDto, tenantId: number) {
+    async create(createUserDto: CreateUserDto, tenantId: number, requestingUser?: any) {
+        // Restricción: PROPIETARIO solo puede crear VENDEDOR
+        if (requestingUser?.rol === RolUsuario.PROPIETARIO) {
+            if (createUserDto.rol !== RolUsuario.VENDEDOR) {
+                throw new ForbiddenException('Los propietarios solo pueden crear usuarios con rol VENDEDOR.');
+            }
+        }
         const { password, ...userData } = createUserDto;
 
         // Validar email único

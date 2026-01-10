@@ -10,9 +10,11 @@ Este es el backend del sistema, construido con **NestJS** y **Prisma** (con Post
 ## 🚀 Configuración del Proyecto
 
 ### 1. Clonar el repositorio
+
 Asegúrate de estar en la raíz del proyecto.
 
 ### 2. Variables de Entorno
+
 Crea un archivo `.env` en la carpeta `backend/` basándote en el ejemplo:
 \`\`\`bash
 cp .env.example .env
@@ -24,6 +26,7 @@ DATABASE_URL="postgresql://usuario:password@localhost:5432/nombre_bd?schema=publ
 \`\`\`
 
 ### 3. Instalar Dependencias
+
 Entra a la carpeta del backend e instala los paquetes:
 \`\`\`bash
 cd backend
@@ -31,27 +34,38 @@ npm install
 \`\`\`
 
 ### 4. Configurar Base de Datos (Prisma)
+
 Genera el cliente de Prisma y sube los cambios a tu base de datos:
 \`\`\`bash
+
 # Generar el cliente de Prisma
+
 npx prisma generate
 
 # Sincronizar esquema con la BD (Entorno Desarrollo)
+
 npx prisma db push
 
 # (Opcional) Poblar base de datos con datos de prueba
+
 node prisma/seed.js
+
+# Resetear la base de datos
+
+npx prisma generate && npm run db:reset
 \`\`\`
 
 ## ▶️ Ejecutar el Servidor
 
 ### Modo Desarrollo
+
 \`\`\`bash
 npm run start:dev
 \`\`\`
 El servidor correrá en \`http://localhost:3000\`.
 
 ### Endpoints Principales
+
 - **Usuarios:** \`/usuarios\` (GET, POST, PUT, DELETE)
 
 ## 🛠️ Comandos Útiles

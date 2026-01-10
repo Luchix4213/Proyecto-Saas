@@ -1,51 +1,98 @@
-import { PrismaClient, PlanNombre, EstadoEmpresa } from '@prisma/client';
+import {
+  PrismaClient,
+  PlanNombre,
+  EstadoEmpresa,
+  RolUsuario,
+  EstadoGenerico,
+} from '@prisma/client';
 import 'dotenv/config';
+import * as bcrypt from 'bcrypt';
 
-const prisma = new PrismaClient({
-    datasources: {
-        db: {
-            url: process.env.DATABASE_URL,
-        },
-    },
-} as any);
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const connectionString = `${process.env.DATABASE_URL}`;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
-    console.log('🌱 Start seeding ...');
+  console.log('🌱 Start seeding ...');
 
-    // 1. Crear Plan FREE si no existe
-    const plan = await prisma.plan.upsert({
-        where: { plan_id: 1 }, // Asumiendo que el ID 1 es el inicial
-        update: {},
-        create: {
-            nombre_plan: PlanNombre.FREE,
-            max_usuarios: 2,
-            max_productos: 50,
-            precio: 0.00,
-        },
-    });
-    console.log('✅ Plan creado:', plan.nombre_plan);
+  // 1. Plan FREE
+  const plan = await prisma.plan.upsert({
+    where: { nombre_plan: PlanNombre.FREE },
+    update: {},
+    create: {
+      nombre_plan: PlanNombre.FREE,
+      max_usuarios: 2,
+      max_productos: 50,
+      precio: 0,
+    },
+  });
 
-    // 2. Crear un Tenant de prueba
-    const tenant = await prisma.tenant.upsert({
-        where: { email: 'admin@miempresa.com' },
-        update: {},
-        create: {
-            nombre_empresa: 'Mi Empresa S.R.L',
-            email: 'admin@miempresa.com',
-            plan_id: plan.plan_id,
-            estado: EstadoEmpresa.ACTIVA,
-        },
-    });
-    console.log('✅ Tenant creado:', tenant.nombre_empresa);
+  // 2. Tenant demo
+  const tenant = await prisma.tenant.upsert({
+    where: { email: 'admin@miempresa.com' },
+    update: {},
+    create: {
+      nombre_empresa: 'Mi Empresa S.R.L',
+      email: 'admin@miempresa.com',
+      plan_id: plan.plan_id,
+      estado: EstadoEmpresa.ACTIVA,
+      moneda: 'BOB',
+    },
+  });
 
-    console.log('🌱 Seeding finished.');
+  // 3. Usuario propietario
+  const passwordHash = await bcrypt.hash('123456', 10);
+
+  await prisma.usuario.upsert({
+    where: { email: 'admin@miempresa.com' },
+    update: {},
+    create: {
+      tenant_id: tenant.tenant_id,
+      nombre: 'Juan',
+      paterno: 'Perez',
+      email: 'admin@miempresa.com',
+      password_hash: passwordHash,
+      rol: RolUsuario.PROPIETARIO,
+      estado: EstadoGenerico.ACTIVO,
+    },
+  });
+
+  // 4. Tenant del sistema (SaaS)
+  const systemTenant = await prisma.tenant.upsert({
+    where: { email: 'system@saas.com' },
+    update: {},
+    create: {
+      nombre_empresa: 'SaaS Core',
+      email: 'system@saas.com',
+      plan_id: plan.plan_id,
+      estado: EstadoEmpresa.ACTIVA,
+    },
+  });
+
+  // 5. Super Admin
+  const adminPassword = await bcrypt.hash('admin123', 10);
+
+  await prisma.usuario.upsert({
+    where: { email: 'admin@saas.com' },
+    update: {},
+    create: {
+      nombre: 'Super',
+      paterno: 'Admin',
+      email: 'admin@saas.com',
+      password_hash: adminPassword,
+      rol: RolUsuario.ADMIN,
+      estado: EstadoGenerico.ACTIVO,
+      tenant_id: systemTenant.tenant_id,
+    },
+  });
+
+  console.log('🌱 Seeding finished.');
 }
 
 main()
-    .catch((e) => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());

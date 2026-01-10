@@ -1,12 +1,19 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { AuthGuard as PassportAuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
-    canActivate(
-        context: ExecutionContext,
-    ): boolean | Promise<boolean> | Observable<boolean> {
-        // TODO: Implement JWT validation
-        return true;
+export class AuthGuard extends PassportAuthGuard('jwt') {
+    canActivate(context: ExecutionContext) {
+        // Add your custom authentication logic here
+        // for example, call super.logIn(request) to establish a session.
+        return super.canActivate(context);
+    }
+
+    handleRequest(err, user, info) {
+        // You can throw an exception based on either "info" or "err" arguments
+        if (err || !user) {
+            throw err || new UnauthorizedException();
+        }
+        return user;
     }
 }

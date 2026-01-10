@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  //previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -25,7 +25,7 @@ enum EstadoEmpresa {
 
 enum RolUsuario {
   ADMIN
-  MICROEMPRESA_P
+  PROPIETARIO
   VENDEDOR
 }
 
@@ -69,7 +69,7 @@ enum EstadoCompra {
 
 model Plan {
   plan_id            Int            @id @default(autoincrement())
-  nombre_plan        PlanNombre
+  nombre_plan        PlanNombre     @unique
   max_usuarios       Int
   max_productos      Int
   ventas_online      Boolean        @default(false)
@@ -104,17 +104,20 @@ model Tenant {
 }
 
 model Usuario {
-  usuario_id     Int            @id @default(autoincrement())
-  tenant_id      Int
-  tenant         Tenant         @relation(fields: [tenant_id], references: [tenant_id])
-  nombre         String
-  paterno        String?
-  materno        String?
-  email          String         @unique
-  password_hash  String
-  rol            RolUsuario
-  estado         EstadoGenerico @default(ACTIVO)
-  fecha_creacion DateTime       @default(now())
+  usuario_id      Int            @id @default(autoincrement())
+  tenant_id       Int
+  tenant          Tenant         @relation(fields: [tenant_id], references: [tenant_id])
+  nombre          String
+  paterno         String?
+  materno         String?
+  email           String         @unique
+  password_hash   String
+  rol             RolUsuario
+  estado          EstadoGenerico @default(ACTIVO)
+  fecha_creacion  DateTime       @default(now())
+  // Recuperación de contraseña
+  reset_token     String?
+  reset_token_exp DateTime?
 
   ventas         Venta[]
   compras        Compra[]

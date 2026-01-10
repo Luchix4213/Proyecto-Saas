@@ -14,8 +14,10 @@ import { NotificacionesModule } from './modules/notificaciones/notificaciones.mo
 import { ReportesModule } from './modules/reportes/reportes.module';
 import { PrismaModule } from './prisma/prisma.module';
 
+import { TenantsModule } from './modules/tenants/tenants.module';
+
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule],
   controllers: [AppController],
   providers: [AppService],
 })
