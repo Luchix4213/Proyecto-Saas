@@ -12,9 +12,10 @@ import { ComprasModule } from './modules/compras/compras.module';
 import { ClientesModule } from './modules/clientes/clientes.module';
 import { NotificacionesModule } from './modules/notificaciones/notificaciones.module';
 import { ReportesModule } from './modules/reportes/reportes.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule],
   controllers: [AppController],
   providers: [AppService],
 })
