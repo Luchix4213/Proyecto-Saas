@@ -8,12 +8,19 @@ export interface Tenant {
     fecha_registro: string;
     plan: {
         nombre_plan: string;
+        precio: number;
     };
+    usuarios?: any[]; // Simplified for display
 }
 
 export const tenantsService = {
     getAll: async () => {
         const response = await api.get<Tenant[]>('/tenants');
+        return response.data;
+    },
+
+    getById: async (id: number) => {
+        const response = await api.get<Tenant>(`/tenants/${id}`);
         return response.data;
     },
 

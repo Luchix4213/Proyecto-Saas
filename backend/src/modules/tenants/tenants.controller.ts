@@ -26,6 +26,15 @@ export class TenantsController {
     return this.tenantsService.findAll();
   }
 
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    // Si es admin puede ver cualquiera. Si es propietario solo el suyo.
+    if (req.user.rol !== RolUsuario.ADMIN && req.user.tenant_id !== id) {
+        throw new ForbiddenException('No tienes permiso para ver este tenant.');
+    }
+    return this.tenantsService.findOne(id);
+  }
+
   @Patch(':id/plan')
   async updatePlan(
     @Param('id', ParseIntPipe) id: number,

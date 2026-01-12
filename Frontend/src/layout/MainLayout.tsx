@@ -34,14 +34,16 @@ export const MainLayout = () => {
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2">
-                    <Link
-                        to="/"
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
-                            }`}
-                    >
-                        <LayoutDashboard size={20} />
-                        Dashboard
-                    </Link>
+                    {user?.rol !== 'ADMIN' && (
+                        <Link
+                            to="/"
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <LayoutDashboard size={20} />
+                            Dashboard
+                        </Link>
+                    )}
 
                     {/* Vistas exclusivas del Propietario (Jefe de Tenant) */}
                     {user?.rol === 'PROPIETARIO' && (
@@ -69,12 +71,28 @@ export const MainLayout = () => {
                     {user?.rol === 'ADMIN' && (
                         <>
                             <Link
-                                to="/admin"
-                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                                to="/admin/dashboard"
+                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/dashboard') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                                    }`}
+                            >
+                                <LayoutDashboard size={20} />
+                                Dashboard
+                            </Link>
+                            <Link
+                                to="/admin/tenants"
+                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/tenants') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                             >
                                 <Building2 size={20} />
                                 Microempresas
+                            </Link>
+                            <Link
+                                to="/admin/usuarios"
+                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/usuarios') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                                    }`}
+                            >
+                                <Users size={20} />
+                                Administradores
                             </Link>
                              <Link
                                 to="/admin/planes"

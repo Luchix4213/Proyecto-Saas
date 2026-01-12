@@ -1,8 +1,9 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import type { JSX } from 'react';
 
-export const PrivateRoute = ({ children }: { children: JSX.Element }) => {
-    const { isAuthenticated, isLoading } = useAuth();
+export const PrivateRoute = ({ children, roles }: { children: JSX.Element, roles?: string[] }) => {
+    const { isAuthenticated, isLoading, user } = useAuth();
     const location = useLocation();
 
     if (isLoading) {
@@ -11,6 +12,10 @@ export const PrivateRoute = ({ children }: { children: JSX.Element }) => {
 
     if (!isAuthenticated) {
         return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (roles && user && !roles.includes(user.rol)) {
+        return <Navigate to="/" replace />;
     }
 
     return children;

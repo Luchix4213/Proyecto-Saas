@@ -9,7 +9,10 @@ export class TenantsService {
   async findOne(id: number) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { tenant_id: id },
-      include: { plan: true },
+      include: {
+          plan: true,
+          usuarios: true
+      },
     });
     if (!tenant) throw new NotFoundException('Tenant no encontrado');
     return tenant;
