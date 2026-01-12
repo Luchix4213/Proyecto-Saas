@@ -9,7 +9,7 @@ export const SubscriptionPage = () => {
     const [plans, setPlans] = useState<Plan[]>([]);
     const [currentTenant, setCurrentTenant] = useState<Tenant | null>(null);
     const [loading, setLoading] = useState(true);
-    const [processing, setProcessing] = useState<number | null>(null); // Plan ID being processed
+    const [processing, setProcessing] = useState<number | null>(null);
 
     useEffect(() => {
         loadData();
@@ -68,10 +68,6 @@ export const SubscriptionPage = () => {
                 <div className="grid md:grid-cols-3 gap-6 mt-8">
                     {plans.map((plan) => {
                          const isCurrent = currentTenant?.plan?.nombre_plan === plan.nombre_plan;
-
-                         // Determine if we can select this plan
-                         // Only Owners can select (or Admins for testing)
-                         // And verify it's not the current plan
                          const canSelect = !isCurrent && user?.rol === 'PROPIETARIO';
 
                         return (

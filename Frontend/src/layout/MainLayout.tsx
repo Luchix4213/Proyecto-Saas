@@ -42,7 +42,8 @@ export const MainLayout = () => {
                         Dashboard
                     </Link>
 
-                    {user?.rol !== 'ADMIN' && (
+                    {/* Vistas exclusivas del Propietario (Jefe de Tenant) */}
+                    {user?.rol === 'PROPIETARIO' && (
                         <>
                             <Link
                                 to="/usuarios"
