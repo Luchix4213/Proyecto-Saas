@@ -33,8 +33,11 @@ export const ForgotPasswordPage = () => {
                         <div className="bg-green-50 text-green-800 p-4 rounded-md mb-6">
                             {message}
                         </div>
-                        <Link to="/login" className="text-indigo-600 hover:text-indigo-500 font-medium">
+                        <Link to="/login" className="text-indigo-600 hover:text-indigo-500 font-medium block mb-3">
                             Volver al inicio de sesión
+                        </Link>
+                         <Link to="/reset-password" className="text-gray-600 hover:text-gray-900 font-medium text-sm">
+                            Ya tengo un código de verificación
                         </Link>
                     </div>
                 ) : (

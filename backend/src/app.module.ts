@@ -15,9 +15,10 @@ import { ReportesModule } from './modules/reportes/reportes.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 import { TenantsModule } from './modules/tenants/tenants.module';
+import { PlanesModule } from './modules/planes/planes.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule, PlanesModule],
   controllers: [AppController],
   providers: [AppService],
 })

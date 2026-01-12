@@ -1,7 +1,4 @@
 -- CreateEnum
-CREATE TYPE "PlanNombre" AS ENUM ('FREE', 'BASICO', 'PREMIUM');
-
--- CreateEnum
 CREATE TYPE "EstadoEmpresa" AS ENUM ('PENDIENTE', 'ACTIVA', 'INACTIVA');
 
 -- CreateEnum
@@ -28,7 +25,7 @@ CREATE TYPE "EstadoCompra" AS ENUM ('PENDIENTE', 'CONFIRMADA', 'CANCELADA');
 -- CreateTable
 CREATE TABLE "Plan" (
     "plan_id" SERIAL NOT NULL,
-    "nombre_plan" "PlanNombre" NOT NULL,
+    "nombre_plan" TEXT NOT NULL,
     "max_usuarios" INTEGER NOT NULL,
     "max_productos" INTEGER NOT NULL,
     "ventas_online" BOOLEAN NOT NULL DEFAULT false,
@@ -194,6 +191,9 @@ CREATE TABLE "Notificacion" (
 
     CONSTRAINT "Notificacion_pkey" PRIMARY KEY ("notificacion_id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Plan_nombre_plan_key" ON "Plan"("nombre_plan");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Tenant_email_key" ON "Tenant"("email");

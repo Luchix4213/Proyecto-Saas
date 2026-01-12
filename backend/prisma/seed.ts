@@ -1,6 +1,5 @@
 import {
   PrismaClient,
-  PlanNombre,
   EstadoEmpresa,
   RolUsuario,
   EstadoGenerico,
@@ -21,13 +20,40 @@ async function main() {
 
   // 1. Plan FREE
   const plan = await prisma.plan.upsert({
-    where: { nombre_plan: PlanNombre.FREE },
+    where: { nombre_plan: 'FREE' },
     update: {},
     create: {
-      nombre_plan: PlanNombre.FREE,
+      nombre_plan: 'FREE',
       max_usuarios: 2,
       max_productos: 50,
       precio: 0,
+    },
+  });
+
+  // 1.1 Plan BASICO
+  await prisma.plan.upsert({
+    where: { nombre_plan: 'BASICO' },
+    update: {},
+    create: {
+      nombre_plan: 'BASICO',
+      max_usuarios: 5,
+      max_productos: 50,
+      precio: 99,
+      ventas_online: false,
+    },
+  });
+
+  // 1.2 Plan PREMIUM
+  await prisma.plan.upsert({
+    where: { nombre_plan: 'PREMIUM' },
+    update: {},
+    create: {
+      nombre_plan: 'PREMIUM',
+      max_usuarios: 1000,
+      max_productos: 10000,
+      precio: 199,
+      ventas_online: true,
+      reportes_avanzados: true,
     },
   });
 

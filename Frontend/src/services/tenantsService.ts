@@ -8,7 +8,9 @@ export interface Tenant {
     fecha_registro: string;
     plan: {
         nombre_plan: string;
+        precio: number;
     };
+    usuarios?: any[]; // Simplified for display
 }
 
 export const tenantsService = {
@@ -17,8 +19,23 @@ export const tenantsService = {
         return response.data;
     },
 
+    getById: async (id: number) => {
+        const response = await api.get<Tenant>(`/tenants/${id}`);
+        return response.data;
+    },
+
     updateStatus: async (id: number, estado: 'ACTIVA' | 'INACTIVA') => {
         const response = await api.patch(`/tenants/${id}/status`, { estado });
+        return response.data;
+    },
+
+    getMyTenant: async () => {
+        const response = await api.get<Tenant>('/tenants/me');
+        return response.data;
+    },
+
+    updatePlan: async (id: number, planName: string) => {
+        const response = await api.patch(`/tenants/${id}/plan`, { plan: planName });
         return response.data;
     }
 };

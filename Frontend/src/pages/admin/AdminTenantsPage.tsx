@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { tenantsService } from '../../services/tenantsService';
 import type { Tenant } from '../../services/tenantsService';
-import { CheckCircle, XCircle, Ban, RefreshCw, Building2 } from 'lucide-react';
+import { RefreshCw, Building2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const AdminTenantsPage = () => {
     const [tenants, setTenants] = useState<Tenant[]>([]);
@@ -23,21 +24,6 @@ export const AdminTenantsPage = () => {
     useEffect(() => {
         fetchTenants();
     }, []);
-
-    const handleStatusChange = async (id: number, newStatus: 'ACTIVA' | 'INACTIVA') => {
-        if (!confirm(`¿Estás seguro de cambiar el estado a ${newStatus}?`)) return;
-
-        try {
-            await tenantsService.updateStatus(id, newStatus);
-            // Actualizar localmente
-            setTenants(prev => prev.map(t =>
-                t.tenant_id === id ? { ...t, estado: newStatus } : t
-            ));
-        } catch (err) {
-            alert('Error al actualizar el estado');
-            console.error(err);
-        }
-    };
 
     if (loading) return <div className="p-8 text-center">Cargando empresas...</div>;
 
@@ -105,43 +91,10 @@ export const AdminTenantsPage = () => {
                                         {tenant.estado}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                                    {tenant.estado === 'PENDIENTE' && (
-                                        <>
-                                            <button
-                                                onClick={() => handleStatusChange(tenant.tenant_id, 'ACTIVA')}
-                                                className="text-green-600 hover:text-green-900"
-                                                title="Aprobar"
-                                            >
-                                                <CheckCircle className="h-5 w-5" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleStatusChange(tenant.tenant_id, 'INACTIVA')} // O rechazar
-                                                className="text-red-600 hover:text-red-900"
-                                                title="Rechazar"
-                                            >
-                                                <XCircle className="h-5 w-5" />
-                                            </button>
-                                        </>
-                                    )}
-                                    {tenant.estado === 'ACTIVA' && (
-                                        <button
-                                            onClick={() => handleStatusChange(tenant.tenant_id, 'INACTIVA')}
-                                            className="text-red-600 hover:text-red-900"
-                                            title="Bloquear"
-                                        >
-                                            <Ban className="h-5 w-5" />
-                                        </button>
-                                    )}
-                                    {tenant.estado === 'INACTIVA' && (
-                                        <button
-                                            onClick={() => handleStatusChange(tenant.tenant_id, 'ACTIVA')}
-                                            className="text-green-600 hover:text-green-900"
-                                            title="Reactivar"
-                                        >
-                                            <CheckCircle className="h-5 w-5" />
-                                        </button>
-                                    )}
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                    <Link to={`/admin/tenants/${tenant.tenant_id}`} className="text-indigo-600 hover:text-indigo-900 font-medium bg-indigo-50 px-3 py-1 rounded-md">
+                                        Ver Detalles
+                                    </Link>
                                 </td>
                             </tr>
                         ))}
