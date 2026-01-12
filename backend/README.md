@@ -40,7 +40,7 @@ Genera el cliente de Prisma y sube los cambios a tu base de datos:
 
 # Generar el cliente de Prisma
 
-npx prisma generate
+npx prisma migrate dev
 
 # Sincronizar esquema con la BD (Entorno Desarrollo)
 
@@ -48,7 +48,7 @@ npx prisma db push
 
 # (Opcional) Poblar base de datos con datos de prueba
 
-node prisma/seed.js
+npx ts-node prisma/seed.ts
 
 # Resetear la base de datos
 

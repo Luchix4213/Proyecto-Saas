@@ -9,7 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
-import { EstadoEmpresa, PlanNombre, RolUsuario } from '@prisma/client';
+import { EstadoEmpresa, RolUsuario } from '@prisma/client';
 
 @Injectable()
 export class AutenticacionService {
@@ -83,14 +83,14 @@ export class AutenticacionService {
     // Obtener el plan Básico (o crearlo si no existe para la demo/dev)
     // En produccion esto debería estar ya sembrado.
     let planBasico = await this.prisma.plan.findFirst({
-      where: { nombre_plan: PlanNombre.BASICO },
+      where: { nombre_plan: 'BASICO' },
     });
 
     if (!planBasico) {
       // Fallback temporal si no hay seed: Crear plan basico on the fly (solo para evitar error)
       planBasico = await this.prisma.plan.create({
         data: {
-          nombre_plan: PlanNombre.BASICO,
+          nombre_plan: 'BASICO',
           max_usuarios: 5,
           max_productos: 50,
           precio: 0,
@@ -106,8 +106,8 @@ export class AutenticacionService {
           nombre_empresa: nombre_empresa,
           telefono: telefono_empresa,
           direccion: direccion_empresa,
-          email: adminData.email, // Email de contacto principal (usamos el del admin)
-          plan_id: planBasico.plan_id, // Usar ID del plan recuperado
+          email: registerDto.email_empresa, // Usar el email de la empresa
+          plan_id: planBasico.plan_id,
           estado: EstadoEmpresa.PENDIENTE,
         },
       });
@@ -119,12 +119,12 @@ export class AutenticacionService {
       const newUser = await prisma.usuario.create({
         data: {
           tenant_id: newTenant.tenant_id,
-          email: adminData.email,
+          email: adminData.email, // Usar el email del usuario/admin
           password_hash: passwordHash,
           nombre: adminData.nombre,
           paterno: adminData.paterno,
           materno: adminData.materno || '',
-          rol: RolUsuario.PROPIETARIO, // Propietario
+          rol: RolUsuario.PROPIETARIO,
           estado: 'ACTIVO',
         },
       });

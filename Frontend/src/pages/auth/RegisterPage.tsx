@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
-import { Building2, User, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Building2, User, Mail, Lock, ArrowRight, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 export const RegisterPage = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [formData, setFormData] = useState({
         nombre_empresa: '',
         telefono_empresa: '',
+        email_empresa: '',
         direccion_empresa: '',
         nombre: '',
         paterno: '',
@@ -31,6 +34,7 @@ export const RegisterPage = () => {
 
         if (step === 1) {
             if (!formData.nombre_empresa) return setError('El nombre de la empresa es requerido');
+            if (!formData.email_empresa) return setError('El email de la empresa es requerido');
             setStep(2);
             return;
         }
@@ -93,6 +97,24 @@ export const RegisterPage = () => {
                                 </div>
                             </div>
                             <div>
+                                <label className="block text-sm font-medium text-gray-700">Email Corporativo / Contacto</label>
+                                <p className="text-xs text-gray-500 mb-1">Email general de la empresa (info, contacto...)</p>
+                                <div className="mt-1 relative rounded-md shadow-sm">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <Mail className="h-5 w-5 text-gray-400" />
+                                    </div>
+                                    <input
+                                        type="email"
+                                        name="email_empresa"
+                                        required
+                                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border"
+                                        placeholder="contacto@empresa.com"
+                                        value={formData.email_empresa}
+                                        onChange={handleChange}
+                                    />
+                                </div>
+                            </div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700">Teléfono (Opcional)</label>
                                 <input
                                     type="text"
@@ -100,6 +122,7 @@ export const RegisterPage = () => {
                                     className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 border px-3"
                                     value={formData.telefono_empresa}
                                     onChange={handleChange}
+                                    placeholder="+591 70000000"
                                 />
                             </div>
                             <div>
@@ -110,6 +133,7 @@ export const RegisterPage = () => {
                                     className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 border px-3"
                                     value={formData.direccion_empresa}
                                     onChange={handleChange}
+                                    placeholder="Av. Principal #123"
                                 />
                             </div>
                         </div>
@@ -141,17 +165,29 @@ export const RegisterPage = () => {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Email</label>
+                                <label className="block text-sm font-medium text-gray-700">Materno (Opcional)</label>
+                                <input
+                                    type="text"
+                                    name="materno"
+                                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 border px-3"
+                                    value={formData.materno}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Email del Usuario (Login)</label>
+                                <p className="text-xs text-gray-500 mb-1">Este email será tu usuario para iniciar sesión.</p>
                                 <div className="mt-1 relative rounded-md shadow-sm">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Mail className="h-5 w-5 text-gray-400" />
+                                        <User className="h-5 w-5 text-gray-400" />
                                     </div>
                                     <input
                                         type="email"
                                         name="email"
                                         required
                                         className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border"
-                                        placeholder="admin@empresa.com"
+                                        placeholder="juan.perez@empresa.com"
                                         value={formData.email}
                                         onChange={handleChange}
                                     />
@@ -165,30 +201,44 @@ export const RegisterPage = () => {
                                         <Lock className="h-5 w-5 text-gray-400" />
                                     </div>
                                     <input
-                                        type="password"
+                                        type={showPassword ? 'text' : 'password'}
                                         name="password"
                                         required
-                                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border"
+                                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-10 sm:text-sm border-gray-300 rounded-md py-2 border"
                                         value={formData.password}
                                         onChange={handleChange}
                                     />
+                                    <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                    >
+                                        {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                                    </button>
                                 </div>
                             </div>
 
                              <div>
-                                <label className="block text-sm font-medium text-gray-700">Confimar Contraseña</label>
+                                <label className="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
                                 <div className="mt-1 relative rounded-md shadow-sm">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                         <Lock className="h-5 w-5 text-gray-400" />
                                     </div>
                                     <input
-                                        type="password"
+                                        type={showConfirmPassword ? 'text' : 'password'}
                                         name="confirmPassword"
                                         required
-                                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 border"
+                                        className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-10 sm:text-sm border-gray-300 rounded-md py-2 border"
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
                                     />
+                                     <button
+                                        type="button"
+                                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                                    </button>
                                 </div>
                             </div>
                         </div>

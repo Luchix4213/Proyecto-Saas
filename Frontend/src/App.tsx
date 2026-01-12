@@ -8,6 +8,7 @@ import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { SubscriptionPage } from './pages/admin/SubscriptionPage';
 import { AdminTenantsPage } from './pages/admin/AdminTenantsPage';
+import { AdminPlansPage } from './pages/admin/AdminPlansPage';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route index element={<div className="p-4"><h1 className="text-2xl font-bold">Dashboard Multi-Tenant</h1><p>Bienvenido al panel de control.</p></div>} />
             <Route path="usuarios" element={<UsersPage />} />
             <Route path="admin" element={<AdminTenantsPage />} />
+            <Route path="admin/planes" element={<AdminPlansPage />} />
             <Route path="suscripcion" element={<SubscriptionPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

@@ -8,14 +8,8 @@ datasource db {
 }
 
 // ----------------------
-// ENUMS
+// ENUMSA
 // ----------------------
-
-enum PlanNombre {
-  FREE
-  BASICO
-  PREMIUM
-}
 
 enum EstadoEmpresa {
   PENDIENTE
@@ -69,7 +63,7 @@ enum EstadoCompra {
 
 model Plan {
   plan_id            Int            @id @default(autoincrement())
-  nombre_plan        PlanNombre     @unique
+  nombre_plan        String         @unique
   max_usuarios       Int
   max_productos      Int
   ventas_online      Boolean        @default(false)
