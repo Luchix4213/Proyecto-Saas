@@ -22,8 +22,11 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
         rol: 'VENDEDOR',
         estado: 'ACTIVO'
     });
+
+    // Using object for inline errors
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [globalError, setGlobalError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     useEffect(() => {
         if (userToEdit) {
@@ -47,28 +50,88 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
                 estado: 'ACTIVO'
             });
         }
-        setError('');
+        setErrors({});
+        setGlobalError('');
     }, [userToEdit, isOpen, user]);
+
+    const validate = () => {
+        const newErrors: Record<string, string> = {};
+        const nameRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/;
+        // Simplified password regex for admin created users (optional: could be strict too)
+        const passwordRegex = /.{6,}/;
+
+        if (!formData.nombre.trim()) {
+            newErrors.nombre = 'El nombre es requerido';
+        } else if (!nameRegex.test(formData.nombre)) {
+            newErrors.nombre = 'Solo se permiten letras';
+        }
+
+        if (!formData.paterno.trim()) {
+            newErrors.paterno = 'El apellido es requerido';
+        } else if (!nameRegex.test(formData.paterno)) {
+            newErrors.paterno = 'Solo se permiten letras';
+        }
+
+        if (formData.materno.trim() && !nameRegex.test(formData.materno)) {
+            newErrors.materno = 'Solo se permiten letras';
+        }
+
+        if (!formData.email.trim()) {
+            newErrors.email = 'El email es requerido';
+        } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            newErrors.email = 'Email inválido';
+        }
+
+        // Validate password only if creating new user
+        if (!userToEdit && !formData.password) {
+            newErrors.password = 'La contraseña es requerida';
+        } else if (!userToEdit && !passwordRegex.test(formData.password)) {
+            newErrors.password = 'Mínimo 6 caracteres';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!validate()) return;
+
         setLoading(true);
-        setError('');
+        setGlobalError('');
 
         try {
+            // Sanitize
+            const cleanedData = {
+                ...formData,
+                nombre: formData.nombre.trim(),
+                paterno: formData.paterno.trim(),
+                materno: formData.materno.trim(),
+                email: formData.email.trim()
+            };
+
             if (userToEdit) {
-                const { password, ...updateData } = formData; // No enviamos password en update
+                const { password, ...updateData } = cleanedData; // No enviamos password en update
                 await userService.update(userToEdit.usuario_id, updateData);
             } else {
-                const { estado, ...createData } = formData; // Estado se asigna por defecto en backend
+                const { estado, ...createData } = cleanedData; // Estado se asigna por defecto en backend
                 await userService.create(createData);
             }
             onSuccess();
             onClose();
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Error al guardar el usuario');
+            setGlobalError(err.response?.data?.message || 'Error al guardar el usuario');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleChange = (field: string, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+        // Clear specific error
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: '' }));
         }
     };
 
@@ -86,28 +149,31 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                    {error && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>}
+                <form onSubmit={handleSubmit} className="p-6 space-y-4" noValidate>
+                    {globalError && <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">{globalError}</div>}
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
                             <input
                                 type="text"
-                                required
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none ${errors.nombre ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
                                 value={formData.nombre}
-                                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                                onChange={(e) => handleChange('nombre', e.target.value)}
+                                maxLength={50}
                             />
+                            {errors.nombre && <p className="mt-1 text-xs text-red-600">{errors.nombre}</p>}
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Paterno</label>
                             <input
                                 type="text"
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none ${errors.paterno ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
                                 value={formData.paterno}
-                                onChange={(e) => setFormData({ ...formData, paterno: e.target.value })}
+                                onChange={(e) => handleChange('paterno', e.target.value)}
+                                maxLength={50}
                             />
+                            {errors.paterno && <p className="mt-1 text-xs text-red-600">{errors.paterno}</p>}
                         </div>
                     </div>
 
@@ -116,17 +182,19 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
                             <label className="block text-sm font-medium text-gray-700 mb-1">Materno</label>
                             <input
                                 type="text"
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none ${errors.materno ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
                                 value={formData.materno}
-                                onChange={(e) => setFormData({ ...formData, materno: e.target.value })}
+                                onChange={(e) => handleChange('materno', e.target.value)}
+                                maxLength={50}
                             />
+                             {errors.materno && <p className="mt-1 text-xs text-red-600">{errors.materno}</p>}
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
                             <select
                                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                                 value={formData.rol}
-                                onChange={(e) => setFormData({ ...formData, rol: e.target.value })}
+                                onChange={(e) => handleChange('rol', e.target.value)}
                                 disabled={user?.rol === 'PROPIETARIO'}
                             >
                                 <option value="VENDEDOR">Vendedor</option>
@@ -140,12 +208,13 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
                         <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                         <input
                             type="email"
-                            required
                             disabled={!!userToEdit} // No editar email por ahora
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-100 placeholder-gray-400 text-gray-500"
+                            className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none disabled:bg-gray-100 disabled:text-gray-500 ${errors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
                             value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            onChange={(e) => handleChange('email', e.target.value)}
+                            maxLength={255}
                         />
+                        {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
                     </div>
 
                     {!userToEdit && (
@@ -153,12 +222,12 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
                             <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
                             <input
                                 type="password"
-                                required
-                                minLength={6}
-                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 outline-none ${errors.password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500'}`}
                                 value={formData.password}
-                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                onChange={(e) => handleChange('password', e.target.value)}
+                                maxLength={100}
                             />
+                            {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
                         </div>
                     )}
 
@@ -168,7 +237,7 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
                             <select
                                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
                                 value={formData.estado}
-                                onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
+                                onChange={(e) => handleChange('estado', e.target.value)}
                             >
                                 <option value="ACTIVO">Activo</option>
                                 <option value="INACTIVO">Inactivo</option>

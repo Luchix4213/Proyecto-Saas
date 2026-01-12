@@ -19,7 +19,8 @@ export const MainLayout = () => {
             {/* Sidebar */}
             <aside className="w-64 bg-white shadow-md flex flex-col">
                 <div className="p-6 border-b">
-                    <h1 className="text-2xl font-bold text-indigo-600">SaaS Taller</h1>
+                    <h1 className="text-2xl font-bold text-indigo-600 tracking-tight">Kipu</h1>
+                    <p className="text-xs text-gray-500">Cuentas claras, negocio que crece</p>
                     <div className="mt-2">
                         <p className="text-sm font-semibold text-gray-900">{user?.nombre || 'Usuario'}</p>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 ${

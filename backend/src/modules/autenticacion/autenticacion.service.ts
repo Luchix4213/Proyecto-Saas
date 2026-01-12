@@ -80,18 +80,18 @@ export class AutenticacionService {
       throw new ConflictException('El email ya está registrado');
     }
 
-    // Obtener el plan Básico (o crearlo si no existe para la demo/dev)
+    // Obtener el plan FREE (o crearlo si no existe para la demo/dev)
     // En produccion esto debería estar ya sembrado.
-    let planBasico = await this.prisma.plan.findFirst({
-      where: { nombre_plan: 'BASICO' },
+    let plan = await this.prisma.plan.findFirst({
+      where: { nombre_plan: 'FREE' },
     });
 
-    if (!planBasico) {
-      // Fallback temporal si no hay seed: Crear plan basico on the fly (solo para evitar error)
-      planBasico = await this.prisma.plan.create({
+    if (!plan) {
+      // Fallback temporal si no hay seed: Crear plan FREE on the fly
+      plan = await this.prisma.plan.create({
         data: {
-          nombre_plan: 'BASICO',
-          max_usuarios: 5,
+          nombre_plan: 'FREE',
+          max_usuarios: 2,
           max_productos: 50,
           precio: 0,
         },
@@ -107,7 +107,7 @@ export class AutenticacionService {
           telefono: telefono_empresa,
           direccion: direccion_empresa,
           email: registerDto.email_empresa, // Usar el email de la empresa
-          plan_id: planBasico.plan_id,
+          plan_id: plan.plan_id,
           estado: EstadoEmpresa.PENDIENTE,
         },
       });

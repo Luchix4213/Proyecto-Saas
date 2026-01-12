@@ -34,6 +34,14 @@ export const ResetPasswordPage = () => {
             return;
         }
 
+        // Strong password check
+        const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
+        if (!strongPasswordRegex.test(password)) {
+             setStatus('error');
+             setMessage('La contraseña debe tener al menos 6 caracteres, incluir una mayúscula y un número.');
+             return;
+        }
+
         setStatus('loading');
         try {
             await api.post('/auth/reset-password', { token, password });
