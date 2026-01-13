@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { tenantsService } from '../../services/tenantsService';
 import type { Tenant } from '../../services/tenantsService';
-import { RefreshCw, Building2 } from 'lucide-react';
+import { Plus, X, RefreshCw, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import TenantForm from '../../components/tenants/TenantForm';
+import type { CreateTenantData } from '../../services/tenantsService';
 
 export const AdminTenantsPage = () => {
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
 
     const fetchTenants = async () => {
         try {
@@ -25,6 +29,26 @@ export const AdminTenantsPage = () => {
         fetchTenants();
     }, []);
 
+    const handleCreate = async (data: any) => {
+        try {
+            setIsCreating(true);
+            // Extract logo from data if present
+            const { logo, ...createData } = data;
+
+            // Call create service with separated logo
+            await tenantsService.create(createData as CreateTenantData, logo);
+
+            setIsModalOpen(false);
+            fetchTenants(); // Refresh list
+        } catch (err: any) {
+            console.error(err);
+            const message = err.response?.data?.message || 'Error al crear la empresa';
+            alert(message);
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
     if (loading) return <div className="p-8 text-center">Cargando empresas...</div>;
 
     return (
@@ -39,7 +63,7 @@ export const AdminTenantsPage = () => {
                         Administración de tenants registrados en la plataforma SaaS.
                     </p>
                 </div>
-                <div className="mt-4 sm:mt-0">
+                <div className="mt-4 sm:mt-0 flex gap-2">
                     <button
                         onClick={fetchTenants}
                         className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -47,14 +71,47 @@ export const AdminTenantsPage = () => {
                         <RefreshCw className="h-4 w-4 mr-2" />
                         Refrescar
                     </button>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nueva Empresa
+                    </button>
                 </div>
             </div>
 
-            {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-                    {error}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+                        <div className="flex justify-between items-center p-6 border-b flex-shrink-0">
+                            <h3 className="text-xl font-semibold text-gray-800">
+                                Registrar Nueva Microempresa
+                            </h3>
+                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="p-6 overflow-y-auto">
+                            <TenantForm
+                                isCreateMode={true}
+                                onSubmit={handleCreate}
+                                onCancel={() => setIsModalOpen(false)}
+                                isLoading={isCreating}
+                            />
+                        </div>
+                    </div>
                 </div>
             )}
+
+
+            {
+                error && (
+                    <div className="bg-red-50 text-red-600 p-4 rounded-lg">
+                        {error}
+                    </div>
+                )
+            }
 
             <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -86,8 +143,8 @@ export const AdminTenantsPage = () => {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                         ${tenant.estado === 'ACTIVA' ? 'bg-green-100 text-green-800' :
-                                          tenant.estado === 'PENDIENTE' ? 'bg-yellow-100 text-yellow-800' :
-                                          'bg-red-100 text-red-800'}`}>
+                                            tenant.estado === 'PENDIENTE' ? 'bg-yellow-100 text-yellow-800' :
+                                                'bg-red-100 text-red-800'}`}>
                                         {tenant.estado}
                                     </span>
                                 </td>
@@ -101,6 +158,6 @@ export const AdminTenantsPage = () => {
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     );
 };

@@ -16,27 +16,33 @@ Asegúrate de estar en la raíz del proyecto.
 ### 2. Variables de Entorno
 
 Crea un archivo `.env` en la carpeta `backend/` basándote en el ejemplo:
-\`\`\`bash
+```bash
 cp .env.example .env
-\`\`\`
+```
 
 Edita el archivo `.env` y configura tu conexión a la base de datos:
-\`\`\`env
+```env
 DATABASE_URL="postgresql://usuario:password@localhost:5432/nombre_bd?schema=public"
-\`\`\`
+```
 
 ### 3. Instalar Dependencias
 
 Entra a la carpeta del backend e instala los paquetes:
-\`\`\`bash
+```bash
 cd backend
 npm install
-\`\`\`
+```
+
+### 3.1. Configuración de Imágenes
+El sistema guarda imágenes localmente en la carpeta `uploads`. Asegúrate de crearla:
+```bash
+mkdir -p uploads/tenants
+```
 
 ### 4. Configurar Base de Datos (Prisma)
 
 Genera el cliente de Prisma y sube los cambios a tu base de datos:
-\`\`\`bash
+```bash
 
 # Generar el cliente de Prisma
 
@@ -53,28 +59,28 @@ npx ts-node prisma/seed.ts
 # Resetear la base de datos
 
 npx prisma generate && npm run db:reset
-\`\`\`
+```
 
 ## ▶️ Ejecutar el Servidor
 
 ### Modo Desarrollo
 
-\`\`\`bash
+```bash
 npm run start:dev
-\`\`\`
-El servidor correrá en \`http://localhost:3000\`.
+```
+El servidor correrá en `http://localhost:3000`.
 
 ### Endpoints Principales
 
-- **Usuarios:** \`/usuarios\` (GET, POST, PUT, DELETE)
+- **Usuarios:** `/usuarios` (GET, POST, PUT, DELETE)
 
 ## 🛠️ Comandos Útiles
 
 - **Ver BD con Prisma Studio:**
-  \`\`\`bash
+  ```bash
   npx prisma studio
-  \`\`\`
+  ```
 - **Formatear código:**
-  \`\`\`bash
+  ```bash
   npm run format
-  \`\`\`
+  ```

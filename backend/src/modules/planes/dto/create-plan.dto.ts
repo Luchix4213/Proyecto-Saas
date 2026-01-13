@@ -1,9 +1,9 @@
 import { IsString, IsInt, IsNumber, IsBoolean, IsOptional, Min, IsEnum } from 'class-validator';
-import { EstadoGenerico } from '@prisma/client';
+import { EstadoGenerico, PlanNombre } from '@prisma/client';
 
 export class CreatePlanDto {
-  @IsString()
-  nombre_plan: string;
+  @IsEnum(PlanNombre)
+  nombre_plan: PlanNombre;
 
   @IsInt()
   @Min(1)
@@ -31,9 +31,9 @@ export class CreatePlanDto {
 }
 
 export class UpdatePlanDto {
-  @IsString()
+  @IsEnum(PlanNombre)
   @IsOptional()
-  nombre_plan?: string;
+  nombre_plan?: PlanNombre;
 
   @IsInt()
   @Min(1)

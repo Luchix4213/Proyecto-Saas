@@ -19,6 +19,7 @@ import { AdminSystemUsersPage } from './pages/admin/AdminSystemUsersPage';
 /* Owner / Seller Pages */
 import { UsersPage } from './pages/usuarios/UsersPage';
 import { SubscriptionPage } from './pages/admin/SubscriptionPage';
+import MyTenantPage from './pages/tenants/MyTenantPage';
 
 function App() {
   return (
@@ -114,6 +115,15 @@ function App() {
               element={
                 <PrivateRoute roles={['PROPIETARIO']}>
                   <UsersPage />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="mi-empresa"
+              element={
+                <PrivateRoute roles={['PROPIETARIO']}>
+                  <MyTenantPage />
                 </PrivateRoute>
               }
             />

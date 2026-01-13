@@ -57,13 +57,19 @@ enum EstadoCompra {
   CANCELADA
 }
 
+enum PlanNombre {
+  FREE
+  BASICO
+  PREMIUM
+}
+
 // ----------------------
 // MODELOS
 // ----------------------
 
 model Plan {
   plan_id            Int            @id @default(autoincrement())
-  nombre_plan        String         @unique
+  nombre_plan        PlanNombre     @unique
   max_usuarios       Int
   max_productos      Int
   ventas_online      Boolean        @default(false)

@@ -23,11 +23,10 @@ export const MainLayout = () => {
                     <p className="text-xs text-gray-500">Cuentas claras, negocio que crece</p>
                     <div className="mt-2">
                         <p className="text-sm font-semibold text-gray-900">{user?.nombre || 'Usuario'}</p>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 ${
-                            user?.rol === 'ADMIN' ? 'bg-purple-100 text-purple-800' :
-                            user?.rol === 'PROPIETARIO' ? 'bg-indigo-100 text-indigo-800' :
-                            'bg-blue-100 text-blue-800'
-                        }`}>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 ${user?.rol === 'ADMIN' ? 'bg-purple-100 text-purple-800' :
+                                user?.rol === 'PROPIETARIO' ? 'bg-indigo-100 text-indigo-800' :
+                                    'bg-blue-100 text-blue-800'
+                            }`}>
                             {user?.rol}
                         </span>
                     </div>
@@ -48,6 +47,15 @@ export const MainLayout = () => {
                     {/* Vistas exclusivas del Propietario (Jefe de Tenant) */}
                     {user?.rol === 'PROPIETARIO' && (
                         <>
+                            <Link
+                                to="/mi-empresa"
+                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/mi-empresa') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                                    }`}
+                            >
+                                <Building2 size={20} />
+                                Mi Empresa
+                            </Link>
+
                             <Link
                                 to="/usuarios"
                                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/usuarios') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
@@ -94,7 +102,7 @@ export const MainLayout = () => {
                                 <Users size={20} />
                                 Administradores
                             </Link>
-                             <Link
+                            <Link
                                 to="/admin/planes"
                                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/planes') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
                                     }`}
