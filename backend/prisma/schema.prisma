@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -57,11 +56,13 @@ enum EstadoCompra {
   CANCELADA
 }
 
-enum PlanNombre {
-  FREE
-  BASICO
-  PREMIUM
+enum EstadoSuscripcion {
+  ACTIVA
+  VENCIDA
+  CANCELADA
 }
+
+// Enum PlanNombre removed in favor of String for dynamic plans
 
 // ----------------------
 // MODELOS
@@ -69,15 +70,18 @@ enum PlanNombre {
 
 model Plan {
   plan_id            Int            @id @default(autoincrement())
-  nombre_plan        PlanNombre     @unique
+  nombre_plan        String         @unique
+  descripcion        String?
   max_usuarios       Int
   max_productos      Int
   ventas_online      Boolean        @default(false)
   reportes_avanzados Boolean        @default(false)
-  precio             Decimal        @db.Decimal(10, 2)
+  precio_mensual     Decimal        @db.Decimal(10, 2)
+  precio_anual       Decimal        @default(0) @db.Decimal(10, 2) // Default 0 for migration safety
   estado             EstadoGenerico @default(ACTIVO)
 
-  tenants Tenant[]
+  tenants       Tenant[]
+  suscripciones Suscripcion[]
 }
 
 model Tenant {
@@ -96,11 +100,12 @@ model Tenant {
   plan_id Int
   plan    Plan @relation(fields: [plan_id], references: [plan_id])
 
-  usuarios  Usuario[]
-  productos Producto[]
-  ventas    Venta[]
-  clientes  Cliente[]
-  compras   Compra[]
+  usuarios      Usuario[]
+  productos     Producto[]
+  ventas        Venta[]
+  clientes      Cliente[]
+  compras       Compra[]
+  suscripciones Suscripcion[]
 }
 
 model Usuario {
@@ -122,6 +127,23 @@ model Usuario {
   ventas         Venta[]
   compras        Compra[]
   notificaciones Notificacion[]
+
+  @@index([tenant_id])
+}
+
+model Suscripcion {
+  suscripcion_id Int               @id @default(autoincrement())
+  tenant_id      Int
+  tenant         Tenant            @relation(fields: [tenant_id], references: [tenant_id])
+  plan_id        Int
+  plan           Plan              @relation(fields: [plan_id], references: [plan_id])
+  fecha_inicio   DateTime
+  fecha_fin      DateTime?
+  monto          Decimal           @db.Decimal(10, 2)
+  metodo_pago    MetodoPago
+  estado         EstadoSuscripcion @default(ACTIVA)
+  referencia     String?
+  creado_en      DateTime          @default(now())
 
   @@index([tenant_id])
 }
@@ -181,8 +203,22 @@ model Producto {
 
   detalles_venta  DetalleVenta[]
   detalles_compra DetalleCompra[]
+  imagenes        ProductoImagen[]
 
   @@index([tenant_id])
+}
+
+model ProductoImagen {
+  imagen_id    Int            @id @default(autoincrement())
+  producto_id  Int
+  producto     Producto       @relation(fields: [producto_id], references: [producto_id])
+  url          String
+  orden        Int            @default(1)
+  es_principal Boolean        @default(false)
+  estado       EstadoGenerico @default(ACTIVO)
+
+  @@unique([producto_id, orden])
+  @@index([producto_id])
 }
 
 model Compra {

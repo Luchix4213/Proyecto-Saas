@@ -37,7 +37,7 @@ export class UsuariosController {
     @Patch(':id')
     update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto, @Request() req) {
         const tenantId = this.getTenantId(req);
-        return this.usuariosService.update(id, updateUserDto, tenantId);
+        return this.usuariosService.update(id, updateUserDto, tenantId, req.user);
     }
 
     @Post('password/:id')

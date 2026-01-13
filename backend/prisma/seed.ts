@@ -26,7 +26,8 @@ async function main() {
       nombre_plan: 'FREE',
       max_usuarios: 2,
       max_productos: 50,
-      precio: 0,
+      precio_mensual: 0,
+      precio_anual: 0,
     },
   });
 
@@ -38,7 +39,8 @@ async function main() {
       nombre_plan: 'BASICO',
       max_usuarios: 5,
       max_productos: 50,
-      precio: 99,
+      precio_mensual: 99,
+      precio_anual: 990, // 10 meses x el precio de 1
       ventas_online: false,
     },
   });
@@ -51,7 +53,8 @@ async function main() {
       nombre_plan: 'PREMIUM',
       max_usuarios: 1000,
       max_productos: 10000,
-      precio: 199,
+      precio_mensual: 199,
+      precio_anual: 1990, // 10 meses x el precio de 1
       ventas_online: true,
       reportes_avanzados: true,
     },
@@ -73,7 +76,7 @@ async function main() {
   // 3. Usuario propietario
   const passwordHash = await bcrypt.hash('123456', 10);
 
-  await prisma.usuario.upsert({
+  const usuarioPropietario = await prisma.usuario.upsert({
     where: { email: 'admin@miempresa.com' },
     update: {},
     create: {
@@ -84,6 +87,20 @@ async function main() {
       password_hash: passwordHash,
       rol: RolUsuario.PROPIETARIO,
       estado: EstadoGenerico.ACTIVO,
+    },
+  });
+
+  // 3.1 Seeding Suscripción de prueba
+  await prisma.suscripcion.create({
+    data: {
+      tenant_id: tenant.tenant_id,
+      plan_id: plan.plan_id,
+      fecha_inicio: new Date(),
+      // 1 mes de duración
+      fecha_fin: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+      monto: plan.precio_mensual,
+      metodo_pago: 'TRANSFERENCIA', // Usando hardcoded enum value o importado
+      estado: 'ACTIVA', // Usando enum string directo
     },
   });
 

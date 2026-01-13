@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { tenantsService } from '../../services/tenantsService';
-import type { Tenant } from '../../services/tenantsService';
-import { Building2, Mail, Calendar, CreditCard, Users, ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
+import { getTenantSubscriptions, type Suscripcion } from '../../services/suscripcionesService';
+import { tenantsService, type Tenant } from '../../services/tenantsService';
+import { userService } from '../../services/userService'; // Import userService
+import { Building2, Mail, Calendar, CreditCard, Users, ArrowLeft, CheckCircle, XCircle, Ban } from 'lucide-react';
 
 export const AdminTenantDetailPage = () => {
     const { id } = useParams<{ id: string }>();
     const [tenant, setTenant] = useState<Tenant | null>(null);
+    const [subscriptions, setSubscriptions] = useState<Suscripcion[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -20,6 +22,13 @@ export const AdminTenantDetailPage = () => {
         try {
             const data = await tenantsService.getById(tenantId);
             setTenant(data);
+            // Fetch subscription history
+            try {
+                const subs = await getTenantSubscriptions(tenantId);
+                setSubscriptions(subs);
+            } catch (subError) {
+                console.error('Error fetching subscriptions:', subError);
+            }
         } catch (err) {
             console.error(err);
             setError('Error al cargar la información de la empresa.');
@@ -41,6 +50,22 @@ export const AdminTenantDetailPage = () => {
         } catch (err) {
             console.error(err);
             alert('Error al actualizar el estado de la empresa');
+        }
+    };
+
+    const handleToggleUserStatus = async (user: any) => {
+        const nuevoEstado = user.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+        const accion = user.estado === 'ACTIVO' ? 'bloquear' : 'reactivar';
+
+        if (window.confirm(`¿Estás seguro de ${accion} el acceso a ${user.nombre}?`)) {
+            try {
+                // Admin can update any user now
+                await userService.update(user.usuario_id, { estado: nuevoEstado });
+                loadTenant(tenant!.tenant_id); // Reload to see changes
+            } catch (error) {
+                console.error('Error al cambiar estado de usuario:', error);
+                alert('No se pudo cambiar el estado del usuario');
+            }
         }
     };
 
@@ -94,7 +119,19 @@ export const AdminTenantDetailPage = () => {
                                     {tenant.plan?.nombre_plan || 'Sin Plan Asignado'}
                                 </span>
                                 <span className="text-xs text-indigo-500 font-medium tracking-wide">
-                                    {(tenant.plan?.precio && Number(tenant.plan.precio) > 0) ? `BOB ${tenant.plan.precio}/mes` : 'GRATUITO'}
+                                    {(() => {
+                                        const activeSub = subscriptions.find(s => s.estado === 'ACTIVA');
+                                        if (!activeSub) return 'GRATUITO'; // O "Sin suscripción activa"
+
+                                        // Inferir ciclo basado en monto (si coincide con precio mensual/anual del plan)
+                                        // O idealmente el backend retorna el ciclo, pero no está en el tipo Suscripcion actual del frontend explícitamente?
+                                        // Revisemos el servicio... si no, usamos el monto
+                                        const monto = Number(activeSub.monto);
+                                        const precioAnual = Number(tenant.plan?.precio_anual || 0);
+
+                                        if (monto === precioAnual && precioAnual > 0) return `BOB ${monto}/año`;
+                                        return `BOB ${monto}/mes`;
+                                    })()}
                                 </span>
                             </div>
                         </div>
@@ -138,6 +175,7 @@ export const AdminTenantDetailPage = () => {
                             <th className="px-6 py-3">Rol</th>
                             <th className="px-6 py-3">Email</th>
                             <th className="px-6 py-3">Estado</th>
+                            <th className="px-6 py-3 text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -155,13 +193,75 @@ export const AdminTenantDetailPage = () => {
                                 </td>
                                 <td className="px-6 py-3 text-sm text-gray-500">{user.email}</td>
                                 <td className="px-6 py-3">
-                                     <span className={`text-xs ${user.estado === 'ACTIVO' ? 'text-green-600' : 'text-red-600'}`}>
+                                     <span className={`text-xs font-medium ${user.estado === 'ACTIVO' ? 'text-green-600' : 'text-red-600'}`}>
                                         {user.estado}
                                     </span>
                                 </td>
+                                <td className="px-6 py-3 text-right">
+                                    <button
+                                        onClick={() => handleToggleUserStatus(user)}
+                                        title={user.estado === 'ACTIVO' ? 'Bloquear Acceso' : 'Reactivar Acceso'}
+                                        className={`p-1.5 rounded-full transition-colors ${
+                                            user.estado === 'ACTIVO'
+                                            ? 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                                            : 'text-green-600 bg-green-50 hover:bg-green-100'
+                                        }`}
+                                    >
+                                        {user.estado === 'ACTIVO' ? <Ban size={16} /> : <CheckCircle size={16} />}
+                                    </button>
+                                </td>
                             </tr>
                         )) || (
-                            <tr><td colSpan={4} className="px-6 py-4 text-center text-gray-500">No hay usuarios visibles.</td></tr>
+                            <tr><td colSpan={5} className="px-6 py-4 text-center text-gray-500">No hay usuarios visibles.</td></tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Historial de Suscripciones */}
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                <div className="p-6 border-b border-gray-100 flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-gray-500" />
+                    <h3 className="text-lg font-bold text-gray-900">Historial de Suscripciones</h3>
+                </div>
+                <table className="w-full text-left">
+                    <thead className="bg-gray-50 text-gray-600 font-medium text-sm">
+                        <tr>
+                            <th className="px-6 py-3">Fecha Inicio</th>
+                            <th className="px-6 py-3">Fecha Fin</th>
+                            <th className="px-6 py-3">Plan</th>
+                            <th className="px-6 py-3">Monto</th>
+                            <th className="px-6 py-3">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                        {subscriptions.map((sub) => (
+                            <tr key={sub.suscripcion_id} className="hover:bg-gray-50">
+                                <td className="px-6 py-3 text-sm text-gray-900">
+                                    {new Date(sub.fecha_inicio).toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-3 text-sm text-gray-500">
+                                    {sub.fecha_fin ? new Date(sub.fecha_fin).toLocaleDateString() : '-'}
+                                </td>
+                                <td className="px-6 py-3 text-sm font-medium text-gray-900">
+                                    {sub.plan?.nombre_plan}
+                                </td>
+                                <td className="px-6 py-3 text-sm text-gray-500">
+                                    {sub.monto} BOB
+                                </td>
+                                <td className="px-6 py-3">
+                                    <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                                        sub.estado === 'ACTIVA' ? 'bg-green-100 text-green-800' :
+                                        sub.estado === 'CANCELADA' ? 'bg-red-100 text-red-800' :
+                                        'bg-gray-100 text-gray-800'
+                                    }`}>
+                                        {sub.estado}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                        {subscriptions.length === 0 && (
+                            <tr><td colSpan={5} className="px-6 py-4 text-center text-gray-500">No hay historial de suscripciones.</td></tr>
                         )}
                     </tbody>
                 </table>

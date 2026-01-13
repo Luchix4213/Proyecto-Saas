@@ -1,5 +1,5 @@
 import { IsString, IsNotEmpty, IsEmail, IsOptional, IsEnum, IsNumber, Min } from 'class-validator';
-import { PlanNombre } from '@prisma/client';
+// import { PlanNombre } from '@prisma/client'; // Removed
 
 export class CreateTenantDto {
     @IsNotEmpty()
@@ -31,9 +31,9 @@ export class CreateTenantDto {
     @IsNumber()
     impuesto_porcentaje?: number = 0;
 
-    @IsEnum(PlanNombre)
+    @IsString()
     @IsOptional()
-    plan?: PlanNombre = PlanNombre.FREE;
+    plan?: string = 'FREE';
 
     @IsOptional()
     @IsString()

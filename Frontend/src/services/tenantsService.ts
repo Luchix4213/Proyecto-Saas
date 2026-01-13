@@ -14,7 +14,8 @@ export interface Tenant {
     fecha_registro: string;
     plan?: {
         nombre_plan: string;
-        precio: string | number;
+        precio_mensual: string | number;
+        precio_anual: string | number;
     };
     usuarios?: any[];
 }

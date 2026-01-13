@@ -93,7 +93,8 @@ export class AutenticacionService {
           nombre_plan: 'FREE',
           max_usuarios: 2,
           max_productos: 50,
-          precio: 0,
+          precio_mensual: 0,
+          precio_anual: 0,
         },
       });
     }

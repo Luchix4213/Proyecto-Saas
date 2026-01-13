@@ -1,87 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import { planesService } from '../../services/planesService';
-import type { Plan } from '../../services/planesService';
-import { Plus, Pencil, Trash2, Check, X, Power } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { planesService, type Plan, type CreatePlanData } from '../../services/planesService';
+import { Plus, Edit2, Trash2, Check, X, Shield, Users, Package } from 'lucide-react';
 
 export const AdminPlansPage = () => {
-    const [planes, setPlanes] = useState<Plan[]>([]);
+    const [plans, setPlans] = useState<Plan[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [error, setError] = useState('');
+    const [showModal, setShowModal] = useState(false);
     const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
 
-    // Form states
-    const [formData, setFormData] = useState({
+    // Form Initial State
+    const [formData, setFormData] = useState<CreatePlanData>({
         nombre_plan: '',
-        max_usuarios: 0,
+        descripcion: '',
+        max_usuarios: 1,
         max_productos: 0,
-        precio: 0,
+        precio_mensual: 0,
+        precio_anual: 0,
         ventas_online: false,
         reportes_avanzados: false,
-        estado: 'ACTIVO' as 'ACTIVO' | 'INACTIVO'
+        estado: 'ACTIVO'
     });
 
     useEffect(() => {
-        loadPlanes();
+        loadPlans();
     }, []);
 
-    const loadPlanes = async () => {
-        setLoading(true);
+    const loadPlans = async () => {
         try {
             const data = await planesService.getAll();
-            setPlanes(data);
-        } catch (error) {
-            console.error('Error loading plans:', error);
-            alert('Error al cargar planes');
+            setPlans(data);
+        } catch (err) {
+            setError('Error al cargar planes');
+            console.error(err);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const payload = {
-                ...formData,
-                precio: Number(formData.precio), // Ensure number
-                max_usuarios: Number(formData.max_usuarios),
-                max_productos: Number(formData.max_productos)
-            };
-
-            if (editingPlan) {
-                await planesService.update(editingPlan.plan_id, payload);
-            } else {
-                await planesService.create(payload);
-            }
-            setIsModalOpen(false);
-            setEditingPlan(null);
-            resetForm();
-            loadPlanes();
-        } catch (error) {
-            console.error('Error saving plan:', error);
-            alert('Error al guardar el plan: ' + (error as any).response?.data?.message || 'Error desconocido');
-        }
-    };
-
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Estás seguro de eliminar este plan permanentemente?')) return;
-        try {
-            await planesService.delete(id);
-            loadPlanes();
-        } catch (error) {
-            console.error('Error deleting plan:', error);
-            alert('Error al eliminar el plan');
-        }
-    };
-
-    const toggleStatus = async (plan: Plan) => {
-        const newStatus = plan.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
-        if (!window.confirm(`¿Estás seguro de cambiar el estado a ${newStatus}?`)) return;
-        try {
-            await planesService.update(plan.plan_id, { estado: newStatus });
-            loadPlanes();
-        } catch (error) {
-            console.error('Error updating status:', error);
-            alert('Error al actualizar estado');
         }
     };
 
@@ -89,226 +42,265 @@ export const AdminPlansPage = () => {
         setEditingPlan(plan);
         setFormData({
             nombre_plan: plan.nombre_plan,
+            descripcion: plan.descripcion || '',
             max_usuarios: plan.max_usuarios,
             max_productos: plan.max_productos,
-            precio: plan.precio,
+            precio_mensual: plan.precio_mensual,
+            precio_anual: plan.precio_anual,
             ventas_online: plan.ventas_online,
             reportes_avanzados: plan.reportes_avanzados,
             estado: plan.estado
         });
-        setIsModalOpen(true);
+        setShowModal(true);
     };
 
-    const handleCreate = () => {
-        setEditingPlan(null);
-        resetForm();
-        setIsModalOpen(true);
-    }
-
-    const resetForm = () => {
-        setFormData({
-            nombre_plan: '',
-            max_usuarios: 1,
-            max_productos: 10,
-            precio: 0,
-            ventas_online: false,
-            reportes_avanzados: false,
-            estado: 'ACTIVO'
-        });
+    const handleDelete = async (id: number) => {
+        if (!window.confirm('¿Estás seguro de eliminar este plan?')) return;
+        try {
+            await planesService.delete(id);
+            loadPlans();
+        } catch (err) {
+            alert('Error al eliminar el plan');
+        }
     };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            if (editingPlan) {
+                await planesService.update(editingPlan.plan_id, formData);
+            } else {
+                await planesService.create(formData);
+            }
+            setShowModal(false);
+            setEditingPlan(null);
+            setFormData({
+                nombre_plan: '',
+                descripcion: '',
+                max_usuarios: 1,
+                max_productos: 0,
+                precio_mensual: 0,
+                precio_anual: 0,
+                ventas_online: false,
+                reportes_avanzados: false,
+                estado: 'ACTIVO'
+            });
+            loadPlans();
+        } catch (err) {
+            alert('Error al guardar el plan');
+            console.error(err);
+        }
+    };
+
+    if (loading) return <div>Cargando...</div>;
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-800">Gestión de Planes SaaS</h2>
+        <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <Shield className="text-indigo-600" />
+                    Gestión de Planes
+                </h1>
                 <button
-                    onClick={handleCreate}
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                    onClick={() => {
+                        setEditingPlan(null);
+                        setFormData({
+                            nombre_plan: '',
+                            descripcion: '',
+                            max_usuarios: 1,
+                            max_productos: 0,
+                            precio_mensual: 0,
+                            precio_anual: 0,
+                            ventas_online: false,
+                            reportes_avanzados: false,
+                            estado: 'ACTIVO'
+                        });
+                        setShowModal(true);
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                 >
-                    <Plus size={20} />
-                    Nuevo Plan
+                    <Plus size={20} /> Nuevo Plan
                 </button>
             </div>
 
+            {error && <div className="text-red-500 mb-4">{error}</div>}
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {planes.map((plan) => (
-                    <div key={plan.plan_id} className={`rounded-xl shadow-sm border p-6 flex flex-col relative overflow-hidden transition-all ${plan.estado === 'INACTIVO' ? 'bg-gray-50 border-gray-200 opacity-75' : 'bg-white border-gray-100'}`}>
-                        <div className="absolute top-0 right-0 p-4 flex gap-2">
-                            <button
-                                onClick={() => toggleStatus(plan)}
-                                title={plan.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'}
-                                className={`p-1.5 rounded-full transition-colors ${plan.estado === 'ACTIVO' ? 'text-green-600 hover:bg-green-50' : 'text-gray-400 hover:bg-gray-200'}`}
-                            >
-                                <Power size={18} />
-                            </button>
-                             <button onClick={() => handleEdit(plan)} className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors">
-                                <Pencil size={18} />
-                            </button>
-                            <button onClick={() => handleDelete(plan.plan_id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors">
-                                <Trash2 size={18} />
-                            </button>
-                        </div>
-
-                        <div className="flex items-center gap-2 mb-2">
-                             <h3 className="text-xl font-bold text-gray-900">{plan.nombre_plan}</h3>
-                             {plan.estado === 'INACTIVO' && <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">INACTIVO</span>}
-                        </div>
-
-                        <div className="mb-4">
-                            <span className="text-3xl font-bold text-indigo-600">${plan.precio}</span>
-                            <span className="text-gray-500 text-sm">/mes</span>
-                        </div>
-
-                        <div className="space-y-3 flex-1">
-                            <div className="flex items-center gap-2 text-gray-600">
-                                <Check size={18} className="text-green-500" />
-                                <span>Hasta <strong>{plan.max_usuarios}</strong> usuarios</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-600">
-                                <Check size={18} className="text-green-500" />
-                                <span>Hasta <strong>{plan.max_productos}</strong> productos</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-gray-600">
-                                {plan.ventas_online ? (
-                                    <Check size={18} className="text-green-500" />
-                                ) : (
-                                    <X size={18} className="text-gray-400" />
-                                )}
-                                <span className={plan.ventas_online ? '' : 'text-gray-400 line-through'}>
-                                    Ventas Online
+                {plans.map((plan) => (
+                    <div key={plan.plan_id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900">{plan.nombre_plan}</h3>
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                    plan.estado === 'ACTIVO' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                }`}>
+                                    {plan.estado}
                                 </span>
                             </div>
-                             <div className="flex items-center gap-2 text-gray-600">
-                                {plan.reportes_avanzados ? (
-                                    <Check size={18} className="text-green-500" />
-                                ) : (
-                                    <X size={18} className="text-gray-400" />
-                                )}
-                                <span className={plan.reportes_avanzados ? '' : 'text-gray-400 line-through'}>
-                                    Reportes Avanzados
-                                </span>
+                            <div className="flex gap-2">
+                                <button onClick={() => handleEdit(plan)} className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-gray-50 rounded-lg">
+                                    <Edit2 size={18} />
+                                </button>
+                                <button onClick={() => handleDelete(plan.plan_id)} className="p-2 text-gray-500 hover:text-red-600 hover:bg-gray-50 rounded-lg">
+                                    <Trash2 size={18} />
+                                </button>
                             </div>
                         </div>
 
-                        <div className="mt-6 pt-4 border-t border-gray-50 text-xs text-gray-400 text-center">
-                            ID Plan: {plan.plan_id}
+                        <div className="space-y-3 mb-6">
+                            <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span className="text-sm text-gray-600">Mensual</span>
+                                <span className="font-bold text-gray-900">{plan.precio_mensual} BOB</span>
+                            </div>
+                            <div className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span className="text-sm text-gray-600">Anual</span>
+                                <span className="font-bold text-gray-900">{plan.precio_anual} BOB</span>
+                            </div>
+
+                            <div className="border-t pt-3 space-y-2">
+                                <p className="text-sm flex items-center gap-2">
+                                    <Users size={16} className="text-gray-400" />
+                                    <span>Max Usuarios: <strong>{plan.max_usuarios}</strong></span>
+                                </p>
+                                <p className="text-sm flex items-center gap-2">
+                                    <Package size={16} className="text-gray-400" />
+                                    <span>Max Productos: <strong>{plan.max_productos}</strong></span>
+                                </p>
+                                <p className="text-sm flex items-center gap-2">
+                                    {plan.ventas_online ? <Check size={16} className="text-green-500" /> : <X size={16} className="text-red-500" />}
+                                    <span>Ventas Online</span>
+                                </p>
+                                <p className="text-sm flex items-center gap-2">
+                                    {plan.reportes_avanzados ? <Check size={16} className="text-green-500" /> : <X size={16} className="text-red-500" />}
+                                    <span>Reportes Avanzados</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 ))}
-
-                {!loading && planes.length === 0 && (
-                     <div className="col-span-full py-12 text-center text-gray-500 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                        <p>No hay planes definidos.</p>
-                        <button onClick={handleCreate} className="mt-2 text-indigo-600 hover:underline">Crear el primero</button>
-                    </div>
-                )}
             </div>
 
             {/* Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                        <h3 className="text-xl font-bold mb-4">{editingPlan ? 'Editar Plan' : 'Nuevo Plan'}</h3>
+            {showModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+                        <h2 className="text-xl font-bold mb-4">{editingPlan ? 'Editar Plan' : 'Nuevo Plan'}</h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Plan</label>
+                                <label className="block text-sm font-medium text-gray-700">Nombre del Plan</label>
                                 <input
                                     type="text"
                                     required
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
                                     value={formData.nombre_plan}
                                     onChange={e => setFormData({...formData, nombre_plan: e.target.value})}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder="Ej. Básico, Pro, Enterprise"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Descripción</label>
+                                <textarea
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+                                    value={formData.descripcion || ''}
+                                    onChange={e => setFormData({...formData, descripcion: e.target.value})}
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Precio (Bs)</label>
+                                    <label className="block text-sm font-medium text-gray-700">Precio Mensual (BOB)</label>
                                     <input
                                         type="number"
-                                        required
                                         min="0"
-                                        value={formData.precio}
-                                        onChange={e => setFormData({...formData, precio: Number(e.target.value)})}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                        required
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+                                        value={formData.precio_mensual}
+                                        onChange={e => setFormData({...formData, precio_mensual: Number(e.target.value)})}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Máx. Usuarios</label>
+                                    <label className="block text-sm font-medium text-gray-700">Precio Anual (BOB)</label>
                                     <input
                                         type="number"
+                                        min="0"
                                         required
-                                        min="1"
-                                        value={formData.max_usuarios}
-                                        onChange={e => setFormData({...formData, max_usuarios: Number(e.target.value)})}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+                                        value={formData.precio_anual}
+                                        onChange={e => setFormData({...formData, precio_anual: Number(e.target.value)})}
                                     />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Máx. Productos</label>
+                                    <label className="block text-sm font-medium text-gray-700">Max Usuarios</label>
                                     <input
                                         type="number"
-                                        required
                                         min="1"
+                                        required
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+                                        value={formData.max_usuarios}
+                                        onChange={e => setFormData({...formData, max_usuarios: Number(e.target.value)})}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Max Productos</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        required
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
                                         value={formData.max_productos}
                                         onChange={e => setFormData({...formData, max_productos: Number(e.target.value)})}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                                     />
-                                </div>
-                                 <div className="flex flex-col justify-end">
-                                     <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                                     <select
-                                        value={formData.estado}
-                                        onChange={e => setFormData({...formData, estado: e.target.value as 'ACTIVO' | 'INACTIVO'})}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                     >
-                                         <option value="ACTIVO">ACTIVO</option>
-                                         <option value="INACTIVO">INACTIVO</option>
-                                     </select>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-2">
+                            <div className="flex gap-6 mt-4">
+                                <label className="flex items-center gap-2">
                                     <input
                                         type="checkbox"
-                                        id="online"
                                         checked={formData.ventas_online}
                                         onChange={e => setFormData({...formData, ventas_online: e.target.checked})}
-                                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                        className="rounded text-indigo-600 focus:ring-indigo-500"
                                     />
-                                    <label htmlFor="online" className="text-sm text-gray-700">Habilitar Ventas Online</label>
-                                </div>
-
-                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-700">Ventas Online</span>
+                                </label>
+                                <label className="flex items-center gap-2">
                                     <input
                                         type="checkbox"
-                                        id="reportes"
                                         checked={formData.reportes_avanzados}
                                         onChange={e => setFormData({...formData, reportes_avanzados: e.target.checked})}
-                                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                                        className="rounded text-indigo-600 focus:ring-indigo-500"
                                     />
-                                    <label htmlFor="reportes" className="text-sm text-gray-700">Habilitar Reportes Avanzados</label>
-                                </div>
+                                    <span className="text-sm text-gray-700">Reportes Avanzados</span>
+                                </label>
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-4 border-t">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                                <select
+                                    value={formData.estado}
+                                    onChange={e => setFormData({...formData, estado: e.target.value as 'ACTIVO' | 'INACTIVO'})}
+                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+                                >
+                                    <option value="ACTIVO">Activo</option>
+                                    <option value="INACTIVO">Inactivo</option>
+                                </select>
+                            </div>
+
+                            <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
                                 <button
                                     type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium"
+                                    onClick={() => setShowModal(false)}
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700"
+                                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
                                 >
-                                    {editingPlan ? 'Guardar Cambios' : 'Crear Plan'}
+                                    Guardar Plan
                                 </button>
                             </div>
                         </form>

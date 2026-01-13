@@ -46,7 +46,7 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
                 materno: '',
                 email: '',
                 password: '',
-                rol: user?.rol === 'PROPIETARIO' ? 'VENDEDOR' : 'VENDEDOR',
+                rol: user?.rol === 'ADMIN' ? 'ADMIN' : 'VENDEDOR',
                 estado: 'ACTIVO'
             });
         }
@@ -195,11 +195,10 @@ export const UserForm = ({ isOpen, onClose, onSuccess, userToEdit }: UserFormPro
                                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-gray-100 disabled:text-gray-500"
                                 value={formData.rol}
                                 onChange={(e) => handleChange('rol', e.target.value)}
-                                disabled={user?.rol === 'PROPIETARIO'}
                             >
                                 <option value="VENDEDOR">Vendedor</option>
-                                <option value="PROPIETARIO" disabled={user?.rol === 'PROPIETARIO'}>Propietario</option>
-                                <option value="ADMIN" disabled={user?.rol === 'PROPIETARIO'}>Admin</option>
+                                <option value="PROPIETARIO">Propietario</option>
+                                <option value="ADMIN" disabled={user?.rol !== 'ADMIN'}>Admin</option>
                             </select>
                         </div>
                     </div>

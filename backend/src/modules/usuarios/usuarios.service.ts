@@ -11,15 +11,22 @@ export class UsuariosService {
     constructor(private prisma: PrismaService) { }
 
     async create(createUserDto: CreateUserDto, tenantId: number, requestingUser?: any) {
-        // Restricción: PROPIETARIO solo puede crear VENDEDOR
+        // Validaciones de jerarquía de roles
         if (requestingUser?.rol === RolUsuario.PROPIETARIO) {
-            if (createUserDto.rol !== RolUsuario.VENDEDOR) {
-                throw new ForbiddenException('Los propietarios solo pueden crear usuarios con rol VENDEDOR.');
+            // PROPIETARIO puede crear otros PROPIETARIOS o VENDEDORES
+            const rolesPermitidos: RolUsuario[] = [RolUsuario.PROPIETARIO, RolUsuario.VENDEDOR];
+            if (!rolesPermitidos.includes(createUserDto.rol)) {
+                throw new ForbiddenException('Los propietarios solo pueden crear usuarios con rol PROPIETARIO o VENDEDOR.');
             }
+        } else if (requestingUser?.rol === RolUsuario.ADMIN) {
+            // ADMIN puede crear cualquier rol (incluyendo otros ADMIN)
+        } else {
+            // VENDEDOR o cualquier otro no debería poder crear usuarios (protegido por guards usualmente, pero aquí reforzamos)
+            throw new ForbiddenException('No tienes permisos para crear usuarios.');
         }
         const { password, ...userData } = createUserDto;
 
-        // Validar email único
+        // Validar email único globalmente
         const existingUser = await this.prisma.usuario.findUnique({
             where: { email: userData.email },
         });
@@ -75,8 +82,15 @@ export class UsuariosService {
         });
     }
 
-    async update(id: number, updateUserDto: UpdateUserDto, tenantId: number) {
-        await this.findOne(id, tenantId); // Verificar existencia y pertenencia
+    async update(id: number, updateUserDto: UpdateUserDto, tenantId: number, requestingUser?: any) {
+        // Si es ADMIN, buscamos sin restricción de tenant
+        if (requestingUser?.rol === RolUsuario.ADMIN) {
+            const user = await this.prisma.usuario.findUnique({ where: { usuario_id: id } });
+            if (!user) throw new NotFoundException('Usuario no encontrado');
+        } else {
+            // Si no es ADMIN, aplicamos restricción de tenant
+            await this.findOne(id, tenantId);
+        }
 
         return this.prisma.usuario.update({
             where: { usuario_id: id },

@@ -18,6 +18,7 @@ import { PrismaModule } from './prisma/prisma.module';
 
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { PlanesModule } from './modules/planes/planes.module';
+import { SuscripcionesModule } from './modules/suscripciones/suscripciones.module';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { PlanesModule } from './modules/planes/planes.module';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
-    AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule, PlanesModule
+    AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule, PlanesModule, SuscripcionesModule
   ],
   controllers: [AppController],
   providers: [AppService],

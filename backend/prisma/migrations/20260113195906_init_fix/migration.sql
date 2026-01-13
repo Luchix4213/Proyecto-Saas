@@ -22,15 +22,20 @@ CREATE TYPE "EstadoVenta" AS ENUM ('REGISTRADA', 'PAGADA', 'CANCELADA');
 -- CreateEnum
 CREATE TYPE "EstadoCompra" AS ENUM ('PENDIENTE', 'CONFIRMADA', 'CANCELADA');
 
+-- CreateEnum
+CREATE TYPE "EstadoSuscripcion" AS ENUM ('ACTIVA', 'VENCIDA', 'CANCELADA');
+
 -- CreateTable
 CREATE TABLE "Plan" (
     "plan_id" SERIAL NOT NULL,
     "nombre_plan" TEXT NOT NULL,
+    "descripcion" TEXT,
     "max_usuarios" INTEGER NOT NULL,
     "max_productos" INTEGER NOT NULL,
     "ventas_online" BOOLEAN NOT NULL DEFAULT false,
     "reportes_avanzados" BOOLEAN NOT NULL DEFAULT false,
-    "precio" DECIMAL(10,2) NOT NULL,
+    "precio_mensual" DECIMAL(10,2) NOT NULL,
+    "precio_anual" DECIMAL(10,2) NOT NULL DEFAULT 0,
     "estado" "EstadoGenerico" NOT NULL DEFAULT 'ACTIVO',
 
     CONSTRAINT "Plan_pkey" PRIMARY KEY ("plan_id")
@@ -70,6 +75,22 @@ CREATE TABLE "Usuario" (
     "reset_token_exp" TIMESTAMP(3),
 
     CONSTRAINT "Usuario_pkey" PRIMARY KEY ("usuario_id")
+);
+
+-- CreateTable
+CREATE TABLE "Suscripcion" (
+    "suscripcion_id" SERIAL NOT NULL,
+    "tenant_id" INTEGER NOT NULL,
+    "plan_id" INTEGER NOT NULL,
+    "fecha_inicio" TIMESTAMP(3) NOT NULL,
+    "fecha_fin" TIMESTAMP(3),
+    "monto" DECIMAL(10,2) NOT NULL,
+    "metodo_pago" "MetodoPago" NOT NULL,
+    "estado" "EstadoSuscripcion" NOT NULL DEFAULT 'ACTIVA',
+    "referencia" TEXT,
+    "creado_en" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Suscripcion_pkey" PRIMARY KEY ("suscripcion_id")
 );
 
 -- CreateTable
@@ -123,6 +144,18 @@ CREATE TABLE "Producto" (
     "estado" "EstadoGenerico" NOT NULL DEFAULT 'ACTIVO',
 
     CONSTRAINT "Producto_pkey" PRIMARY KEY ("producto_id")
+);
+
+-- CreateTable
+CREATE TABLE "ProductoImagen" (
+    "imagen_id" SERIAL NOT NULL,
+    "producto_id" INTEGER NOT NULL,
+    "url" TEXT NOT NULL,
+    "orden" INTEGER NOT NULL DEFAULT 1,
+    "es_principal" BOOLEAN NOT NULL DEFAULT false,
+    "estado" "EstadoGenerico" NOT NULL DEFAULT 'ACTIVO',
+
+    CONSTRAINT "ProductoImagen_pkey" PRIMARY KEY ("imagen_id")
 );
 
 -- CreateTable
@@ -205,10 +238,19 @@ CREATE UNIQUE INDEX "Usuario_email_key" ON "Usuario"("email");
 CREATE INDEX "Usuario_tenant_id_idx" ON "Usuario"("tenant_id");
 
 -- CreateIndex
+CREATE INDEX "Suscripcion_tenant_id_idx" ON "Suscripcion"("tenant_id");
+
+-- CreateIndex
 CREATE INDEX "Cliente_tenant_id_idx" ON "Cliente"("tenant_id");
 
 -- CreateIndex
 CREATE INDEX "Producto_tenant_id_idx" ON "Producto"("tenant_id");
+
+-- CreateIndex
+CREATE INDEX "ProductoImagen_producto_id_idx" ON "ProductoImagen"("producto_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProductoImagen_producto_id_orden_key" ON "ProductoImagen"("producto_id", "orden");
 
 -- CreateIndex
 CREATE INDEX "Compra_tenant_id_idx" ON "Compra"("tenant_id");
@@ -223,6 +265,12 @@ ALTER TABLE "Tenant" ADD CONSTRAINT "Tenant_plan_id_fkey" FOREIGN KEY ("plan_id"
 ALTER TABLE "Usuario" ADD CONSTRAINT "Usuario_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "Tenant"("tenant_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Suscripcion" ADD CONSTRAINT "Suscripcion_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "Tenant"("tenant_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Suscripcion" ADD CONSTRAINT "Suscripcion_plan_id_fkey" FOREIGN KEY ("plan_id") REFERENCES "Plan"("plan_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Cliente" ADD CONSTRAINT "Cliente_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "Tenant"("tenant_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -233,6 +281,9 @@ ALTER TABLE "Producto" ADD CONSTRAINT "Producto_categoria_id_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "Producto" ADD CONSTRAINT "Producto_proveedor_id_fkey" FOREIGN KEY ("proveedor_id") REFERENCES "Proveedor"("proveedor_id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductoImagen" ADD CONSTRAINT "ProductoImagen_producto_id_fkey" FOREIGN KEY ("producto_id") REFERENCES "Producto"("producto_id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Compra" ADD CONSTRAINT "Compra_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "Tenant"("tenant_id") ON DELETE RESTRICT ON UPDATE CASCADE;

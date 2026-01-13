@@ -95,6 +95,14 @@ export const MainLayout = () => {
                                 Microempresas
                             </Link>
                             <Link
+                                to="/admin/suscripciones"
+                                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/suscripciones') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                                    }`}
+                            >
+                                <CreditCard size={20} />
+                                Suscripciones
+                            </Link>
+                            <Link
                                 to="/admin/usuarios"
                                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/admin/usuarios') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
                                     }`}

@@ -1,7 +1,7 @@
 import { Controller, Patch, Param, Body, UseGuards, ParseIntPipe, Get, Request, UnauthorizedException, ForbiddenException, ParseEnumPipe, Post, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
-import { EstadoEmpresa, RolUsuario, PlanNombre } from '@prisma/client';
+import { EstadoEmpresa, RolUsuario } from '@prisma/client';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -88,7 +88,7 @@ export class TenantsController {
   @Patch(':id/plan')
   async updatePlan(
     @Param('id', ParseIntPipe) id: number,
-    @Body('plan', new ParseEnumPipe(PlanNombre)) plan: PlanNombre,
+    @Body('plan') plan: string,
     @Request() req
   ) {
     // Validar permisos

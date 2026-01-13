@@ -1,9 +1,13 @@
 import { IsString, IsInt, IsNumber, IsBoolean, IsOptional, Min, IsEnum } from 'class-validator';
-import { EstadoGenerico, PlanNombre } from '@prisma/client';
+import { EstadoGenerico } from '@prisma/client';
 
 export class CreatePlanDto {
-  @IsEnum(PlanNombre)
-  nombre_plan: PlanNombre;
+  @IsString()
+  nombre_plan: string;
+
+  @IsString()
+  @IsOptional()
+  descripcion?: string;
 
   @IsInt()
   @Min(1)
@@ -15,7 +19,11 @@ export class CreatePlanDto {
 
   @IsNumber()
   @Min(0)
-  precio: number;
+  precio_mensual: number;
+
+  @IsNumber()
+  @Min(0)
+  precio_anual: number;
 
   @IsBoolean()
   @IsOptional()
@@ -31,9 +39,13 @@ export class CreatePlanDto {
 }
 
 export class UpdatePlanDto {
-  @IsEnum(PlanNombre)
+  @IsString()
   @IsOptional()
-  nombre_plan?: PlanNombre;
+  nombre_plan?: string;
+
+  @IsString()
+  @IsOptional()
+  descripcion?: string;
 
   @IsInt()
   @Min(1)
@@ -48,7 +60,12 @@ export class UpdatePlanDto {
   @IsNumber()
   @Min(0)
   @IsOptional()
-  precio?: number;
+  precio_mensual?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  precio_anual?: number;
 
   @IsBoolean()
   @IsOptional()

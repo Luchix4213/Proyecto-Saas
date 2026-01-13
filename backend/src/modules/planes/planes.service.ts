@@ -11,9 +11,11 @@ export class PlanesService {
       return await this.prisma.plan.create({
         data: {
           nombre_plan: createPlanDto.nombre_plan,
+          descripcion: createPlanDto.descripcion,
           max_usuarios: createPlanDto.max_usuarios,
           max_productos: createPlanDto.max_productos,
-          precio: createPlanDto.precio,
+          precio_mensual: createPlanDto.precio_mensual,
+          precio_anual: createPlanDto.precio_anual,
           ventas_online: createPlanDto.ventas_online || false,
           reportes_avanzados: createPlanDto.reportes_avanzados || false,
           estado: createPlanDto.estado,
@@ -30,7 +32,7 @@ export class PlanesService {
 
   async findAll() {
     return this.prisma.plan.findMany({
-      orderBy: { precio: 'asc' },
+      orderBy: { precio_mensual: 'asc' },
     });
   }
 

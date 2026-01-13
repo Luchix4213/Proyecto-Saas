@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { EstadoEmpresa, PlanNombre, RolUsuario } from '@prisma/client';
+import { EstadoEmpresa, RolUsuario } from '@prisma/client';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
@@ -45,7 +45,7 @@ export class TenantsService {
 
     // Buscar el plan
     const planDb = await this.prisma.plan.findFirst({
-      where: { nombre_plan: plan || PlanNombre.FREE }
+      where: { nombre_plan: plan || 'FREE' }
     });
     if (!planDb) {
       throw new NotFoundException('Plan no encontrado');
@@ -124,7 +124,7 @@ export class TenantsService {
     });
   }
 
-  async updatePlan(tenantId: number, planName: PlanNombre) {
+  async updatePlan(tenantId: number, planName: string) {
     // Buscar el plan por nombre
     const plan = await this.prisma.plan.findFirst({
       where: { nombre_plan: planName },

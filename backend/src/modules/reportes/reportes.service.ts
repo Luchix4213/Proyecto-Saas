@@ -51,7 +51,7 @@ export class ReportesService {
     });
 
     estimatedMonthlyRevenue = tenantsWithPlans.reduce((acc, t) => {
-        return acc + Number(t.plan?.precio || 0);
+        return acc + Number(t.plan?.precio_mensual || 0);
     }, 0);
 
     return {

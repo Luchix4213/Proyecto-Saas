@@ -16,6 +16,7 @@ export const UsersPage = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isPasswordOpen, setIsPasswordOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
+    const [filter, setFilter] = useState<'ALL' | 'ACTIVO' | 'INACTIVO'>('ALL');
 
     useEffect(() => {
         loadUsers();
@@ -64,7 +65,6 @@ export const UsersPage = () => {
     };
 
     const handleDelete = async (user: Usuario) => {
-        // ... (resto del código igual)
         if (window.confirm(`¿Estás seguro de eliminar a ${user.nombre}? Esta acción no se puede deshacer.`)) {
             try {
                 await userService.delete(user.usuario_id);
@@ -75,6 +75,11 @@ export const UsersPage = () => {
             }
         }
     };
+
+    const filteredUsers = usuarios.filter(u => {
+        if (filter === 'ALL') return true;
+        return u.estado === filter;
+    });
 
     return (
         <div className="space-y-6">
@@ -91,6 +96,37 @@ export const UsersPage = () => {
                 )}
             </div>
 
+            {/* Filtros por estado */}
+            <div className="flex border-b border-gray-200">
+                <button
+                    onClick={() => setFilter('ALL')}
+                    className={`px-6 py-2 text-sm font-medium transition-colors border-b-2 ${filter === 'ALL'
+                        ? 'border-indigo-600 text-indigo-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                >
+                    Todos ({usuarios.length})
+                </button>
+                <button
+                    onClick={() => setFilter('ACTIVO')}
+                    className={`px-6 py-2 text-sm font-medium transition-colors border-b-2 ${filter === 'ACTIVO'
+                        ? 'border-green-600 text-green-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                >
+                    Activos ({usuarios.filter(u => u.estado === 'ACTIVO').length})
+                </button>
+                <button
+                    onClick={() => setFilter('INACTIVO')}
+                    className={`px-6 py-2 text-sm font-medium transition-colors border-b-2 ${filter === 'INACTIVO'
+                        ? 'border-red-600 text-red-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                >
+                    Inactivos ({usuarios.filter(u => u.estado === 'INACTIVO').length})
+                </button>
+            </div>
+
             <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 text-gray-600 font-medium text-sm uppercase">
@@ -105,12 +141,12 @@ export const UsersPage = () => {
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
                             <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-500">Cargando...</td></tr>
-                        ) : usuarios.map((user) => (
-                            <tr key={user.usuario_id} className="hover:bg-gray-50 transition-colors">
+                        ) : filteredUsers.map((user) => (
+                            <tr key={user.usuario_id} className={`hover:bg-gray-50 transition-colors ${user.estado === 'INACTIVO' ? 'bg-gray-50/50' : ''}`}>
                                 <td className="px-6 py-4">
-                                    <div className="font-medium text-gray-900">{user.nombre} {user.paterno}</div>
+                                    <div className={`font-medium ${user.estado === 'INACTIVO' ? 'text-gray-400' : 'text-gray-900'}`}>{user.nombre} {user.paterno}</div>
                                 </td>
-                                <td className="px-6 py-4 text-gray-600">{user.email}</td>
+                                <td className={`px-6 py-4 ${user.estado === 'INACTIVO' ? 'text-gray-400' : 'text-gray-600'}`}>{user.email}</td>
                                 <td className="px-6 py-4">
                                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.rol === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                                         }`}>

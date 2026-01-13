@@ -15,11 +15,12 @@ import { AdminTenantsPage } from './pages/admin/AdminTenantsPage';
 import { AdminTenantDetailPage } from './pages/admin/AdminTenantDetailPage';
 import { AdminPlansPage } from './pages/admin/AdminPlansPage';
 import { AdminSystemUsersPage } from './pages/admin/AdminSystemUsersPage';
+import { AdminSubscriptionsPage } from './pages/admin/AdminSubscriptionsPage';
 
 /* Owner / Seller Pages */
-import { UsersPage } from './pages/usuarios/UsersPage';
-import { SubscriptionPage } from './pages/admin/SubscriptionPage';
-import MyTenantPage from './pages/tenants/MyTenantPage';
+import { UsersPage } from './pages/owner/UsersPage';
+import { SubscriptionPage } from './pages/owner/SubscriptionPage';
+import MyTenantPage from './pages/owner/MyTenantPage';
 
 function App() {
   return (
@@ -105,6 +106,15 @@ function App() {
                   <AdminSystemUsersPage />
                 </PrivateRoute>
               }
+            />
+
+            <Route
+                path="admin/suscripciones"
+                element={
+                    <PrivateRoute roles={['ADMIN']}>
+                        <AdminSubscriptionsPage />
+                    </PrivateRoute>
+                }
             />
 
             {/* ===================== */}
