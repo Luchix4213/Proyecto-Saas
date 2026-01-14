@@ -157,6 +157,7 @@ model Cliente {
   materno        String?
   email          String?
   telefono       String?
+  nit_ci         String?        // Documento de identidad / NIT
   password_hash  String? // Solo si tiene cuenta para carrito
   fecha_registro DateTime       @default(now())
   estado         EstadoGenerico @default(ACTIVO)

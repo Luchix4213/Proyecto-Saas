@@ -24,8 +24,8 @@ export const MainLayout = () => {
                     <div className="mt-2">
                         <p className="text-sm font-semibold text-gray-900">{user?.nombre || 'Usuario'}</p>
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 ${user?.rol === 'ADMIN' ? 'bg-purple-100 text-purple-800' :
-                                user?.rol === 'PROPIETARIO' ? 'bg-indigo-100 text-indigo-800' :
-                                    'bg-blue-100 text-blue-800'
+                            user?.rol === 'PROPIETARIO' ? 'bg-indigo-100 text-indigo-800' :
+                                'bg-blue-100 text-blue-800'
                             }`}>
                             {user?.rol}
                         </span>
@@ -74,6 +74,18 @@ export const MainLayout = () => {
                                 Suscripción
                             </Link>
                         </>
+                    )}
+
+                    {/* Vistas Comunes (Propietario + Vendedor) */}
+                    {(user?.rol === 'PROPIETARIO' || user?.rol === 'VENDEDOR') && (
+                        <Link
+                            to="/clientes"
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive('/clientes') ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-600 hover:bg-gray-50'
+                                }`}
+                        >
+                            <Users size={20} />
+                            Clientes
+                        </Link>
                     )}
 
                     {user?.rol === 'ADMIN' && (

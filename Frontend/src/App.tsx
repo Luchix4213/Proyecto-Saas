@@ -17,10 +17,10 @@ import { AdminPlansPage } from './pages/admin/AdminPlansPage';
 import { AdminSystemUsersPage } from './pages/admin/AdminSystemUsersPage';
 import { AdminSubscriptionsPage } from './pages/admin/AdminSubscriptionsPage';
 
-/* Owner / Seller Pages */
 import { UsersPage } from './pages/owner/UsersPage';
 import { SubscriptionPage } from './pages/owner/SubscriptionPage';
 import MyTenantPage from './pages/owner/MyTenantPage';
+import { ClientsPage } from './pages/owner/ClientsPage';
 
 function App() {
   return (
@@ -109,12 +109,12 @@ function App() {
             />
 
             <Route
-                path="admin/suscripciones"
-                element={
-                    <PrivateRoute roles={['ADMIN']}>
-                        <AdminSubscriptionsPage />
-                    </PrivateRoute>
-                }
+              path="admin/suscripciones"
+              element={
+                <PrivateRoute roles={['ADMIN']}>
+                  <AdminSubscriptionsPage />
+                </PrivateRoute>
+              }
             />
 
             {/* ===================== */}
@@ -143,6 +143,15 @@ function App() {
               element={
                 <PrivateRoute roles={['PROPIETARIO']}>
                   <SubscriptionPage />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="clientes"
+              element={
+                <PrivateRoute roles={['PROPIETARIO', 'VENDEDOR']}>
+                  <ClientsPage />
                 </PrivateRoute>
               }
             />
