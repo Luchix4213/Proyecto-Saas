@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { SuscripcionesService } from './suscripciones.service';
 import { CreateSuscripcionDto } from './dto/create-suscripcion.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolUsuario } from '@prisma/client';
+import type { RequestWithUser } from '../../common/interfaces/request-with-user.interface';
 
 @Controller('suscripciones')
 @UseGuards(AuthGuard, RolesGuard)
@@ -16,7 +17,7 @@ export class SuscripcionesController {
   // Aquí permitimos al Propietario "contratar" un plan directamente (Demo)
   @Post()
   @Roles(RolUsuario.ADMIN, RolUsuario.PROPIETARIO)
-  create(@Body() createSuscripcionDto: CreateSuscripcionDto, @Request() req) {
+  create(@Body() createSuscripcionDto: CreateSuscripcionDto, @Req() req: RequestWithUser) {
     const userRole = req.user.rol;
     const tenantId = req.user.tenant_id;
 
@@ -40,7 +41,7 @@ export class SuscripcionesController {
   // PROPIETARIO: Ver mis suscripciones
   @Get('mis-suscripciones')
   @Roles(RolUsuario.PROPIETARIO)
-  findMySubscriptions(@Request() req) {
+  findMySubscriptions(@Req() req: RequestWithUser) {
     const tenantId = req.user.tenant_id;
     return this.suscripcionesService.findByTenant(tenantId);
   }
@@ -55,7 +56,7 @@ export class SuscripcionesController {
   // PROPIETARIO/ADMIN: Cancelar
   @Post(':id/cancelar')
   @Roles(RolUsuario.ADMIN, RolUsuario.PROPIETARIO)
-  async cancel(@Param('id') id: string, @Request() req) {
+  async cancel(@Param('id') id: string, @Req() req: RequestWithUser) {
     const subId = +id;
     const userRole = req.user.rol;
     const tenantId = req.user.tenant_id;

@@ -163,9 +163,11 @@ export class AutenticacionService {
       },
     });
 
-    console.log(
-      `[MOCK EMAIL SERVICE] Password reset token for ${email}: ${token}`,
-    );
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(
+        `[MOCK EMAIL SERVICE] Password reset token for ${email}: ${token}`,
+      );
+    }
 
     return {
       message: 'Si el correo existe, recibirás un enlace de recuperación.',
