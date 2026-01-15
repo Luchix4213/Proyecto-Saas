@@ -94,6 +94,7 @@ model Tenant {
   impuesto_porcentaje Decimal       @default(0) @db.Decimal(5, 2)
   logo_url            String?
   horario_atencion    String?
+  rubro               String? // Ej: Juguetes, Farmacia, Ropa
   estado              EstadoEmpresa @default(PENDIENTE)
   fecha_registro      DateTime      @default(now())
 
@@ -157,7 +158,7 @@ model Cliente {
   materno        String?
   email          String?
   telefono       String?
-  nit_ci         String?        // Documento de identidad / NIT
+  nit_ci         String? // Documento de identidad / NIT
   password_hash  String? // Solo si tiene cuenta para carrito
   fecha_registro DateTime       @default(now())
   estado         EstadoGenerico @default(ACTIVO)

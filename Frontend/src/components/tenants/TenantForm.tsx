@@ -18,6 +18,7 @@ interface FormInputs {
     moneda: string;
     impuesto_porcentaje: number;
     horario_atencion: string;
+    rubro: string;
     logo_file: FileList;
     // Creation fields
     nombre_contacto?: string;
@@ -37,6 +38,7 @@ const TenantForm: React.FC<TenantFormProps> = ({ tenant, onSubmit, onCancel, isL
             moneda: tenant?.moneda || 'BOB',
             impuesto_porcentaje: tenant?.impuesto_porcentaje ? Number(tenant.impuesto_porcentaje) : 0,
             horario_atencion: tenant?.horario_atencion || '',
+            rubro: tenant?.rubro || '',
             email: tenant?.email || '',
             email_empresa: tenant?.email || '',
         }
@@ -69,6 +71,7 @@ const TenantForm: React.FC<TenantFormProps> = ({ tenant, onSubmit, onCancel, isL
                 moneda: data.moneda,
                 impuesto_porcentaje: Number(data.impuesto_porcentaje),
                 horario_atencion: data.horario_atencion,
+                rubro: data.rubro,
                 logo: data.logo_file && data.logo_file.length > 0 ? data.logo_file[0] : undefined
             };
             onSubmit(updateData);
@@ -211,6 +214,22 @@ const TenantForm: React.FC<TenantFormProps> = ({ tenant, onSubmit, onCancel, isL
                             {...register('horario_atencion')}
                             className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border"
                             placeholder="Ej. Lun-Vie 08:00 - 18:00"
+                        />
+                    </div>
+                </div>
+
+                {/* Rubro */}
+                <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Rubro / Categoría de Negocio</label>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Building className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            {...register('rubro')}
+                            className="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2 border"
+                            placeholder="Ej. Juguetes, Farmacia, Ropa"
                         />
                     </div>
                 </div>

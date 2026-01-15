@@ -39,6 +39,10 @@ export class CreateTenantDto {
     @IsString()
     horario_atencion?: string;
 
+    @IsOptional()
+    @IsString()
+    rubro?: string;
+
     // Datos del usuario admin inicial
     @IsString()
     @IsNotEmpty()

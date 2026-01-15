@@ -1,4 +1,4 @@
-import { Controller, Patch, Param, Body, UseGuards, ParseIntPipe, Get, Request, UnauthorizedException, ForbiddenException, ParseEnumPipe, Post, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Patch, Param, Body, UseGuards, ParseIntPipe, Get, Request, UnauthorizedException, ForbiddenException, ParseEnumPipe, Post, UseInterceptors, UploadedFile, BadRequestException, Query } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { EstadoEmpresa, RolUsuario } from '@prisma/client';
@@ -32,11 +32,11 @@ export class TenantsController {
   }
 
   @Get()
-  async findAll(@Request() req) {
+  async findAll(@Request() req, @Query('rubro') rubro?: string) {
     if (req.user.rol !== RolUsuario.ADMIN) {
       throw new ForbiddenException('Acceso denegado. Solo administradores.');
     }
-    return this.tenantsService.findAll();
+    return this.tenantsService.findAll(rubro);
   }
 
   @Get(':id')

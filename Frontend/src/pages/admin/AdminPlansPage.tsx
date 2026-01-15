@@ -22,6 +22,8 @@ export const AdminPlansPage = () => {
         estado: 'ACTIVO'
     });
 
+    const [filterStatus, setFilterStatus] = useState<string>('ALL');
+
     useEffect(() => {
         loadPlans();
     }, []);
@@ -92,6 +94,11 @@ export const AdminPlansPage = () => {
         }
     };
 
+    const filteredPlans = plans.filter(plan => {
+        if (filterStatus === 'ALL') return true;
+        return plan.estado === filterStatus;
+    });
+
     if (loading) return <div>Cargando...</div>;
 
     return (
@@ -101,32 +108,43 @@ export const AdminPlansPage = () => {
                     <Shield className="text-indigo-600" />
                     Gestión de Planes
                 </h1>
-                <button
-                    onClick={() => {
-                        setEditingPlan(null);
-                        setFormData({
-                            nombre_plan: '',
-                            descripcion: '',
-                            max_usuarios: 1,
-                            max_productos: 0,
-                            precio_mensual: 0,
-                            precio_anual: 0,
-                            ventas_online: false,
-                            reportes_avanzados: false,
-                            estado: 'ACTIVO'
-                        });
-                        setShowModal(true);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                >
-                    <Plus size={20} /> Nuevo Plan
-                </button>
+                <div className="flex gap-2">
+                     <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="block rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                    >
+                        <option value="ALL">Todos</option>
+                        <option value="ACTIVO">Activos</option>
+                        <option value="INACTIVO">Inactivos</option>
+                    </select>
+                    <button
+                        onClick={() => {
+                            setEditingPlan(null);
+                            setFormData({
+                                nombre_plan: '',
+                                descripcion: '',
+                                max_usuarios: 1,
+                                max_productos: 0,
+                                precio_mensual: 0,
+                                precio_anual: 0,
+                                ventas_online: false,
+                                reportes_avanzados: false,
+                                estado: 'ACTIVO'
+                            });
+                            setShowModal(true);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                    >
+                        <Plus size={20} /> Nuevo Plan
+                    </button>
+                </div>
             </div>
 
             {error && <div className="text-red-500 mb-4">{error}</div>}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {plans.map((plan) => (
+                {filteredPlans.map((plan) => (
                     <div key={plan.plan_id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 relative">
                         <div className="flex justify-between items-start mb-4">
                             <div>

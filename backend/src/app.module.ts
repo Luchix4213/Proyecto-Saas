@@ -20,9 +20,13 @@ import { TenantsModule } from './modules/tenants/tenants.module';
 import { PlanesModule } from './modules/planes/planes.module';
 import { SuscripcionesModule } from './modules/suscripciones/suscripciones.module';
 
+import { ScheduleModule } from '@nestjs/schedule';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // Enable Cron Jobs
+    ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',

@@ -13,9 +13,20 @@ export const AdminTenantsPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
 
-    const fetchTenants = async () => {
+    const [filterStatus, setFilterStatus] = useState<string>('ALL');
+    const [searchRubro, setSearchRubro] = useState('');
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchTenants(searchRubro);
+        }, 300); // debounce
+        return () => clearTimeout(timer);
+    }, [searchRubro]);
+
+    const fetchTenants = async (rubro?: string) => {
         try {
-            const data = await tenantsService.getAll();
+            setLoading(true);
+            const data = await tenantsService.getAll(rubro);
             setTenants(data);
         } catch (err) {
             setError('Error al cargar las empresas');
@@ -24,10 +35,6 @@ export const AdminTenantsPage = () => {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        fetchTenants();
-    }, []);
 
     const handleCreate = async (data: any) => {
         try {
@@ -49,6 +56,11 @@ export const AdminTenantsPage = () => {
         }
     };
 
+    const filteredTenants = tenants.filter(tenant => {
+        if (filterStatus === 'ALL') return true;
+        return tenant.estado === filterStatus;
+    });
+
     if (loading) return <div className="p-8 text-center">Cargando empresas...</div>;
 
     return (
@@ -64,8 +76,25 @@ export const AdminTenantsPage = () => {
                     </p>
                 </div>
                 <div className="mt-4 sm:mt-0 flex gap-2">
+                    <input
+                        type="text"
+                        placeholder="Buscar por rubro (ej: juguetes)..."
+                        value={searchRubro}
+                        onChange={(e) => setSearchRubro(e.target.value)}
+                        className="block w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
+                    />
+                    <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="block rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm border"
+                    >
+                        <option value="ALL">Todos</option>
+                        <option value="ACTIVA">Activas</option>
+                        <option value="INACTIVA">Inactivas</option>
+                        <option value="PENDIENTE">Pendientes</option>
+                    </select>
                     <button
-                        onClick={fetchTenants}
+                        onClick={() => fetchTenants()}
                         className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                     >
                         <RefreshCw className="h-4 w-4 mr-2" />
@@ -119,13 +148,14 @@ export const AdminTenantsPage = () => {
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empresa</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rubro</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {tenants.map((tenant) => (
+                        {filteredTenants.map((tenant) => (
                             <tr key={tenant.tenant_id}>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm font-medium text-gray-900">{tenant.nombre_empresa}</div>
@@ -134,6 +164,9 @@ export const AdminTenantsPage = () => {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-900">{tenant.email}</div>
                                     <div className="text-xs text-gray-500">Reg: {new Date(tenant.fecha_registro).toLocaleDateString()}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm text-gray-900">{tenant.rubro || 'N/A'}</div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">

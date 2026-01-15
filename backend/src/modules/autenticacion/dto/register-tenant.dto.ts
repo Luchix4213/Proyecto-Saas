@@ -17,6 +17,10 @@ export class RegisterTenantDto {
     @IsEmail()
     email_empresa: string;
 
+    @IsOptional()
+    @IsString()
+    rubro?: string;
+
     // Datos Admin
     @IsNotEmpty()
     @IsString()

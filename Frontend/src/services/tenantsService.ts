@@ -10,6 +10,7 @@ export interface Tenant {
     impuesto_porcentaje: string;
     logo_url: string | null;
     horario_atencion: string | null;
+    rubro: string | null;
     estado: 'ACTIVA' | 'PENDIENTE' | 'INACTIVA';
     fecha_registro: string;
     plan?: {
@@ -29,6 +30,7 @@ export interface CreateTenantData {
     moneda?: string;
     impuesto_porcentaje?: number;
     horario_atencion?: string;
+    rubro?: string;
     plan?: string;
     nombre_contacto: string;
     paterno_contacto: string;
@@ -41,6 +43,7 @@ export interface UpdateTenantData {
     direccion?: string;
     moneda?: string;
     horario_atencion?: string;
+    rubro?: string;
     impuesto_porcentaje?: number;
     logo?: File;
 }
@@ -57,6 +60,7 @@ export const tenantsService = {
             moneda: data.moneda,
             impuesto_porcentaje: data.impuesto_porcentaje,
             horario_atencion: data.horario_atencion,
+            rubro: data.rubro,
             // plan defaults to FREE in backend if omitted
             nombre_contacto: data.nombre_contacto,
             paterno_contacto: data.paterno_contacto,
@@ -83,6 +87,7 @@ export const tenantsService = {
         if (data.direccion) formData.append('direccion', data.direccion);
         if (data.moneda) formData.append('moneda', data.moneda);
         if (data.horario_atencion) formData.append('horario_atencion', data.horario_atencion);
+        if (data.rubro) formData.append('rubro', data.rubro);
         if (data.impuesto_porcentaje !== undefined) formData.append('impuesto_porcentaje', data.impuesto_porcentaje.toString());
         if (data.logo) formData.append('logo', data.logo);
 
@@ -94,8 +99,10 @@ export const tenantsService = {
         return response.data;
     },
 
-    getAll: async () => {
-        const response = await api.get<Tenant[]>('/tenants');
+    getAll: async (rubro?: string) => {
+        const response = await api.get<Tenant[]>('/tenants', {
+            params: rubro ? { rubro } : {}
+        });
         return response.data;
     },
 

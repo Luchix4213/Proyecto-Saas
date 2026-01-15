@@ -23,6 +23,7 @@ export const RegisterPage = () => {
         nombre: '',
         paterno: '',
         materno: '',
+        rubro: '',
         email: '',
         password: '',
         confirmPassword: ''
@@ -112,6 +113,7 @@ export const RegisterPage = () => {
             nombre: formData.nombre.trim(),
             paterno: formData.paterno.trim(),
             materno: formData.materno.trim(),
+            rubro: formData.rubro.trim(),
             telefono_empresa: formData.telefono_empresa.trim(),
             direccion_empresa: formData.direccion_empresa.trim()
         };
@@ -223,10 +225,20 @@ export const RegisterPage = () => {
                                     type="text"
                                     name="direccion_empresa"
                                     maxLength={200}
-                                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 border px-3"
-                                    value={formData.direccion_empresa}
-                                    onChange={handleChange}
                                     placeholder="Av. Principal #123"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Rubro / Categoría de Negocio</label>
+                                <input
+                                    type="text"
+                                    name="rubro"
+                                    maxLength={50}
+                                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 border px-3"
+                                    value={formData.rubro}
+                                    onChange={handleChange}
+                                    placeholder="Ej: Juguetes, Farmacia, Ropa"
                                 />
                             </div>
                         </div>

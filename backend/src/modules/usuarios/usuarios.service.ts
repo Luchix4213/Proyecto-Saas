@@ -5,12 +5,19 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
 import { RolUsuario } from '@prisma/client';
+import { CapacidadService } from '../suscripciones/capacidad.service';
 
 @Injectable()
 export class UsuariosService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private capacidadService: CapacidadService
+    ) { }
 
     async create(createUserDto: CreateUserDto, tenantId: number, requestingUser?: any) {
+        // 0. Validar Capacidad (Enforcement)
+        await this.capacidadService.validarLimiteUsuarios(tenantId);
+
         // Validaciones de jerarquía de roles
         if (requestingUser?.rol === RolUsuario.PROPIETARIO) {
             // PROPIETARIO puede crear otros PROPIETARIOS o VENDEDORES

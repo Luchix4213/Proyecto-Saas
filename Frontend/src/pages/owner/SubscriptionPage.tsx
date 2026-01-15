@@ -67,13 +67,40 @@ export const SubscriptionPage = () => {
     if (loading) return <div>Cargando...</div>;
 
     // Asumimos que la suscripción activa es la primera o la más reciente
-    const activeSubscription = subscriptions.find(s => s.estado === 'ACTIVA');
+    // Incluir CANCELADA si su fecha de fin es futura (Cancelación diferida)
+    const activeSubscription = subscriptions.find(s =>
+        s.estado === 'ACTIVA' ||
+        (s.estado === 'CANCELADA' && s.fecha_fin && new Date(s.fecha_fin) > new Date())
+    );
+
+    // Detección de suscripción en cola para Anti-Stacking
+    const queuedSubscription = subscriptions.find(s =>
+        s.estado === 'ACTIVA' && s.fecha_inicio && new Date(s.fecha_inicio) > new Date()
+    );
 
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">Mi Suscripción</h1>
 
             {error && <div className="text-red-500 mb-4">{error}</div>}
+
+            {/* Warning Banner for Queued Subscription */}
+            {queuedSubscription && (
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                    <div className="flex">
+                        <div className="flex-shrink-0">
+                            <span className="text-yellow-400">⚠️</span>
+                        </div>
+                        <div className="ml-3">
+                            <p className="text-sm text-yellow-700">
+                                Tienes un cambio de plan programado para el <strong>{new Date(queuedSubscription.fecha_inicio).toLocaleDateString()}</strong>.
+                                <br />
+                                No puedes realizar otra compra hasta que ese plan se active.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Plan Actual Card */}
             <div className="bg-white shadow-md rounded-lg p-6 mb-8 border border-gray-200">
@@ -91,8 +118,9 @@ export const SubscriptionPage = () => {
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500">Estado</p>
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    {activeSubscription.estado}
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    ${activeSubscription.estado === 'ACTIVA' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                    {activeSubscription.estado === 'CANCELADA' ? 'CANCELADA (Expira pronto)' : activeSubscription.estado}
                                 </span>
                             </div>
                             <div>
@@ -104,15 +132,18 @@ export const SubscriptionPage = () => {
                         </div>
 
                         <div className="flex space-x-3 mt-6">
+                            {(activeSubscription.plan?.nombre_plan !== 'FREE' && user?.rol === 'PROPIETARIO' && activeSubscription.estado === 'ACTIVA') && (
+                                <button
+                                    className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+                                    onClick={() => handleCancel(activeSubscription.suscripcion_id)}
+                                >
+                                    Cancelar Suscripción
+                                </button>
+                            )}
                             <button
-                                className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
-                                onClick={() => handleCancel(activeSubscription.suscripcion_id)}
-                            >
-                                Cancelar Suscripción
-                            </button>
-                            <button
-                                className="px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                                onClick={() => setShowPlans(!showPlans)}
+                                className={`px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 ${queuedSubscription ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => !queuedSubscription && setShowPlans(!showPlans)}
+                                disabled={!!queuedSubscription}
                             >
                                 {showPlans ? 'Ocultar Planes' : 'Cambiar Plan'}
                             </button>
@@ -235,8 +266,10 @@ export const SubscriptionPage = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Pago</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inicio</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vence</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                         </tr>
@@ -251,6 +284,12 @@ export const SubscriptionPage = () => {
                                     {sub.plan?.nombre_plan}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {sub.fecha_inicio ? new Date(sub.fecha_inicio).toLocaleDateString() : '-'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {sub.fecha_fin ? new Date(sub.fecha_fin).toLocaleDateString() : '-'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {sub.monto} BOB
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -260,7 +299,7 @@ export const SubscriptionPage = () => {
                         ))}
                         {subscriptions.length === 0 && (
                             <tr>
-                                <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
+                                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
                                     No hay historial disponible.
                                 </td>
                             </tr>

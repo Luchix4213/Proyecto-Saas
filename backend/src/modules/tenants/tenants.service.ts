@@ -22,7 +22,8 @@ export class TenantsService {
       nombre_contacto,
       paterno_contacto,
       password_contacto,
-      horario_atencion
+      horario_atencion,
+      rubro
     } = createTenantDto;
 
     // Verificar si el email del usuario ya existe
@@ -62,6 +63,7 @@ export class TenantsService {
           impuesto_porcentaje: impuesto_porcentaje || 0,
           email: email_empresa || email, // Usar email de empresa si existe, sino el del contacto
           horario_atencion,
+          rubro,
           plan_id: planDb.plan_id,
           estado: EstadoEmpresa.ACTIVA, // Admin crea empresas ya activas por defecto
         }
@@ -80,6 +82,20 @@ export class TenantsService {
           paterno: paterno_contacto,
           rol: RolUsuario.PROPIETARIO,
           estado: 'ACTIVO'
+        }
+      });
+
+      // 4. Crear Suscripción Inicial
+      await prisma.suscripcion.create({
+        data: {
+            tenant_id: newTenant.tenant_id,
+            plan_id: planDb.plan_id,
+            fecha_inicio: new Date(),
+            fecha_fin: new Date(new Date().setMonth(new Date().getMonth() + 1)), // 1 mes por defecto
+            monto: planDb.precio_mensual,
+            metodo_pago: 'TRANSFERENCIA',
+            estado: 'ACTIVA',
+            referencia: 'Suscripción Inicial (Admin)'
         }
       });
 
@@ -104,8 +120,14 @@ export class TenantsService {
     return tenant;
   }
 
-  async findAll() {
+  async findAll(rubro?: string) {
     return this.prisma.tenant.findMany({
+      where: rubro ? {
+        rubro: {
+          contains: rubro,
+          mode: 'insensitive'
+        }
+      } : {},
       include: {
         plan: true,
       },

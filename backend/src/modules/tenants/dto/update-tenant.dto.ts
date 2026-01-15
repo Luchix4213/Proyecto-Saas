@@ -28,6 +28,10 @@ export class UpdateTenantDto {
     horario_atencion?: string;
 
     @IsOptional()
+    @IsString()
+    rubro?: string;
+
+    @IsOptional()
     @Type(() => Number)
     @IsNumber()
     impuesto_porcentaje?: number;

@@ -68,6 +68,7 @@ export class AutenticacionService {
       nombre_empresa,
       telefono_empresa,
       direccion_empresa,
+      rubro,
       ...adminData
     } = registerDto;
 
@@ -109,6 +110,7 @@ export class AutenticacionService {
           direccion: direccion_empresa,
           email: registerDto.email_empresa, // Usar el email de la empresa
           plan_id: plan.plan_id,
+          rubro: rubro,
           estado: EstadoEmpresa.PENDIENTE,
         },
       });
@@ -128,6 +130,20 @@ export class AutenticacionService {
           rol: RolUsuario.PROPIETARIO,
           estado: 'ACTIVO',
         },
+      });
+
+      // 4. Crear Suscripción Inicial (FREE)
+      await prisma.suscripcion.create({
+        data: {
+            tenant_id: newTenant.tenant_id,
+            plan_id: plan.plan_id,
+            fecha_inicio: new Date(),
+            fecha_fin: new Date(new Date().setMonth(new Date().getMonth() + 1)), // 1 mes por defecto
+            monto: plan.precio_mensual || 0,
+            metodo_pago: 'EFECTIVO', // O lo que corresponda a FREE/Demo
+            estado: 'ACTIVA',
+            referencia: 'Registro Inicial'
+        }
       });
 
       const { password_hash, ...userResult } = newUser;
