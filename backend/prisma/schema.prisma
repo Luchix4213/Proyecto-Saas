@@ -57,6 +57,7 @@ enum EstadoCompra {
 }
 
 enum EstadoSuscripcion {
+  PENDIENTE
   ACTIVA
   VENCIDA
   CANCELADA
@@ -144,6 +145,7 @@ model Suscripcion {
   metodo_pago    MetodoPago
   estado         EstadoSuscripcion @default(ACTIVA)
   referencia     String?
+  comprobante_url String? // URL del comprobante de pago
   creado_en      DateTime          @default(now())
 
   @@index([tenant_id])

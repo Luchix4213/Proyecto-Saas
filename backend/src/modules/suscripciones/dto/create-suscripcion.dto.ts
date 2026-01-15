@@ -1,11 +1,14 @@
 import { IsInt, IsEnum, IsOptional, IsNumber, IsDateString, IsString } from 'class-validator';
 import { EstadoSuscripcion, MetodoPago } from '@prisma/client';
+import { Type } from 'class-transformer';
 
 export class CreateSuscripcionDto {
   @IsInt()
+  @Type(() => Number)
   tenant_id: number;
 
   @IsInt()
+  @Type(() => Number)
   plan_id: number;
 
   @IsDateString()
@@ -33,4 +36,8 @@ export class CreateSuscripcionDto {
   @IsOptional()
   @IsString()
   referencia?: string;
+
+  @IsOptional()
+  @IsString()
+  comprobante_url?: string;
 }
