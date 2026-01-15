@@ -14,7 +14,7 @@ import { AuthGuard } from '../../common/guards/auth.guard';
 
 @Controller('auth')
 export class AutenticacionController {
-  constructor(private authService: AutenticacionService) {}
+  constructor(private authService: AutenticacionService) { }
 
   @Post('register')
   async register(@Body() registerDto: RegisterTenantDto) {
@@ -36,6 +36,15 @@ export class AutenticacionController {
   @Post('forgot-password')
   async forgotPassword(@Body('email') email: string) {
     return this.authService.forgotPassword(email);
+  }
+
+  @Post('verify-token')
+  async verifyToken(@Body('token') token: string) {
+    const result = await this.authService.verifyToken(token);
+    if (!result.valid) {
+      throw new UnauthorizedException(result.message);
+    }
+    return result;
   }
 
   @Post('reset-password')

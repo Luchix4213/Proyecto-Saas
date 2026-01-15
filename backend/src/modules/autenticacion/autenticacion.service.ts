@@ -7,16 +7,30 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import * as nodemailer from 'nodemailer';
 import { LoginDto } from './dto/login.dto';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 import { EstadoEmpresa, RolUsuario } from '@prisma/client';
 
 @Injectable()
 export class AutenticacionService {
+  private transporter;
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) {}
+  ) {
+    // Inicializar transporter si existen las credenciales
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+      this.transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+    }
+  }
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.prisma.usuario.findUnique({ where: { email } });
@@ -82,7 +96,6 @@ export class AutenticacionService {
     }
 
     // Obtener el plan FREE (o crearlo si no existe para la demo/dev)
-    // En produccion esto debería estar ya sembrado.
     let plan = await this.prisma.plan.findFirst({
       where: { nombre_plan: 'FREE' },
     });
@@ -135,14 +148,14 @@ export class AutenticacionService {
       // 4. Crear Suscripción Inicial (FREE)
       await prisma.suscripcion.create({
         data: {
-            tenant_id: newTenant.tenant_id,
-            plan_id: plan.plan_id,
-            fecha_inicio: new Date(),
-            fecha_fin: new Date(new Date().setMonth(new Date().getMonth() + 1)), // 1 mes por defecto
-            monto: plan.precio_mensual || 0,
-            metodo_pago: 'EFECTIVO', // O lo que corresponda a FREE/Demo
-            estado: 'ACTIVA',
-            referencia: 'Registro Inicial'
+          tenant_id: newTenant.tenant_id,
+          plan_id: plan.plan_id,
+          fecha_inicio: new Date(),
+          fecha_fin: new Date(new Date().setMonth(new Date().getMonth() + 1)), // 1 mes por defecto
+          monto: plan.precio_mensual || 0,
+          metodo_pago: 'EFECTIVO', // O lo que corresponda a FREE/Demo
+          estado: 'ACTIVA',
+          referencia: 'Registro Inicial'
         }
       });
 
@@ -159,13 +172,11 @@ export class AutenticacionService {
     const user = await this.prisma.usuario.findUnique({ where: { email } });
 
     if (!user) {
-      // Por seguridad, no indicamos si el email existe o no
       return {
         message: 'Si el correo existe, recibirás un enlace de recuperación.',
       };
     }
 
-    // Generar token simple y expiración (1 hora)
     const token =
       Math.random().toString(36).substring(2) + Date.now().toString(36);
     const expiration = new Date();
@@ -179,10 +190,13 @@ export class AutenticacionService {
       },
     });
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(
-        `[MOCK EMAIL SERVICE] Password reset token for ${email}: ${token}`,
-      );
+    try {
+      await this.sendEmail(email, token);
+    } catch (error) {
+      console.error('Error enviando email:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[FALLBACK LOG] Token for ${email}: ${token}`);
+      }
     }
 
     return {
@@ -190,8 +204,21 @@ export class AutenticacionService {
     };
   }
 
+  async verifyToken(token: string) {
+    const user = await this.prisma.usuario.findFirst({
+      where: {
+        reset_token: token,
+        reset_token_exp: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      return { valid: false, message: 'Token inválido o expirado' };
+    }
+    return { valid: true, message: 'Token válido' };
+  }
+
   async resetPassword(token: string, newPassword: string) {
-    // Buscar usuario con el token y que no haya expirado
     const user = await this.prisma.usuario.findFirst({
       where: {
         reset_token: token,
@@ -215,5 +242,34 @@ export class AutenticacionService {
     });
 
     return { message: 'Contraseña actualizada correctamente' };
+  }
+
+  private async sendEmail(to: string, token: string) {
+    if (!this.transporter) {
+      console.warn('SMTP no configurado. Token:', token);
+      return;
+    }
+
+    const mailOptions = {
+      from: `"Soporte Kipu" <${process.env.SMTP_USER}>`,
+      to,
+      subject: 'Recuperación de Contraseña - Kipu',
+      text: `Hola,\n\nHas solicitado restablecer tu contraseña. Tu código de verificación es:\n\n${token}\n\nSi no fuiste tú, por favor ignora este mensaje.\n\nSaludos,\nEl equipo de Kipu`,
+      html: `
+        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+          <h2 style="color: #4F46E5;">Recuperación de Contraseña</h2>
+          <p>Hola,</p>
+          <p>Has solicitado restablecer tu contraseña en <strong>Kipu</strong>.</p>
+          <p>Copia y pega el siguiente código de verificación en la aplicación:</p>
+          <div style="background-color: #F3F4F6; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0;">
+            <span style="font-size: 24px; font-weight: bold; letter-spacing: 2px; color: #111;">${token}</span>
+          </div>
+          <p>Este código expirará en 1 hora.</p>
+          <p style="font-size: 12px; color: #666; margin-top: 30px;">Si no solicitaste este cambio, puedes ignorar este correo de forma segura.</p>
+        </div>
+      `,
+    };
+
+    await this.transporter.sendMail(mailOptions);
   }
 }

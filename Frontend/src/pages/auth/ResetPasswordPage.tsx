@@ -17,11 +17,20 @@ export const ResetPasswordPage = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 
-    const handleManualTokenSubmit = (e: React.FormEvent) => {
+    const handleManualTokenSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (manualToken.trim()) {
-            // Actualizar la URL con el token para reutilizar la lógica existente
-            setSearchParams({ token: manualToken });
+            setStatus('loading');
+            try {
+                // Verificar token antes de mostrar formulario de contraseña
+                await api.post('/auth/verify-token', { token: manualToken });
+                setSearchParams({ token: manualToken });
+                setStatus('idle'); // Reset status for next form
+                setMessage('');
+            } catch (error: any) {
+                setStatus('error');
+                setMessage(error.response?.data?.message || 'Código inválido o expirado.');
+            }
         }
     };
 
@@ -37,9 +46,9 @@ export const ResetPasswordPage = () => {
         // Strong password check
         const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
         if (!strongPasswordRegex.test(password)) {
-             setStatus('error');
-             setMessage('La contraseña debe tener al menos 6 caracteres, incluir una mayúscula y un número.');
-             return;
+            setStatus('error');
+            setMessage('La contraseña debe tener al menos 6 caracteres, incluir una mayúscula y un número.');
+            return;
         }
 
         setStatus('loading');
@@ -87,7 +96,7 @@ export const ResetPasswordPage = () => {
                     </form>
 
                     <div className="text-center mt-4">
-                         <button onClick={() => navigate('/login')} className="text-sm text-indigo-600 hover:text-indigo-500">
+                        <button onClick={() => navigate('/login')} className="text-sm text-indigo-600 hover:text-indigo-500">
                             Volver al Login
                         </button>
                     </div>
