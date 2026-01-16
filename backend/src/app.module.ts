@@ -23,6 +23,8 @@ import { SuscripcionesModule } from './modules/suscripciones/suscripciones.modul
 import { ScheduleModule } from '@nestjs/schedule';
 import { RubrosModule } from './modules/rubros/rubros.module';
 import { CategoriesModule } from './modules/categories/categories.module';
+import { ProveedoresModule } from './modules/proveedores/proveedores.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -32,7 +34,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
-    AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule, PlanesModule, SuscripcionesModule, RubrosModule, CategoriesModule
+    AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule, PlanesModule, SuscripcionesModule, RubrosModule, CategoriesModule, ProveedoresModule
   ],
   controllers: [AppController],
   providers: [AppService],

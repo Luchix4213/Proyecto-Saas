@@ -112,6 +112,7 @@ model Tenant {
   compras       Compra[]
   suscripciones Suscripcion[]
   categorias    Categoria[]
+  proveedors    Proveedor[]
 }
 
 model Rubro {
@@ -135,7 +136,6 @@ model Usuario {
   rol             RolUsuario
   estado          EstadoGenerico @default(ACTIVO)
   fecha_creacion  DateTime       @default(now())
-  // Recuperación de contraseña
   reset_token     String?
   reset_token_exp DateTime?
 
@@ -198,14 +198,17 @@ model Categoria {
 
 model Proveedor {
   proveedor_id Int            @id @default(autoincrement())
+  tenant_id    Int
+  tenant       Tenant         @relation(fields: [tenant_id], references: [tenant_id])
   nombre       String
   telefono     String?
   email        String?
   datos_pago   String?
   estado       EstadoGenerico @default(ACTIVO)
+  productos    Producto[]
+  compras      Compra[]
 
-  productos Producto[]
-  compras   Compra[]
+  @@index([tenant_id])
 }
 
 model Producto {

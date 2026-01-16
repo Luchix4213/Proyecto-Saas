@@ -22,10 +22,13 @@ import { AdminRubrosPage } from './pages/admin/AdminRubrosPage';
 
 import { UsersPage } from './pages/owner/UsersPage';
 import { SubscriptionPage } from './pages/owner/SubscriptionPage';
+import { OwnerSuppliersPage } from './pages/owner/OwnerSuppliersPage';
 import MyTenantPage from './pages/owner/MyTenantPage';
 import { ClientsPage } from './pages/owner/ClientsPage';
 import { CategoriesPage } from './pages/owner/categories/CategoriesPage';
 import { ProductsPage } from './pages/owner/products/ProductsPage';
+import { PosPage } from './pages/owner/sales/PosPage';
+import { OwnerPurchasesPage } from './pages/owner/purchases/OwnerPurchasesPage';
 import { ProfilePage } from './pages/common/ProfilePage';
 
 /* Marketplace Pages */
@@ -94,6 +97,9 @@ function App() {
             <Route path="/suscripcion" element={<SubscriptionPage />} />
             <Route path="/categorias" element={<CategoriesPage />} />
             <Route path="/productos" element={<ProductsPage />} />
+            <Route path="/proveedores" element={<OwnerSuppliersPage />} />
+            <Route path="/compras" element={<OwnerPurchasesPage />} />
+            <Route path="/pos" element={<PosPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>
 

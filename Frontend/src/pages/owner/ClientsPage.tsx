@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, Users, Phone, FileText } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Users, Phone, FileText, History } from 'lucide-react';
 import { clientsService } from '../../services/clientsService';
 import type { Cliente } from '../../services/clientsService';
 import { ClientForm } from '../../components/clientes/ClientForm';
@@ -46,6 +46,10 @@ export const ClientsPage = () => {
         } catch (error) {
             alert('Error al eliminar cliente');
         }
+    };
+
+    const handleHistory = (client: Cliente) => {
+        alert(`Historial de compras de ${client.nombre}: Esta función estará disponible con el módulo de Ventas.`);
     };
 
     const filteredClients = clientes.filter(c =>
@@ -173,6 +177,13 @@ export const ClientsPage = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={() => handleHistory(client)}
+                                                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                    title="Historial de Compras"
+                                                >
+                                                    <History size={18} />
+                                                </button>
                                                 <button
                                                     onClick={() => handleEdit(client)}
                                                     className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"

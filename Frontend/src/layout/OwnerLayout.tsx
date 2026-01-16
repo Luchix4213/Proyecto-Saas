@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, CreditCard, Building2, Menu, Bell, User, Package, Tag } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, CreditCard, Building2, Menu, Bell, User, Package, Tag, Truck, ShoppingCart, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 
@@ -56,11 +56,14 @@ export const OwnerLayout = () => {
                     <NavLink to="/usuarios" icon={Users} label={isSidebarOpen ? 'Usuarios' : ''} />
                     <NavLink to="/categorias" icon={Tag} label={isSidebarOpen ? 'Categorías' : ''} />
                     <NavLink to="/productos" icon={Package} label={isSidebarOpen ? 'Productos' : ''} />
+                    <NavLink to="/proveedores" icon={Truck} label={isSidebarOpen ? 'Proveedores' : ''} />
+                    <NavLink to="/compras" icon={ShoppingBag} label={isSidebarOpen ? 'Compras (Stock)' : ''} />
                     <NavLink to="/suscripcion" icon={CreditCard} label={isSidebarOpen ? 'Suscripción' : ''} />
 
                     <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
                         Operaciones
                     </div>
+                    <NavLink to="/pos" icon={ShoppingCart} label={isSidebarOpen ? 'Punto de Venta' : ''} />
                     <NavLink to="/clientes" icon={Users} label={isSidebarOpen ? 'Clientes' : ''} />
                     {/* Add Sales / Orders here eventually */}
 

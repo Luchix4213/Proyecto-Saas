@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
-import { Building2, User, Mail, Lock, ArrowRight, CheckCircle2, Eye, EyeOff, MapPin, Phone, Briefcase } from 'lucide-react';
+import { rubrosService, type Rubro } from '../../services/rubrosService';
+import { Building2, User, Mail, Lock, ArrowRight, CheckCircle2, Eye, EyeOff, MapPin, Phone, ChevronDown } from 'lucide-react';
 
 export const RegisterPage = () => {
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [rubros, setRubros] = useState<Rubro[]>([]);
+    const [loadingRubros, setLoadingRubros] = useState(true);
 
     // Changed from single string to object for field-specific errors
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -14,6 +17,10 @@ export const RegisterPage = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showRubroDropdown, setShowRubroDropdown] = useState(false);
+
+    // Default country code
+    const [countryCode, setCountryCode] = useState('+591');
 
     const [formData, setFormData] = useState({
         nombre_empresa: '',
@@ -23,11 +30,39 @@ export const RegisterPage = () => {
         nombre: '',
         paterno: '',
         materno: '',
-        rubro: '',
+        selectedRubros: [] as number[], // IDs of selected rubros
         email: '',
         password: '',
         confirmPassword: ''
     });
+
+    // Country codes data
+    const countryCodes = [
+        { code: '+591', country: 'Bolivia', flag: '🇧🇴' },
+        { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+        { code: '+51', country: 'Perú', flag: '🇵🇪' },
+        { code: '+56', country: 'Chile', flag: '🇨🇱' },
+        { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+        { code: '+52', country: 'México', flag: '🇲🇽' },
+        { code: '+1', country: 'USA', flag: '🇺🇸' },
+        { code: '+34', country: 'España', flag: '🇪🇸' },
+    ];
+
+    useEffect(() => {
+        const fetchRubros = async () => {
+            try {
+                const data = await rubrosService.getAll();
+                // Filter active rubros only
+                setRubros(data.filter(r => r.estado === 'ACTIVO'));
+            } catch (error) {
+                console.error('Error fetching rubros:', error);
+                setGlobalError('No se pudieron cargar los rubros. Por favor recarga la página.');
+            } finally {
+                setLoadingRubros(false);
+            }
+        };
+        fetchRubros();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -39,9 +74,23 @@ export const RegisterPage = () => {
         }
     };
 
+    const handleRubroToggle = (rubroId: number) => {
+        setFormData(prev => {
+            const currentSelected = prev.selectedRubros;
+            if (currentSelected.includes(rubroId)) {
+                return { ...prev, selectedRubros: currentSelected.filter(id => id !== rubroId) };
+            } else {
+                return { ...prev, selectedRubros: [...currentSelected, rubroId] };
+            }
+        });
+        if (errors.rubro) {
+            setErrors({ ...errors, rubro: '' });
+        }
+    };
+
     const validateStep1 = () => {
         const newErrors: Record<string, string> = {};
-        const phoneRegex = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/; // Basic phone validation
+        const phoneRegex = /^[0-9\s-]{6,15}$/; // Basic phone validation (only numbers part)
 
         if (!formData.nombre_empresa.trim()) newErrors.nombre_empresa = 'El nombre de la empresa es requerido';
 
@@ -52,7 +101,11 @@ export const RegisterPage = () => {
         }
 
         if (formData.telefono_empresa.trim() && !phoneRegex.test(formData.telefono_empresa)) {
-            newErrors.telefono_empresa = 'Formato de teléfono inválido (solo números y símbolos básicos)';
+            newErrors.telefono_empresa = 'Formato de teléfono inválido';
+        }
+
+        if (formData.selectedRubros.length === 0) {
+            newErrors.rubro = 'Selecciona al menos un rubro';
         }
 
         setErrors(newErrors);
@@ -113,7 +166,6 @@ export const RegisterPage = () => {
             nombre: formData.nombre.trim(),
             paterno: formData.paterno.trim(),
             materno: formData.materno.trim(),
-            rubro: formData.rubro.trim(),
             telefono_empresa: formData.telefono_empresa.trim(),
             direccion_empresa: formData.direccion_empresa.trim()
         };
@@ -133,13 +185,25 @@ export const RegisterPage = () => {
 
         setLoading(true);
         try {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { confirmPassword, ...registerData } = trimmedData;
-            await authService.register(registerData);
+            // Prepare payload
+            const registerPayload = {
+                nombre_empresa: trimmedData.nombre_empresa,
+                telefono_empresa: trimmedData.telefono_empresa ? `${countryCode} ${trimmedData.telefono_empresa}` : undefined,
+                email_empresa: trimmedData.email_empresa,
+                direccion_empresa: trimmedData.direccion_empresa,
+                rubros: trimmedData.selectedRubros,
+                nombre: trimmedData.nombre,
+                paterno: trimmedData.paterno,
+                materno: trimmedData.materno,
+                email: trimmedData.email,
+                password: trimmedData.password
+            };
+
+            await authService.register(registerPayload);
             alert('Registro exitoso. Tu cuenta ha sido creada y está pendiente de aprobación por el administrador.');
             navigate('/login');
         } catch (err: any) {
-            setGlobalError(err.response?.data?.message || 'Error al registrar la empresa');
+            setGlobalError(err.response?.data?.message || err.response?.data?.error || 'Error al registrar la empresa');
         } finally {
             setLoading(false);
         }
@@ -154,7 +218,7 @@ export const RegisterPage = () => {
                 <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
             </div>
 
-            <div className="max-w-xl w-full relative z-10 p-6 animate-fade-in-up">
+            <div className={`w-full relative z-10 p-6 animate-fade-in-up transition-all duration-500 ${step === 1 ? 'max-w-2xl' : 'max-w-xl'}`}>
                 <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
                     <div className="text-center mb-8">
                         {/* Logo or Icon */}
@@ -187,7 +251,7 @@ export const RegisterPage = () => {
                         {step === 1 ? (
                             <div className="space-y-5 animate-fade-in">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Nombre de la Empresa</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Nombre de la Empresa <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                             <Building2 className="h-5 w-5" />
@@ -208,68 +272,138 @@ export const RegisterPage = () => {
                                     {errors.nombre_empresa && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.nombre_empresa}</p>}
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Email Corporativo</label>
-                                    <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                            <Mail className="h-5 w-5" />
-                                        </div>
-                                        <input
-                                            type="email"
-                                            name="email_empresa"
-                                            maxLength={255}
-                                            className={`block w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.email_empresa
-                                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                                    : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
-                                                }`}
-                                            placeholder="contacto@empresa.com"
-                                            value={formData.email_empresa}
-                                            onChange={handleChange}
-                                        />
-                                    </div>
-                                    {errors.email_empresa && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.email_empresa}</p>}
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Teléfono (Opcional)</label>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Email Empresa <span className="text-red-500">*</span></label>
                                         <div className="relative">
                                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                                <Phone className="h-4 w-4" />
+                                                <Mail className="h-5 w-5" />
                                             </div>
                                             <input
-                                                type="tel"
-                                                name="telefono_empresa"
-                                                maxLength={20}
-                                                className={`block w-full pl-9 pr-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.telefono_empresa
+                                                type="email"
+                                                name="email_empresa"
+                                                maxLength={255}
+                                                className={`block w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.email_empresa
                                                         ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                                                         : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
                                                     }`}
-                                                value={formData.telefono_empresa}
+                                                placeholder="contacto@empresa.com"
+                                                value={formData.email_empresa}
                                                 onChange={handleChange}
-                                                placeholder="+591 7000..."
                                             />
                                         </div>
-                                        {errors.telefono_empresa && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.telefono_empresa}</p>}
+                                        {errors.email_empresa && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.email_empresa}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Rubro</label>
-                                        <div className="relative">
-                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                                <Briefcase className="h-4 w-4" />
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Teléfono</label>
+                                        <div className="flex gap-2">
+                                            {/* Country Code Selector */}
+                                            <div className="relative w-28 shrink-0">
+                                                <select
+                                                    value={countryCode}
+                                                    onChange={(e) => setCountryCode(e.target.value)}
+                                                    className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 py-2.5 pl-3 pr-8 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 cursor-pointer hover:bg-white transition-colors"
+                                                >
+                                                    {countryCodes.map((item) => (
+                                                        <option key={item.code} value={item.code}>
+                                                            {item.flag} {item.code}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                                    <ChevronDown className="h-4 w-4" />
+                                                </div>
                                             </div>
-                                            <input
-                                                type="text"
-                                                name="rubro"
-                                                maxLength={50}
-                                                className="block w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 hover:bg-white transition-all placeholder-slate-400"
-                                                value={formData.rubro}
-                                                onChange={handleChange}
-                                                placeholder="Ej: Farmacia"
-                                            />
+
+                                            <div className="relative w-full">
+                                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                    <Phone className="h-4 w-4" />
+                                                </div>
+                                                <input
+                                                    type="tel"
+                                                    name="telefono_empresa"
+                                                    maxLength={15}
+                                                    className={`block w-full pl-9 pr-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.telefono_empresa
+                                                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                            : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
+                                                        }`}
+                                                    value={formData.telefono_empresa}
+                                                    onChange={handleChange}
+                                                    placeholder="70012345"
+                                                />
+                                            </div>
                                         </div>
+                                        {errors.telefono_empresa && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.telefono_empresa}</p>}
                                     </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Rubros (Categorías de Negocio) <span className="text-red-500">*</span></label>
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowRubroDropdown(!showRubroDropdown)}
+                                            className={`w-full bg-slate-50 border rounded-xl text-left px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all flex justify-between items-center ${errors.rubro ? 'border-red-300 ring-red-500' : 'border-slate-200 hover:bg-white'}`}
+                                        >
+                                            <span className={formData.selectedRubros.length ? 'text-slate-800' : 'text-slate-400'}>
+                                                {formData.selectedRubros.length > 0
+                                                    ? `${formData.selectedRubros.length} rubro(s) seleccionado(s)`
+                                                    : 'Selecciona los rubros de tu empresa'}
+                                            </span>
+                                            <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${showRubroDropdown ? 'rotate-180' : ''}`} />
+                                        </button>
+
+                                        {showRubroDropdown && (
+                                            <div className="absolute z-20 mt-2 w-full bg-white rounded-xl shadow-xl border border-slate-100 max-h-60 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-teal-500/20 scrollbar-track-transparent">
+                                                {loadingRubros ? (
+                                                    <div className="p-4 text-center text-slate-400 text-sm">Cargando rubros...</div>
+                                                ) : rubros.length === 0 ? (
+                                                    <div className="p-4 text-center text-slate-400 text-sm">No hay rubros disponibles</div>
+                                                ) : (
+                                                    <div className="grid grid-cols-1 gap-1">
+                                                        {rubros.map((rubro) => (
+                                                            <label
+                                                                key={rubro.rubro_id}
+                                                                className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${formData.selectedRubros.includes(rubro.rubro_id) ? 'bg-teal-50 text-teal-700' : 'hover:bg-slate-50 text-slate-600'}`}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    className="w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500 mr-3"
+                                                                    checked={formData.selectedRubros.includes(rubro.rubro_id)}
+                                                                    onChange={() => handleRubroToggle(rubro.rubro_id)}
+                                                                />
+                                                                <span className="text-sm font-medium">{rubro.nombre}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Selected Chips */}
+                                    {formData.selectedRubros.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-3">
+                                            {formData.selectedRubros.map(id => {
+                                                const rubro = rubros.find(r => r.rubro_id === id);
+                                                return rubro ? (
+                                                    <span key={id} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-100 text-teal-700 border border-teal-200">
+                                                        {rubro.nombre}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRubroToggle(id)}
+                                                            className="ml-1.5 text-teal-500 hover:text-teal-800 focus:outline-none"
+                                                        >
+                                                            &times;
+                                                        </button>
+                                                    </span>
+                                                ) : null;
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {errors.rubro && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.rubro}</p>}
                                 </div>
 
                                 <div>
@@ -292,9 +426,9 @@ export const RegisterPage = () => {
                             </div>
                         ) : (
                             <div className="space-y-5 animate-fade-in">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Nombre</label>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Nombre <span className="text-red-500">*</span></label>
                                         <input
                                             type="text"
                                             name="nombre"
@@ -310,7 +444,7 @@ export const RegisterPage = () => {
                                         {errors.nombre && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.nombre}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Apellido</label>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Apellido <span className="text-red-500">*</span></label>
                                         <input
                                             type="text"
                                             name="paterno"
@@ -328,7 +462,7 @@ export const RegisterPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Email (Usuario)</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Email (Usuario) <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                             <User className="h-5 w-5" />
@@ -350,7 +484,7 @@ export const RegisterPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Contraseña</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Contraseña <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                             <Lock className="h-5 w-5" />
@@ -379,7 +513,7 @@ export const RegisterPage = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Confirmar Contraseña</label>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Confirmar Contraseña <span className="text-red-500">*</span></label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                                             <Lock className="h-5 w-5" />

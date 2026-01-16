@@ -17,113 +17,113 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
 **Objetivo:** Administrar los usuarios internos de cada microempresa.
 
 - **Funcionalidades:**
-  - Crear usuarios (administrador (Admin del SaaS), propietario (Propietario de la microempresa), vendedor)
-  - Asignación de roles y permisos
-  - Hash de contraseña
-  - Edición y eliminación de usuarios
-  - Activación / desactivación de usuarios
-  - Cambio de contraseña
+  - [x] Crear usuarios (administrador (Admin del SaaS), propietario (Propietario de la microempresa), vendedor)
+  - [x] Asignación de roles y permisos
+  - [x] Hash de contraseña
+  - [x] Edición y eliminación de usuarios
+  - [x] Activación / desactivación de usuarios
+  - [x] Cambio de contraseña
 
 ### 2. Módulo de Autenticación y Suscripción
 
 **Objetivo:** Gestionar clientes, planes y acceso al sistema.
 
 - **Funcionalidades:**
-  - Registro de microempresa (tiendas pequeñas o tenant)
-  - Inicio de sesión
-  - Recuperación de contraseña
-  - Gestión de planes (Básico / Premium)
-  - Activación / desactivación de empresa
+  - [x] Registro de microempresa (tiendas pequeñas o tenant)
+  - [x] Inicio de sesión
+  - [x] Recuperación de contraseña (Lógica implementada)
+  - [x] Gestión de planes (Básico / Premium / FREE)
+  - [x] Activación / desactivación de empresa
 
 ### 3. Módulo de Gestión de la Microempresa
 
 **Objetivo:** Administrar la información general y configuración de cada microempresa registrada en el sistema.
 
 - **Funcionalidades:**
-  - Registro y edición de datos de la empresa
-  - Configuración de moneda e impuestos
-  - Carga de logotipo
-  - Definición de horarios de atención
-  - Estado de la empresa (activa/inactiva)
+  - [x] Registro y edición de datos de la empresa
+  - [x] Configuración de moneda e impuestos
+  - [x] Carga de logotipo y Banner
+  - [x] Definición de horarios de atención (Campo en BD listo)
+  - [x] Estado de la empresa (activa/inactiva)
 
 ### 4. Módulo de Gestión de Catálogo y Marketplace
 
 **Objetivo:** Gestionar el ciclo de vida de los productos y su exposición pública tanto en portales individuales como en un marketplace centralizado.
 
 - **Funcionalidades:**
-  - **Gestión Interna (Dashboard):** Registro, categorización, control de precios y (des)activación de productos por parte de la microempresa.
-  - **Portal de Productos (Storefront):** Cada empresa cuenta con su propia URL pública/catálogo para clientes finales.
-  - **Landing Page & Marketplace (SaaS Home):** Portal principal tipo Amazon que permite buscar productos de todas las microempresas registradas.
-  - **Notificaciones y Alertas:**
-    - Envío de correos automáticos ante eventos clave (compras, stock bajo).
-    - Notificaciones en tiempo real para el administrador y el cliente.
+  - [x] **Gestión Interna (Dashboard):** Registro, categorización, control de precios y (des)activación de productos por parte de la microempresa.
+  - [x] **Portal de Productos (Storefront):** Cada empresa cuenta con su propia URL pública/catálogo para clientes finales.
+  - [x] **Landing Page & Marketplace (SaaS Home):** Portal principal tipo Amazon que permite buscar productos de todas las microempresas registradas.
+  - [ ] **Notificaciones y Alertas:**
+    - [ ] Envío de correos automáticos ante eventos clave (compras, stock bajo).
+    - [ ] Notificaciones en tiempo real para el administrador y el cliente.
 
 ### 5. Módulo de Gestión de Clientes
 
 **Objetivo:** Gestionar la información de los clientes finales.
 
 - **Funcionalidades:**
-  - Registro de clientes
-  - Edición y eliminación de clientes
-  - Búsqueda de clientes
-  - Historial de compras
-  - Cliente genérico (venta rápida)
+  - [x] Registro de clientes
+  - [x] Edición y eliminación de clientes
+  - [x] Búsqueda de clientes
+  - [x] Historial de compras (UI Placeholder)
+  - [x] Cliente genérico (venta rápida)
 
 ### 6. Módulo de Proveedores
 
 **Funciones:**
 
-- Registro de proveedores
-- Historial de compras
-- Datos de pago
-- Productos que suministran
-- Activación / desactivación de productos
+- [x] Registro de proveedores (Modelo en BD)
+- [ ] Historial de compras
+- [x] Datos de pago
+- [x] Productos que suministran
+- [x] Activación / desactivación de proveedores
 
 ### 7. Módulo de Inventario (Stock)
 
 **Objetivo:** Controlar las existencias de productos.
 
 - **Funcionalidades:**
-  - Registro de stock inicial
-  - Actualización de stock por ventas
-  - Ajustes manuales de inventario
-  - Alerta de stock mínimo
-  - Consulta de disponibilidad
+  - [x] Registro de stock inicial
+  - [x] Actualización de stock por ventas (Automático en POS)
+  - [x] Ajustes manuales de inventario
+  - [x] Alerta de stock mínimo (Visual en dashboard)
+  - [x] Consulta de disponibilidad
 
 ### 8. Módulo de Ventas Online
 
 **Objetivo:** Registrar y gestionar las ventas realizadas.
 
 - **Funcionalidades:**
-  - Registro de ventas
-  - Selección de productos y cantidades
-  - Cálculo automático del total
-  - Descuento de stock automático
-  - Historial de ventas
-  - Cliente elige sus productos e incluye en su carrito
-  - Pagar mediante un QR
-  - Enviar un comprobante (documento PDF)
-  - El administrador valida entrega de producto al cliente
+  - [x] Registro de ventas (POS)
+  - [x] Selección de productos y cantidades
+  - [x] Cálculo automático del total
+  - [x] Descuento de stock automático
+  - [ ] Historial de ventas (Vista pendiente, datos en BD)
+  - [ ] Cliente elige sus productos e incluye en su carrito
+  - [ ] Pagar mediante un QR
+  - [ ] Enviar un comprobante (documento PDF)
+  - [ ] El administrador valida entrega de producto al cliente
 
 ### 9. Módulo de Reportes
 
 **Funciones:**
 
-- Reportes de ventas
-- Reportes de inventario
-- Reportes financieros
-- Gráficos y estadísticas
+- [x] Reportes de ventas (Dashboard Real)
+- [x] Reportes de inventario
+- [x] Reportes financieros (Estimaciones)
+- [x] Gráficos y estadísticas (KPI Cards y Gráficos)
 
 ### 10. Módulo de Compras
 
 **Objetivo:** Gestionar las compras realizadas a proveedores.
 
 - **Funcionalidades:**
-  - Registro de compras
-  - Asociación a proveedores
-  - Actualización automática del inventario
-  - Control de gastos
-  - Historial de compras
+  - [x] Registro de compras (Ingreso mercadería)
+  - [x] Asociación a proveedores
+  - [x] Actualización automática del inventario
+  - [x] Control de gastos (Registro de costo unitario)
+  - [ ] Historial de compras (Vista pendiente, datos en BD)
 
 ---
 
@@ -155,28 +155,3 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
 ### Infraestructura
 
 - **Contenerización:** Docker
-
----
-
-## Datos de Ejemplo
-
-### Microempresas
-
-- **E1:** Juguetes Artesanales - 71512451
-- **E2:** Zapatos artesanales
-
-### Productos
-
-| Empresa | ID  | Nombre                | Cantidad | Stock Min | Precio |
-| ------- | --- | --------------------- | -------- | --------- | ------ |
-| E1      | P1  | Autito Carreras Niños | 15       | 7         | 15 Bs  |
-| E2      | P2  | Zapato de dama        | -        | -         | -      |
-| E1      | P2  | Muñeca                | -        | -         | -      |
-
-### Ventas
-
-- **E1 - P1:** 5 unidades - 10 Bs (8/1/26)
-
-### Compras o Ingresos
-
-- **E1 - P1:** 10 unidades - 15 Bs (9/1/26)
