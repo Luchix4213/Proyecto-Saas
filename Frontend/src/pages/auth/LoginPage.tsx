@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Lock, Mail, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, ArrowRight, Home } from 'lucide-react';
 
 export const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -19,8 +19,12 @@ export const LoginPage = () => {
         setLoading(true);
 
         try {
-            await login({ email, password });
-            navigate('/');
+            const user = await login({ email, password });
+            if (user?.rol === 'ADMIN') {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al iniciar sesión');
         } finally {
@@ -30,6 +34,14 @@ export const LoginPage = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-teal-950 to-emerald-900 relative overflow-hidden">
+            {/* Back to Home Button */}
+            <div className="absolute top-6 left-6 z-20">
+                <Link to="/" className="group flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md text-white rounded-xl border border-white/10 hover:bg-white/20 hover:border-white/20 transition-all text-sm font-semibold shadow-xl">
+                    <Home size={18} className="group-hover:-translate-y-0.5 transition-transform" />
+                    <span>Volver al Inicio</span>
+                </Link>
+            </div>
+
             {/* Decorative Elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-500/10 rounded-full blur-[100px]"></div>

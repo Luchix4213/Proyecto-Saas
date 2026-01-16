@@ -5,11 +5,13 @@ import {
   UseGuards,
   Request,
   Get,
+  Patch,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AutenticacionService } from './autenticacion.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
 
 @Controller('auth')
@@ -57,6 +59,12 @@ export class AutenticacionController {
   @UseGuards(AuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
-    return req.user;
+    return this.authService.getProfile(req.user.usuario_id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('profile')
+  updateProfile(@Request() req, @Body() updateProfileDto: UpdateProfileDto) {
+    return this.authService.updateProfile(req.user.usuario_id, updateProfileDto);
   }
 }

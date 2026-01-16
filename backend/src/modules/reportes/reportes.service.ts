@@ -1,9 +1,131 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { DashboardStats } from './dto/dashboard-stats.dto';
+import { EstadoVenta, EstadoEntrega } from '@prisma/client';
 
 @Injectable()
 export class ReportesService {
   constructor(private prisma: PrismaService) {}
+
+  async getTenantDashboardStats(tenantId: number): Promise<DashboardStats> {
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const firstDayOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastDayOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+
+    // 1. Sales
+    const currentMonthSales = await this.prisma.venta.aggregate({
+      _sum: { total: true },
+      where: {
+        tenant_id: tenantId,
+        estado: { not: EstadoVenta.CANCELADA },
+        fecha_venta: { gte: firstDayOfMonth }
+      }
+    });
+
+    const prevMonthSales = await this.prisma.venta.aggregate({
+      _sum: { total: true },
+      where: {
+        tenant_id: tenantId,
+        estado: { not: EstadoVenta.CANCELADA },
+        fecha_venta: { gte: firstDayOfPrevMonth, lte: lastDayOfPrevMonth }
+      }
+    });
+
+    const currentTotal = Number(currentMonthSales._sum.total || 0);
+    const prevTotal = Number(prevMonthSales._sum.total || 0);
+
+    // Calculate growth
+    let growth = 0;
+    if (prevTotal > 0) {
+        growth = ((currentTotal - prevTotal) / prevTotal) * 100;
+    } else if (currentTotal > 0) {
+        growth = 100;
+    }
+
+    const history = [0, 0, 0, 0, 0, 0, 0]; // Keeping it simple for now
+
+    // 2. Orders
+    const totalOrders = await this.prisma.venta.count({
+        where: { tenant_id: tenantId }
+    });
+
+    const pendingOrders = await this.prisma.venta.count({
+        where: {
+            tenant_id: tenantId,
+            estado_entrega: EstadoEntrega.PENDIENTE
+        }
+    });
+
+    // 3. Customers
+    const totalCustomers = await this.prisma.cliente.count({
+        where: { tenant_id: tenantId }
+    });
+
+    const newCustomers = await this.prisma.cliente.count({
+        where: {
+            tenant_id: tenantId,
+            fecha_registro: { gte: firstDayOfMonth }
+        }
+    });
+
+    // 4. Products
+    const totalProducts = await this.prisma.producto.count({
+        where: { tenant_id: tenantId }
+    });
+
+    // Top Selling
+    const topSellingItem = await this.prisma.detalleVenta.groupBy({
+        by: ['producto_id'],
+        _sum: { cantidad: true },
+        orderBy: { _sum: { cantidad: 'desc' } },
+        where: { venta: { tenant_id: tenantId } },
+        take: 1
+    });
+
+    let topSellingName = 'Ninguno';
+    if (topSellingItem.length > 0) {
+        const prod = await this.prisma.producto.findUnique({
+            where: { producto_id: topSellingItem[0].producto_id },
+            select: { nombre: true }
+        });
+        if (prod) topSellingName = prod.nombre;
+    }
+
+    return {
+        sales: {
+            total: currentTotal,
+            growth: Number(growth.toFixed(1)),
+            history
+        },
+        orders: {
+            total: totalOrders,
+            pending: pendingOrders
+        },
+        customers: {
+            total: totalCustomers,
+            new: newCustomers
+        },
+        products: {
+            total: totalProducts,
+            topSelling: topSellingName
+        },
+        recentOrders: await Promise.all((await this.prisma.venta.findMany({
+            where: { tenant_id: tenantId },
+            orderBy: { fecha_venta: 'desc' },
+            take: 5,
+            include: { cliente: true, detalles: true }
+        })).map(async (v) => ({
+            id: `#ORD-${v.venta_id.toString().padStart(4, '0')}`,
+            customer: v.cliente ? `${v.cliente.nombre} ${v.cliente.paterno || ''}`.trim() : 'Cliente Casual',
+            items: v.detalles.reduce((acc, d) => acc + d.cantidad, 0),
+            total: Number(v.total),
+            status: v.estado_entrega,
+            date: v.fecha_venta.toLocaleDateString()
+        })))
+    };
+  }
+
 
   async getDashboardStats() {
     // 1. Total Tenants

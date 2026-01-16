@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
 import type { Tenant, UpdateTenantData } from '../../services/tenantsService';
+import { rubrosService, type Rubro } from '../../services/rubrosService';
 import { Upload, Building, Phone, MapPin, DollarSign, Clock, Mail, Save, X } from 'lucide-react';
 
 interface TenantFormProps {
@@ -18,7 +19,7 @@ interface FormInputs {
     moneda: string;
     impuesto_porcentaje: number;
     horario_atencion: string;
-    rubro: string;
+    rubros: number[]; // IDs
     logo_file: FileList;
     // Creation fields
     nombre_contacto?: string;
@@ -30,7 +31,7 @@ interface FormInputs {
 }
 
 const TenantForm: React.FC<TenantFormProps> = ({ tenant, onSubmit, onCancel, isLoading = false, isCreateMode = false }) => {
-    const { register, handleSubmit, formState: { errors }, watch } = useForm<FormInputs>({
+    const { register, handleSubmit, formState: { errors }, watch, control } = useForm<FormInputs>({
         defaultValues: {
             nombre_empresa: tenant?.nombre_empresa || '',
             telefono: tenant?.telefono || '',
@@ -38,14 +39,27 @@ const TenantForm: React.FC<TenantFormProps> = ({ tenant, onSubmit, onCancel, isL
             moneda: tenant?.moneda || 'BOB',
             impuesto_porcentaje: tenant?.impuesto_porcentaje ? Number(tenant.impuesto_porcentaje) : 0,
             horario_atencion: tenant?.horario_atencion || '',
-            rubro: tenant?.rubro || '',
+            rubros: tenant?.rubros?.map((r: any) => r.rubro_id) || [],
             email: tenant?.email || '',
             email_empresa: tenant?.email || '',
         }
     });
 
     const [previewLogo, setPreviewLogo] = useState<string | null>(tenant?.logo_url ? `http://localhost:3000${tenant.logo_url}` : null);
+    const [availableRubros, setAvailableRubros] = useState<Rubro[]>([]);
     const logoFiles = watch('logo_file');
+
+    useEffect(() => {
+        const loadRubros = async () => {
+            try {
+                const data = await rubrosService.getAll();
+                setAvailableRubros(data);
+            } catch (error) {
+                console.error('Error loading rubros', error);
+            }
+        };
+        loadRubros();
+    }, []);
 
     useEffect(() => {
         if (logoFiles && logoFiles.length > 0) {
@@ -71,7 +85,7 @@ const TenantForm: React.FC<TenantFormProps> = ({ tenant, onSubmit, onCancel, isL
                 moneda: data.moneda,
                 impuesto_porcentaje: Number(data.impuesto_porcentaje),
                 horario_atencion: data.horario_atencion,
-                rubro: data.rubro,
+                rubros: data.rubros,
                 logo: data.logo_file && data.logo_file.length > 0 ? data.logo_file[0] : undefined
             };
             onSubmit(updateData);
@@ -219,19 +233,43 @@ const TenantForm: React.FC<TenantFormProps> = ({ tenant, onSubmit, onCancel, isL
                     </div>
                 </div>
 
-                {/* Rubro */}
+                {/* Rubros (Multi-select) */}
                 <div className="md:col-span-2">
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Rubro / Categoría</label>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <Building className="h-5 w-5 text-slate-400" />
+                    <label className="block text-sm font-bold text-slate-700 mb-3">Rubro / Categoría (Seleccione al menos uno)</label>
+                    <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+                         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {/* Controller for checkboxes */}
+                            <Controller
+                                name="rubros"
+                                control={control}
+                                rules={{ required: 'Al menos un rubro es requerido' }}
+                                render={({ field }) => (
+                                    <>
+                                        {availableRubros.map((rubro) => (
+                                            <label key={rubro.rubro_id} className="flex items-center space-x-2 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    value={rubro.rubro_id}
+                                                    checked={field.value?.includes(rubro.rubro_id)}
+                                                    onChange={(e) => {
+                                                        const checked = e.target.checked;
+                                                        const value = Number(e.target.value);
+                                                        if (checked) {
+                                                            field.onChange([...(field.value || []), value]);
+                                                        } else {
+                                                            field.onChange((field.value || []).filter((id: number) => id !== value));
+                                                        }
+                                                    }}
+                                                    className="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500 transition-colors"
+                                                />
+                                                <span className="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">{rubro.nombre}</span>
+                                            </label>
+                                        ))}
+                                    </>
+                                )}
+                            />
                         </div>
-                        <input
-                            type="text"
-                            {...register('rubro')}
-                            className="pl-11 block w-full rounded-xl border-slate-200 shadow-sm focus:ring-teal-500 focus:border-teal-500 text-sm py-2.5 border transition-colors"
-                            placeholder="Ej. Farmacia, Restaurante, Tienda de Ropa..."
-                        />
+                        {errors.rubros && <p className="mt-2 text-xs text-red-600 font-medium">{errors.rubros.message}</p>}
                     </div>
                 </div>
 

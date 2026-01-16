@@ -40,8 +40,8 @@ export class CreateTenantDto {
     horario_atencion?: string;
 
     @IsOptional()
-    @IsString()
-    rubro?: string;
+    @IsNumber({}, { each: true })
+    rubros?: number[]; // IDs de los rubros
 
     // Datos del usuario admin inicial
     @IsString()

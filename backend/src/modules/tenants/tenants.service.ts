@@ -23,7 +23,7 @@ export class TenantsService {
       paterno_contacto,
       password_contacto,
       horario_atencion,
-      rubro
+      rubros
     } = createTenantDto;
 
     // Verificar si el email del usuario ya existe
@@ -44,9 +44,9 @@ export class TenantsService {
       }
     }
 
-    // Buscar el plan
+    // Force FREE plan
     const planDb = await this.prisma.plan.findFirst({
-      where: { nombre_plan: plan || 'FREE' }
+      where: { nombre_plan: 'FREE' }
     });
     if (!planDb) {
       throw new NotFoundException('Plan no encontrado');
@@ -63,7 +63,7 @@ export class TenantsService {
           impuesto_porcentaje: impuesto_porcentaje || 0,
           email: email_empresa || email, // Usar email de empresa si existe, sino el del contacto
           horario_atencion,
-          rubro,
+          rubros: rubros ? { connect: rubros.map((id) => ({ rubro_id: id })) } : undefined,
           plan_id: planDb.plan_id,
           estado: EstadoEmpresa.ACTIVA, // Admin crea empresas ya activas por defecto
         }
@@ -113,23 +113,117 @@ export class TenantsService {
       where: { tenant_id: id },
       include: {
         plan: true,
-        usuarios: true
+        usuarios: true,
+        rubros: true
       },
     });
     if (!tenant) throw new NotFoundException('Tenant no encontrado');
     return tenant;
   }
 
+  async findBySlug(slug: string) {
+    return this.prisma.tenant.findFirst({
+      where: { slug, estado: 'ACTIVA' },
+      select: {
+          tenant_id: true,
+          nombre_empresa: true,
+          slug: true,
+          rubros: true,
+          logo_url: true,
+          banner_url: true,
+          direccion: true,
+          telefono: true,
+          email: true,
+          horario_atencion: true,
+          moneda: true
+      }
+    });
+  }
+
+  async findPublic(identifier: string) {
+    // Check if identifier is numeric ID
+    const id = parseInt(identifier);
+    const isId = !isNaN(id);
+
+    return this.prisma.tenant.findFirst({
+        where: {
+            OR: [
+                { slug: identifier },
+                ...(isId ? [{ tenant_id: id }] : [])
+            ],
+            estado: 'ACTIVA'
+        },
+        select: {
+            tenant_id: true,
+            nombre_empresa: true,
+            slug: true,
+            rubros: {
+                select: {
+                    rubro_id: true,
+                    nombre: true
+                }
+            },
+            logo_url: true,
+            banner_url: true,
+            direccion: true,
+            telefono: true,
+            email: true,
+            horario_atencion: true,
+            moneda: true
+        }
+    });
+  }
+
   async findAll(rubro?: string) {
     return this.prisma.tenant.findMany({
       where: rubro ? {
-        rubro: {
-          contains: rubro,
-          mode: 'insensitive'
+        rubros: {
+          some: {
+            nombre: {
+              contains: rubro,
+              mode: 'insensitive'
+            }
+          }
         }
       } : {},
       include: {
         plan: true,
+        rubros: true
+      },
+      orderBy: {
+        fecha_registro: 'desc',
+      },
+    });
+  }
+
+  async findAllPublic(rubro?: string) {
+    return this.prisma.tenant.findMany({
+      where: {
+        estado: 'ACTIVA',
+        email: { not: 'system@saas.com' }, // Exclude system tenant
+        ...(rubro ? {
+          rubros: {
+            some: {
+              nombre: {
+                contains: rubro,
+                mode: 'insensitive'
+              }
+            }
+          }
+        } : {})
+      },
+      select: {
+          tenant_id: true,
+          nombre_empresa: true,
+          slug: true,
+          rubros: true,
+          logo_url: true,
+          banner_url: true,
+          direccion: true,
+          telefono: true,
+          email: true,
+          horario_atencion: true,
+          moneda: true
       },
       orderBy: {
         fecha_registro: 'desc',
@@ -139,10 +233,14 @@ export class TenantsService {
 
   async update(id: number, updateTenantDto: UpdateTenantDto) {
     await this.findOne(id); // Verificar existencia
+    const { rubros, ...rest } = updateTenantDto;
 
     return this.prisma.tenant.update({
       where: { tenant_id: id },
-      data: updateTenantDto
+      data: {
+        ...rest,
+        rubros: rubros ? { set: rubros.map((rId) => ({ rubro_id: rId })) } : undefined
+      }
     });
   }
 

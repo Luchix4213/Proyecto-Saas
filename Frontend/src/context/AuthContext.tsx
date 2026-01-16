@@ -1,22 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authService, type LoginRequest } from '../services/authService';
-
-interface User {
-    id: number;
-    nombre: string;
-    email: string;
-    rol: string;
-    tenant_id: number;
-}
-
-interface AuthContextType {
-    user: User | null;
-    token: string | null;
-    isAuthenticated: boolean;
-    isLoading: boolean;
-    login: (data: LoginRequest) => Promise<void>;
-    logout: () => void;
-}
+import type { User, AuthContextType } from '../types/auth.types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -57,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         localStorage.setItem('token', response.access_token);
         localStorage.setItem('user', JSON.stringify(response.user));
+        return response.user;
     };
 
     const logout = () => {

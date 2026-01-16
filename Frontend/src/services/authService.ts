@@ -16,6 +16,14 @@ export interface RegisterTenantRequest {
     password: string;
 }
 
+export interface UpdateProfileData {
+    nombre?: string;
+    paterno?: string;
+    materno?: string;
+    email?: string;
+    password?: string;
+}
+
 export interface AuthResponse {
     access_token: string;
     user: {
@@ -40,6 +48,11 @@ export const authService = {
 
     getProfile: async () => {
         const response = await api.get('/auth/profile');
+        return response.data;
+    },
+
+    updateProfile: async (data: UpdateProfileData) => {
+        const response = await api.patch('/auth/profile', data);
         return response.data;
     }
 };

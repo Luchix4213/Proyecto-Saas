@@ -1,4 +1,5 @@
-import { IsString, IsNumber, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsNotEmpty, IsBoolean, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateProductoDto {
     @IsString()
@@ -9,23 +10,39 @@ export class CreateProductoDto {
     @IsOptional()
     descripcion?: string;
 
+    @Type(() => Number)
     @IsNumber()
     @IsNotEmpty()
+    @Min(0)
     precio: number;
 
+    @Type(() => Number)
     @IsNumber()
     @IsNotEmpty()
     categoria_id: number;
 
+    @Type(() => Number)
     @IsNumber()
     @IsOptional()
     proveedor_id?: number;
 
+    @Type(() => Number)
     @IsNumber()
     @IsOptional()
+    @Min(0)
     stock_actual?: number;
 
+    @Type(() => Number)
     @IsNumber()
     @IsOptional()
+    @Min(0)
     stock_minimo?: number;
+
+    @IsOptional()
+    @IsBoolean()
+    destacado?: boolean;
+
+    @IsOptional()
+    @IsString()
+    slug?: string;
 }

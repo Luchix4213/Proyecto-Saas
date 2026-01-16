@@ -95,12 +95,15 @@ model Tenant {
   impuesto_porcentaje Decimal       @default(0) @db.Decimal(5, 2)
   logo_url            String?
   horario_atencion    String?
-  rubro               String? // Ej: Juguetes, Farmacia, Ropa
+  slug                String?       @unique // URL de la tienda: /tienda/mi-slug
+  banner_url          String?
   estado              EstadoEmpresa @default(PENDIENTE)
   fecha_registro      DateTime      @default(now())
 
   plan_id Int
   plan    Plan @relation(fields: [plan_id], references: [plan_id])
+
+  rubros Rubro[] // Relación muchos a muchos implícita
 
   usuarios      Usuario[]
   productos     Producto[]
@@ -108,6 +111,16 @@ model Tenant {
   clientes      Cliente[]
   compras       Compra[]
   suscripciones Suscripcion[]
+  categorias    Categoria[]
+}
+
+model Rubro {
+  rubro_id    Int            @id @default(autoincrement())
+  nombre      String         @unique // Ej: Farmacia, Restaurante
+  descripcion String?
+  estado      EstadoGenerico @default(ACTIVO)
+
+  tenants Tenant[]
 }
 
 model Usuario {
@@ -134,19 +147,19 @@ model Usuario {
 }
 
 model Suscripcion {
-  suscripcion_id Int               @id @default(autoincrement())
-  tenant_id      Int
-  tenant         Tenant            @relation(fields: [tenant_id], references: [tenant_id])
-  plan_id        Int
-  plan           Plan              @relation(fields: [plan_id], references: [plan_id])
-  fecha_inicio   DateTime
-  fecha_fin      DateTime?
-  monto          Decimal           @db.Decimal(10, 2)
-  metodo_pago    MetodoPago
-  estado         EstadoSuscripcion @default(ACTIVA)
-  referencia     String?
+  suscripcion_id  Int               @id @default(autoincrement())
+  tenant_id       Int
+  tenant          Tenant            @relation(fields: [tenant_id], references: [tenant_id])
+  plan_id         Int
+  plan            Plan              @relation(fields: [plan_id], references: [plan_id])
+  fecha_inicio    DateTime
+  fecha_fin       DateTime?
+  monto           Decimal           @db.Decimal(10, 2)
+  metodo_pago     MetodoPago
+  estado          EstadoSuscripcion @default(ACTIVA)
+  referencia      String?
   comprobante_url String? // URL del comprobante de pago
-  creado_en      DateTime          @default(now())
+  creado_en       DateTime          @default(now())
 
   @@index([tenant_id])
 }
@@ -172,10 +185,15 @@ model Cliente {
 
 model Categoria {
   categoria_id Int            @id @default(autoincrement())
+  tenant_id    Int // Categorías son específicas de cada tienda
+  tenant       Tenant         @relation(fields: [tenant_id], references: [tenant_id])
   nombre       String
+  descripcion  String?
   estado       EstadoGenerico @default(ACTIVO)
 
   productos Producto[]
+
+  @@index([tenant_id])
 }
 
 model Proveedor {
@@ -199,16 +217,19 @@ model Producto {
   proveedor_id Int?
   proveedor    Proveedor?     @relation(fields: [proveedor_id], references: [proveedor_id])
   nombre       String
+  slug         String? // URL amigable: /tienda/mi-tienda/producto-xyz (Debe ser único por tenant, pero Prisma lo hace global o compuesto)
   descripcion  String?
   precio       Decimal        @db.Decimal(10, 2)
   stock_actual Int            @default(0)
   stock_minimo Int            @default(5)
+  destacado    Boolean        @default(false)
   estado       EstadoGenerico @default(ACTIVO)
 
   detalles_venta  DetalleVenta[]
   detalles_compra DetalleCompra[]
   imagenes        ProductoImagen[]
 
+  @@unique([tenant_id, slug]) // Slug único por tenant
   @@index([tenant_id])
 }
 

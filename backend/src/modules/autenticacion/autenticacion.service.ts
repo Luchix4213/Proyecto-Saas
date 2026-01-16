@@ -8,7 +8,6 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
-import { LoginDto } from './dto/login.dto';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 import { EstadoEmpresa, RolUsuario } from '@prisma/client';
 
@@ -82,7 +81,7 @@ export class AutenticacionService {
       nombre_empresa,
       telefono_empresa,
       direccion_empresa,
-      rubro,
+      rubros,
       ...adminData
     } = registerDto;
 
@@ -123,7 +122,7 @@ export class AutenticacionService {
           direccion: direccion_empresa,
           email: registerDto.email_empresa, // Usar el email de la empresa
           plan_id: plan.plan_id,
-          rubro: rubro,
+          rubros: rubros ? { connect: rubros.map(id => ({ rubro_id: id })) } : undefined,
           estado: EstadoEmpresa.PENDIENTE,
         },
       });
@@ -271,5 +270,49 @@ export class AutenticacionService {
     };
 
     await this.transporter.sendMail(mailOptions);
+  }
+
+  async getProfile(userId: number) {
+    const user = await this.prisma.usuario.findUnique({
+      where: { usuario_id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    const { password_hash, reset_token, reset_token_exp, ...result } = user;
+    return result;
+  }
+
+  async updateProfile(userId: number, data: import('./dto/update-profile.dto').UpdateProfileDto) {
+    const { password, email, ...updateData } = data;
+
+    // Si cambia el email, verificar unicidad
+    if (email) {
+      const existingUser = await this.prisma.usuario.findUnique({
+        where: { email },
+      });
+      if (existingUser && existingUser.usuario_id !== userId) {
+        throw new ConflictException('El email ya está en uso por otro usuario');
+      }
+    }
+
+    const dataToUpdate: any = {
+      ...updateData,
+      ...(email && { email }),
+    };
+
+    if (password) {
+      dataToUpdate.password_hash = await bcrypt.hash(password, 10);
+    }
+
+    const updatedUser = await this.prisma.usuario.update({
+      where: { usuario_id: userId },
+      data: dataToUpdate,
+    });
+
+    const { password_hash, reset_token, reset_token_exp, ...result } = updatedUser;
+    return result;
   }
 }

@@ -10,7 +10,9 @@ export interface Tenant {
     impuesto_porcentaje: string;
     logo_url: string | null;
     horario_atencion: string | null;
-    rubro: string | null;
+    rubros?: any[]; // Updated from rubro: string
+    slug?: string;
+    banner_url?: string;
     estado: 'ACTIVA' | 'PENDIENTE' | 'INACTIVA';
     fecha_registro: string;
     plan?: {
@@ -30,7 +32,7 @@ export interface CreateTenantData {
     moneda?: string;
     impuesto_porcentaje?: number;
     horario_atencion?: string;
-    rubro?: string;
+    rubros?: number[]; // IDs
     plan?: string;
     nombre_contacto: string;
     paterno_contacto: string;
@@ -43,9 +45,11 @@ export interface UpdateTenantData {
     direccion?: string;
     moneda?: string;
     horario_atencion?: string;
-    rubro?: string;
+    rubros?: number[];
     impuesto_porcentaje?: number;
+    email?: string;
     logo?: File;
+    banner?: File;
 }
 
 export const tenantsService = {
@@ -60,7 +64,7 @@ export const tenantsService = {
             moneda: data.moneda,
             impuesto_porcentaje: data.impuesto_porcentaje,
             horario_atencion: data.horario_atencion,
-            rubro: data.rubro,
+            rubros: data.rubros,
             // plan defaults to FREE in backend if omitted
             nombre_contacto: data.nombre_contacto,
             paterno_contacto: data.paterno_contacto,
@@ -87,9 +91,11 @@ export const tenantsService = {
         if (data.direccion) formData.append('direccion', data.direccion);
         if (data.moneda) formData.append('moneda', data.moneda);
         if (data.horario_atencion) formData.append('horario_atencion', data.horario_atencion);
-        if (data.rubro) formData.append('rubro', data.rubro);
+        if (data.rubros) formData.append('rubros', JSON.stringify(data.rubros)); // Send as JSON string if file upload involved, or handle in backend as stringified array
         if (data.impuesto_porcentaje !== undefined) formData.append('impuesto_porcentaje', data.impuesto_porcentaje.toString());
+        if (data.email) formData.append('email', data.email);
         if (data.logo) formData.append('logo', data.logo);
+        if (data.banner) formData.append('banner', data.banner);
 
         const response = await api.patch(`/tenants/${id}`, formData, {
             headers: {
@@ -101,6 +107,13 @@ export const tenantsService = {
 
     getAll: async (rubro?: string) => {
         const response = await api.get<Tenant[]>('/tenants', {
+            params: rubro ? { rubro } : {}
+        });
+        return response.data;
+    },
+
+    getMarketplace: async (rubro?: string) => {
+        const response = await api.get<Tenant[]>('/tenants/marketplace', {
             params: rubro ? { rubro } : {}
         });
         return response.data;
@@ -123,6 +136,11 @@ export const tenantsService = {
 
     updatePlan: async (id: number, planName: string) => {
         const response = await api.patch(`/tenants/${id}/plan`, { plan: planName });
+        return response.data;
+    },
+
+    getBySlug: async (slug: string) => {
+        const response = await api.get<Tenant>(`/tenants/slug/${slug}`);
         return response.data;
     }
 };

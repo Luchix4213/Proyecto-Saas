@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { PrivateRoute } from './layout/PrivateRoute';
-import { MainLayout } from './layout/MainLayout';
+// import { MainLayout } from './layout/MainLayout'; // Deprecated
+import { AdminLayout } from './layout/AdminLayout';
+import { OwnerLayout } from './layout/OwnerLayout';
 
 /* Auth Pages */
 import { LoginPage } from './pages/auth/LoginPage';
@@ -16,11 +18,20 @@ import { AdminTenantDetailPage } from './pages/admin/AdminTenantDetailPage';
 import { AdminPlansPage } from './pages/admin/AdminPlansPage';
 import { AdminSystemUsersPage } from './pages/admin/AdminSystemUsersPage';
 import { AdminSubscriptionsPage } from './pages/admin/AdminSubscriptionsPage';
+import { AdminRubrosPage } from './pages/admin/AdminRubrosPage';
 
 import { UsersPage } from './pages/owner/UsersPage';
 import { SubscriptionPage } from './pages/owner/SubscriptionPage';
 import MyTenantPage from './pages/owner/MyTenantPage';
 import { ClientsPage } from './pages/owner/ClientsPage';
+import { CategoriesPage } from './pages/owner/categories/CategoriesPage';
+import { ProductsPage } from './pages/owner/products/ProductsPage';
+import { ProfilePage } from './pages/common/ProfilePage';
+
+/* Marketplace Pages */
+import { MarketplaceLayout } from './layout/MarketplaceLayout';
+import { LandingPage } from './pages/marketplace/LandingPage';
+import { StorefrontPage } from './pages/marketplace/StorefrontPage';
 import { OwnerDashboardPage } from './pages/owner/OwnerDashboardPage';
 
 function App() {
@@ -30,7 +41,16 @@ function App() {
         <Routes>
 
           {/* ===================== */}
-          {/* RUTAS PÚBLICAS */}
+          {/* MARKETPLACE (PÚBLICO) */}
+          {/* ===================== */}
+           <Route element={<MarketplaceLayout />}>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/tienda/:slug" element={<StorefrontPage />} />
+              <Route path="/stores" element={<LandingPage />} />
+           </Route>
+
+          {/* ===================== */}
+          {/* AUTH */}
           {/* ===================== */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -38,127 +58,49 @@ function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           {/* ===================== */}
-          {/* RUTAS PROTEGIDAS */}
+          {/* ADMIN ROUTES */}
           {/* ===================== */}
           <Route
-            path="/"
             element={
-              <PrivateRoute>
-                <MainLayout />
+              <PrivateRoute roles={['ADMIN']}>
+                <AdminLayout />
               </PrivateRoute>
             }
           >
-            {/* ----------------- */}
-            {/* DASHBOARD GENERAL */}
-            {/* ----------------- */}
-            <Route
-              index
-              element={
-                <OwnerDashboardPage />
-              }
-            />
-
-            {/* ===================== */}
-            {/* ADMIN */}
-            {/* ===================== */}
-            <Route
-              path="admin/dashboard"
-              element={
-                <PrivateRoute roles={['ADMIN']}>
-                  <AdminDashboardPage />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="admin/tenants"
-              element={
-                <PrivateRoute roles={['ADMIN']}>
-                  <AdminTenantsPage />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="admin/tenants/:id"
-              element={
-                <PrivateRoute roles={['ADMIN']}>
-                  <AdminTenantDetailPage />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="admin/planes"
-              element={
-                <PrivateRoute roles={['ADMIN']}>
-                  <AdminPlansPage />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="admin/usuarios"
-              element={
-                <PrivateRoute roles={['ADMIN']}>
-                  <AdminSystemUsersPage />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="admin/suscripciones"
-              element={
-                <PrivateRoute roles={['ADMIN']}>
-                  <AdminSubscriptionsPage />
-                </PrivateRoute>
-              }
-            />
-
-            {/* ===================== */}
-            {/* PROPIETARIO */}
-            {/* ===================== */}
-            <Route
-              path="usuarios"
-              element={
-                <PrivateRoute roles={['PROPIETARIO']}>
-                  <UsersPage />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="mi-empresa"
-              element={
-                <PrivateRoute roles={['PROPIETARIO']}>
-                  <MyTenantPage />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="suscripcion"
-              element={
-                <PrivateRoute roles={['PROPIETARIO']}>
-                  <SubscriptionPage />
-                </PrivateRoute>
-              }
-            />
-
-            <Route
-              path="clientes"
-              element={
-                <PrivateRoute roles={['PROPIETARIO', 'VENDEDOR']}>
-                  <ClientsPage />
-                </PrivateRoute>
-              }
-            />
-
-            {/* ===================== */}
-            {/* FALLBACK */}
-            {/* ===================== */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+            <Route path="/admin/tenants" element={<AdminTenantsPage />} />
+            <Route path="/admin/tenants/:id" element={<AdminTenantDetailPage />} />
+            <Route path="/admin/planes" element={<AdminPlansPage />} />
+            <Route path="/admin/usuarios" element={<AdminSystemUsersPage />} />
+            <Route path="/admin/suscripciones" element={<AdminSubscriptionsPage />} />
+            <Route path="/admin/rubros" element={<AdminRubrosPage />} />
+            <Route path="/admin/profile" element={<ProfilePage />} />
           </Route>
+
+          {/* ===================== */}
+          {/* OWNER/APP ROUTES */}
+          {/* ===================== */}
+          <Route
+            element={
+              <PrivateRoute roles={['PROPIETARIO', 'VENDEDOR']}>
+                <OwnerLayout />
+              </PrivateRoute>
+            }
+          >
+            <Route path="/dashboard" element={<OwnerDashboardPage />} />
+            <Route path="/mi-empresa" element={<MyTenantPage />} />
+            <Route path="/usuarios" element={<UsersPage />} />
+            <Route path="/clientes" element={<ClientsPage />} />
+            <Route path="/suscripcion" element={<SubscriptionPage />} />
+            <Route path="/categorias" element={<CategoriesPage />} />
+            <Route path="/productos" element={<ProductsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+          </Route>
+
+          {/* ===================== */}
+          {/* FALLBACK */}
+          {/* ===================== */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

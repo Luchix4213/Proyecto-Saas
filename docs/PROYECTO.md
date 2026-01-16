@@ -46,17 +46,30 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
   - Definición de horarios de atención
   - Estado de la empresa (activa/inactiva)
 
-### 4. Módulo de Gestión de Productos
+### 4. Módulo de Gestión de Catálogo y Marketplace
 
-**Objetivo:** Registrar y administrar los productos de la microempresa.
+**Objetivo:** Gestionar el ciclo de vida de los productos y su exposición pública tanto en portales individuales como en un marketplace centralizado.
 
 - **Funcionalidades:**
-  - Registro de productos
-  - Edición y eliminación de productos
-  - Categorización de productos
-  - Gestión de precios
+  - **Gestión Interna (Dashboard):** Registro, categorización, control de precios y (des)activación de productos por parte de la microempresa.
+  - **Portal de Productos (Storefront):** Cada empresa cuenta con su propia URL pública/catálogo para clientes finales.
+  - **Landing Page & Marketplace (SaaS Home):** Portal principal tipo Amazon que permite buscar productos de todas las microempresas registradas.
+  - **Notificaciones y Alertas:**
+    - Envío de correos automáticos ante eventos clave (compras, stock bajo).
+    - Notificaciones en tiempo real para el administrador y el cliente.
 
-### 5. Módulo de Proveedores
+### 5. Módulo de Gestión de Clientes
+
+**Objetivo:** Gestionar la información de los clientes finales.
+
+- **Funcionalidades:**
+  - Registro de clientes
+  - Edición y eliminación de clientes
+  - Búsqueda de clientes
+  - Historial de compras
+  - Cliente genérico (venta rápida)
+
+### 6. Módulo de Proveedores
 
 **Funciones:**
 
@@ -66,7 +79,7 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
 - Productos que suministran
 - Activación / desactivación de productos
 
-### 6. Módulo de Inventario (Stock)
+### 7. Módulo de Inventario (Stock)
 
 **Objetivo:** Controlar las existencias de productos.
 
@@ -77,7 +90,7 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
   - Alerta de stock mínimo
   - Consulta de disponibilidad
 
-### 7. Módulo de Ventas Online
+### 8. Módulo de Ventas Online
 
 **Objetivo:** Registrar y gestionar las ventas realizadas.
 
@@ -92,37 +105,7 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
   - Enviar un comprobante (documento PDF)
   - El administrador valida entrega de producto al cliente
 
-### 8. Módulo de Clientes
-
-**Objetivo:** Gestionar la información de los clientes finales.
-
-- **Funcionalidades:**
-  - Registro de clientes
-  - Edición y eliminación de clientes
-  - Búsqueda de clientes
-  - Historial de compras
-  - Cliente genérico (venta rápida)
-
-### 9. Módulo de Categorías
-
-**Objetivo:** Organizar los productos de manera estructurada.
-
-- **Funcionalidades:**
-  - Crear categorías
-  - Editar y eliminar categorías
-  - Asignar productos a categorías
-  - Activación / desactivación de categorías
-
-### 10. Módulo de Notificaciones
-
-**Objetivo:** Mantener informados a los usuarios sobre eventos importantes.
-
-- **Funcionalidades:**
-  - **Envío de correos automáticos:** El sistema genera y envía correos electrónicos en respuesta a eventos clave.
-  - **Notificaciones dentro de la aplicación:** El sistema muestra mensajes en tiempo real dentro de la interfaz.
-  - **Configuración de preferencias:** Cada usuario puede personalizar cómo y cuándo recibir notificaciones.
-
-### 11. Módulo de Reportes
+### 9. Módulo de Reportes
 
 **Funciones:**
 
@@ -131,7 +114,7 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
 - Reportes financieros
 - Gráficos y estadísticas
 
-### 12. Módulo de Compras
+### 10. Módulo de Compras
 
 **Objetivo:** Gestionar las compras realizadas a proveedores.
 
@@ -145,6 +128,12 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
 ---
 
 ## Arquitectura Recomendada (Visión SaaS)
+
+### Estructura de Navegación (3 Niveles)
+
+1.  **Landing Page / Marketplace:** (`/`) Pública. Venta del SaaS y buscador global de productos.
+2.  **Storefronts:** (`/tienda/[slug]`) Pública. Catálogo específico de cada microempresa.
+3.  **Dashboard Administrativo:** (`/admin`) Privada. Gestión interna de cada tenant.
 
 ### Frontend
 

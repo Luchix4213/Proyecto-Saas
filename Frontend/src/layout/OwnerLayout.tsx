@@ -1,9 +1,9 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, CreditCard, Building2, Menu, Bell, User } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, CreditCard, Building2, Menu, Bell, User, Package, Tag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 
-export const MainLayout = () => {
+export const OwnerLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { logout, user } = useAuth();
@@ -47,46 +47,26 @@ export const MainLayout = () => {
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-                    {user?.rol !== 'ADMIN' && (
-                        <NavLink to="/" icon={LayoutDashboard} label={isSidebarOpen ? 'Dashboard' : ''} />
-                    )}
+                    <NavLink to="/dashboard" icon={LayoutDashboard} label={isSidebarOpen ? 'Dashboard' : ''} />
 
-                    {/* Vistas exclusivas del Propietario */}
-                    {user?.rol === 'PROPIETARIO' && (
-                        <>
-                            <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
-                                Gestión
-                            </div>
-                            <NavLink to="/mi-empresa" icon={Building2} label={isSidebarOpen ? 'Mi Empresa' : ''} />
-                            <NavLink to="/usuarios" icon={Users} label={isSidebarOpen ? 'Usuarios' : ''} />
-                            <NavLink to="/suscripcion" icon={CreditCard} label={isSidebarOpen ? 'Suscripción' : ''} />
-                        </>
-                    )}
+                    <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
+                        Gestión
+                    </div>
+                    <NavLink to="/mi-empresa" icon={Building2} label={isSidebarOpen ? 'Mi Empresa' : ''} />
+                    <NavLink to="/usuarios" icon={Users} label={isSidebarOpen ? 'Usuarios' : ''} />
+                    <NavLink to="/categorias" icon={Tag} label={isSidebarOpen ? 'Categorías' : ''} />
+                    <NavLink to="/productos" icon={Package} label={isSidebarOpen ? 'Productos' : ''} />
+                    <NavLink to="/suscripcion" icon={CreditCard} label={isSidebarOpen ? 'Suscripción' : ''} />
 
-                    {/* Vistas Comunes */}
-                    {(user?.rol === 'PROPIETARIO' || user?.rol === 'VENDEDOR') && (
-                        <>
-                            <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
-                                Operaciones
-                            </div>
-                            <NavLink to="/clientes" icon={Users} label={isSidebarOpen ? 'Clientes' : ''} />
-                        </>
-                    )}
+                    <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
+                        Operaciones
+                    </div>
+                    <NavLink to="/clientes" icon={Users} label={isSidebarOpen ? 'Clientes' : ''} />
+                    {/* Add Sales / Orders here eventually */}
 
-                    {/* Vistas ADMIN */}
-                    {user?.rol === 'ADMIN' && (
-                        <>
-                            <NavLink to="/admin/dashboard" icon={LayoutDashboard} label={isSidebarOpen ? 'Dashboard' : ''} />
-
-                            <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
-                                Administración
-                            </div>
-                            <NavLink to="/admin/tenants" icon={Building2} label={isSidebarOpen ? 'Microempresas' : ''} />
-                            <NavLink to="/admin/suscripciones" icon={CreditCard} label={isSidebarOpen ? 'Suscripciones' : ''} />
-                            <NavLink to="/admin/usuarios" icon={Users} label={isSidebarOpen ? 'Administradores' : ''} />
-                            <NavLink to="/admin/planes" icon={CreditCard} label={isSidebarOpen ? 'Planes' : ''} />
-                        </>
-                    )}
+                    <div className="border-t border-slate-800 my-2 pt-2">
+                        <NavLink to="/profile" icon={User} label={isSidebarOpen ? 'Mi Perfil' : ''} />
+                    </div>
                 </nav>
 
                 <div className="p-4 border-t border-slate-800">
@@ -112,7 +92,7 @@ export const MainLayout = () => {
                             <Menu size={20} />
                         </button>
                         <h2 className="text-white font-semibold text-lg hidden sm:block">
-                            {user?.rol === 'ADMIN' ? 'Panel Administrativo' : 'Panel de Control'}
+                            Panel de Control
                         </h2>
                     </div>
 
@@ -124,15 +104,15 @@ export const MainLayout = () => {
                             </button>
                         </div>
 
-                        <div className="flex items-center gap-3 pl-4 border-l border-white/20">
+                        <Link to="/profile" className="flex items-center gap-3 pl-4 border-l border-white/20 hover:opacity-80 transition-opacity">
                             <div className="text-right hidden sm:block">
                                 <p className="text-sm font-semibold text-white">{user?.nombre || 'Usuario'}</p>
-                                <p className="text-xs text-teal-100">{user?.rol || 'Rol'}</p>
+                                <p className="text-xs text-teal-100">{user?.rol || 'Propietario'}</p>
                             </div>
                             <div className="h-9 w-9 bg-white/10 rounded-full flex items-center justify-center border border-white/20 text-white">
                                 <User size={18} />
                             </div>
-                        </div>
+                        </Link>
                     </div>
                 </header>
 

@@ -1,19 +1,19 @@
-import { Controller, Patch, Param, Body, UseGuards, ParseIntPipe, Get, Request, UnauthorizedException, ForbiddenException, ParseEnumPipe, Post, UseInterceptors, UploadedFile, BadRequestException, Query } from '@nestjs/common';
+import { Controller, Patch, Param, Body, UseGuards, ParseIntPipe, Get, Request, UnauthorizedException, ForbiddenException, ParseEnumPipe, Post, UseInterceptors, UploadedFile, BadRequestException, Query, UploadedFiles } from '@nestjs/common';
 import { TenantsService } from './tenants.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { EstadoEmpresa, RolUsuario } from '@prisma/client';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { editFileName, imageFileFilter } from '../../common/utils/file-upload.utils';
 
 @Controller('tenants')
-@UseGuards(AuthGuard)
 export class TenantsController {
   constructor(private readonly tenantsService: TenantsService) { }
 
   @Post()
+  @UseGuards(AuthGuard)
   async create(@Body() createTenantDto: CreateTenantDto, @Request() req) {
     if (req.user.rol !== RolUsuario.ADMIN) {
       throw new ForbiddenException('Solo administradores pueden crear empresas.');
@@ -22,6 +22,7 @@ export class TenantsController {
   }
 
   @Get('me')
+  @UseGuards(AuthGuard)
   async findMyTenant(@Request() req) {
     // Si es admin, no tiene tenant_id asugando de la misma forma, o quizas si.
     // Asumimos uso para Propietarios/Usuarios
@@ -31,7 +32,13 @@ export class TenantsController {
     return this.tenantsService.findOne(req.user.tenant_id);
   }
 
+  @Get('marketplace')
+  async findAllPublic(@Query('rubro') rubro?: string) {
+    return this.tenantsService.findAllPublic(rubro);
+  }
+
   @Get()
+  @UseGuards(AuthGuard)
   async findAll(@Request() req, @Query('rubro') rubro?: string) {
     if (req.user.rol !== RolUsuario.ADMIN) {
       throw new ForbiddenException('Acceso denegado. Solo administradores.');
@@ -39,7 +46,17 @@ export class TenantsController {
     return this.tenantsService.findAll(rubro);
   }
 
+  @Get('slug/:slug')
+  async findBySlug(@Param('slug') slug: string) {
+      const tenant = await this.tenantsService.findPublic(slug);
+      if (!tenant) {
+          throw new BadRequestException('Tienda no encontrada o inactiva');
+      }
+      return tenant;
+  }
+
   @Get(':id')
+  @UseGuards(AuthGuard)
   async findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
     // Si es admin puede ver cualquiera. Si es propietario solo el suyo.
     if (req.user.rol !== RolUsuario.ADMIN && req.user.tenant_id !== id) {
@@ -49,8 +66,12 @@ export class TenantsController {
   }
 
   @Patch(':id')
+  @UseGuards(AuthGuard)
   @UseInterceptors(
-    FileInterceptor('logo', {
+    FileFieldsInterceptor([
+        { name: 'logo', maxCount: 1 },
+        { name: 'banner', maxCount: 1 }
+    ], {
       storage: diskStorage({
         destination: './uploads/tenants',
         filename: editFileName,
@@ -61,7 +82,7 @@ export class TenantsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTenantDto: UpdateTenantDto,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: { logo?: Express.Multer.File[], banner?: Express.Multer.File[] },
     @Request() req
   ) {
     // 1. Validar permisos: ADMIN o PROPIETARIO del mismo tenant
@@ -71,21 +92,26 @@ export class TenantsController {
       }
     }
 
-    // 2. Si hay archivo, agregar url al DTO
-    if (file) {
-      // Guardamos ruta relativa
-      updateTenantDto.logo_url = `/uploads/tenants/${file.filename}`;
+    // 2. Si hay archivo logo
+    if (files?.logo && files.logo.length > 0) {
+      updateTenantDto.logo_url = `/uploads/tenants/${files.logo[0].filename}`;
     }
 
-    // 3. Si el usuario intenta cambiar 'estado' y no es ADMIN, lo ignoramos o lanzamos error
+    // 3. Si hay archivo banner
+    if (files?.banner && files.banner.length > 0) {
+      updateTenantDto.banner_url = `/uploads/tenants/${files.banner[0].filename}`;
+    }
+
+    // 4. Si el usuario intenta cambiar 'estado' y no es ADMIN, lo ignoramos o lanzamos error
     if (updateTenantDto.estado && req.user.rol !== RolUsuario.ADMIN) {
-      delete updateTenantDto.estado; // Silently ignorar o throw Forbidden
+      delete updateTenantDto.estado;
     }
 
     return this.tenantsService.update(id, updateTenantDto);
   }
 
   @Patch(':id/plan')
+  @UseGuards(AuthGuard)
   async updatePlan(
     @Param('id', ParseIntPipe) id: number,
     @Body('plan') plan: string,
@@ -102,6 +128,7 @@ export class TenantsController {
   }
 
   @Patch(':id/status')
+  @UseGuards(AuthGuard)
   async updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body('estado') estado: EstadoEmpresa,

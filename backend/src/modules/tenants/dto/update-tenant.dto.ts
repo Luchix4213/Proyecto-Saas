@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsEmail, IsNumber, IsEnum } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { EstadoEmpresa } from '@prisma/client';
 
 export class UpdateTenantDto {
@@ -10,6 +10,10 @@ export class UpdateTenantDto {
     @IsOptional()
     @IsString()
     telefono?: string;
+
+    @IsOptional()
+    @IsEmail()
+    email?: string; // Email de la empresa
 
     @IsOptional()
     @IsString()
@@ -25,11 +29,25 @@ export class UpdateTenantDto {
 
     @IsOptional()
     @IsString()
-    horario_atencion?: string;
+    banner_url?: string;
 
     @IsOptional()
     @IsString()
-    rubro?: string;
+    horario_atencion?: string;
+
+    @IsOptional()
+    @Transform(({ value }) => {
+      if (typeof value === 'string') {
+        try {
+           return JSON.parse(value);
+        } catch {
+           return [];
+        }
+      }
+      return value;
+    })
+    @IsNumber({}, { each: true })
+    rubros?: number[]; // IDs de los rubros
 
     @IsOptional()
     @Type(() => Number)

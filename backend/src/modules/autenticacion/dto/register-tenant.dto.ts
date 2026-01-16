@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, MinLength, IsString, IsOptional } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength, IsString, IsOptional, IsNumber } from 'class-validator';
 
 export class RegisterTenantDto {
     // Datos Empresa
@@ -18,8 +18,8 @@ export class RegisterTenantDto {
     email_empresa: string;
 
     @IsOptional()
-    @IsString()
-    rubro?: string;
+    @IsNumber({}, { each: true })
+    rubros?: number[];
 
     // Datos Admin
     @IsNotEmpty()

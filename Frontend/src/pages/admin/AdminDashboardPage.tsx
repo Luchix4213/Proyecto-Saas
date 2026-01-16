@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
-import { Users, Building2, CreditCard, TrendingUp, Activity, PieChart, ArrowUpRight, DollarSign } from 'lucide-react';
+import { Users, Building2, CreditCard, TrendingUp, PieChart, ArrowUpRight, DollarSign } from 'lucide-react';
 
 interface DashboardStats {
     tenants: {
@@ -30,7 +30,7 @@ export const AdminDashboardPage = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const { data } = await api.get('/admin/stats');
+                const { data } = await api.get('/reportes/admin/stats');
                 setStats(data);
             } catch (err) {
                 console.error(err);

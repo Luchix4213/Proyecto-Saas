@@ -93,32 +93,52 @@ export const AdminTenantsPage = () => {
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Empresas</p>
-                        <p className="text-2xl font-bold text-slate-800 mt-1">{stats.total}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 {/* Total Companies */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Store size={80} className="text-indigo-600" />
                     </div>
-                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
-                        <Store size={20} />
-                    </div>
-                </div>
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Activas</p>
-                        <p className="text-2xl font-bold text-slate-800 mt-1">{stats.active}</p>
-                    </div>
-                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                        <CheckCircle2 size={20} />
+                    <div className="flex justify-between items-start relative z-10">
+                        <div>
+                            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Empresas</p>
+                            <p className="text-3xl font-bold text-slate-800 mt-2">{stats.total}</p>
+                        </div>
+                        <div className="p-3 rounded-xl shadow-lg bg-gradient-to-br from-indigo-500 to-blue-500 text-white">
+                            <Store size={24} />
+                        </div>
                     </div>
                 </div>
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pendientes</p>
-                        <p className="text-2xl font-bold text-slate-800 mt-1">{stats.pending}</p>
+
+                {/* Active Companies */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <CheckCircle2 size={80} className="text-emerald-600" />
                     </div>
-                    <div className="p-3 bg-amber-50 text-amber-600 rounded-lg">
-                        <Clock size={20} />
+                    <div className="flex justify-between items-start relative z-10">
+                        <div>
+                            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Activas</p>
+                            <p className="text-3xl font-bold text-slate-800 mt-2">{stats.active}</p>
+                        </div>
+                        <div className="p-3 rounded-xl shadow-lg bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
+                            <CheckCircle2 size={24} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Pending Companies */}
+                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Clock size={80} className="text-amber-600" />
+                    </div>
+                    <div className="flex justify-between items-start relative z-10">
+                         <div>
+                            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Pendientes</p>
+                            <p className="text-3xl font-bold text-slate-800 mt-2">{stats.pending}</p>
+                        </div>
+                        <div className="p-3 rounded-xl shadow-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white">
+                            <Clock size={24} />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -211,7 +231,7 @@ export const AdminTenantsPage = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="inline-flex px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 capitalize">
-                                                {tenant.rubro || 'N/A'}
+                                                {tenant.rubros?.map((r: any) => r.nombre).join(', ') || 'N/A'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
