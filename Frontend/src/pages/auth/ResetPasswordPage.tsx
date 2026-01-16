@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Lock, CheckCircle2, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export const ResetPasswordPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -59,128 +59,163 @@ export const ResetPasswordPage = () => {
             setTimeout(() => navigate('/login'), 3000);
         } catch (error: any) {
             setStatus('error');
+            //@ts-ignore
             setMessage(error.response?.data?.message || 'Error al restablecer contraseña.');
         }
     };
 
-    // Si no hay token en la URL, mostrar formulario para ingresarlo manualmente
-    if (!token) {
-        return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-                <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-                    <div className="text-center mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900">Código de Verificación</h2>
-                        <p className="mt-2 text-gray-600">Ingresa el código que recibiste por correo (o copia de la consola)</p>
-                    </div>
-
-                    <form onSubmit={handleManualTokenSubmit} className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                                Código / Token
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                value={manualToken}
-                                onChange={(e) => setManualToken(e.target.value)}
-                                placeholder="Pega tu token aquí"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            Verificar Código
-                        </button>
-                    </form>
-
-                    <div className="text-center mt-4">
-                        <button onClick={() => navigate('/login')} className="text-sm text-indigo-600 hover:text-indigo-500">
-                            Volver al Login
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-            <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-900">Nueva Contraseña</h2>
-                    <p className="mt-2 text-gray-600">Ingresa tu nueva contraseña</p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-900">
+            {/* Background Effects */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-500/10 rounded-full blur-[100px] animate-pulse"></div>
+            </div>
 
-                {status === 'success' ? (
-                    <div className="bg-green-50 text-green-800 p-4 rounded-md text-center">
-                        {message}
-                        <p className="text-sm mt-2">Redirigiendo al login...</p>
+            <div className="max-w-md w-full relative z-10 p-6 animate-fade-in-up">
+                <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
+
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-violet-500/30 mb-6">
+                            <ShieldCheck className="w-8 h-8 text-white" />
+                        </div>
+                        <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+                            {token ? 'Nueva Contraseña' : 'Verificación'}
+                        </h2>
+                        <p className="mt-2 text-sm font-medium text-slate-500">
+                            {token ? 'Establece tu nueva contraseña segura' : 'Ingresa el código que recibiste por correo'}
+                        </p>
                     </div>
-                ) : (
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {status === 'error' && (
-                            <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm">
-                                {message}
-                            </div>
-                        )}
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                                Nueva Contraseña
-                            </label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
+                    {/* Step 1: Manual Token Entry (if no token in URL) */}
+                    {!token ? (
+                        <form onSubmit={handleManualTokenSubmit} className="space-y-6 animate-fade-in">
+                            {status === 'error' && (
+                                <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm font-medium animate-shake">
+                                    {message}
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">
+                                    Código de Verificación
+                                </label>
                                 <input
-                                    type={showPassword ? 'text' : 'password'}
+                                    type="text"
                                     required
-                                    minLength={6}
-                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 pr-10"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 hover:bg-white transition-all placeholder-slate-400 text-center tracking-widest text-lg font-mono"
+                                    value={manualToken}
+                                    onChange={(e) => setManualToken(e.target.value)}
+                                    placeholder="XXXXXX"
                                 />
-                                <button
-                                    type="button"
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={status === 'loading'}
+                                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 shadow-lg shadow-slate-500/30 transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                            >
+                                {status === 'loading' ? 'Verificando...' : 'Verificar Código'}
+                            </button>
+
+                            <div className="text-center pt-2">
+                                <button onClick={() => navigate('/login')} className="inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors">
+                                    <ArrowLeft size={16} /> Volver al Login
                                 </button>
                             </div>
-                        </div>
+                        </form>
+                    ) : (
+                        /* Step 2: Reset Password Form */
+                        <>
+                            {status === 'success' ? (
+                                <div className="text-center animate-scale-in">
+                                    <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl mb-6">
+                                        <div className="inline-flex p-3 bg-emerald-100 rounded-full text-emerald-600 mb-3 animate-bounce">
+                                            <CheckCircle2 size={32} />
+                                        </div>
+                                        <h3 className="font-bold text-emerald-800 text-lg mb-1">¡Contraseña Actualizada!</h3>
+                                        <p className="text-emerald-700 text-sm">Serás redirigido al login en unos segundos...</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+                                    {status === 'error' && (
+                                        <div className="bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm font-medium animate-shake">
+                                            {message}
+                                        </div>
+                                    )}
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">
-                                Confirmar Contraseña
-                            </label>
-                            <div className="mt-1 relative rounded-md shadow-sm">
-                                <input
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    required
-                                    minLength={6}
-                                    className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 pr-10"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                />
-                                <button
-                                    type="button"
-                                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                >
-                                    {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
-                                </button>
-                            </div>
-                        </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Nueva Contraseña</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                <Lock className="h-5 w-5" />
+                                            </div>
+                                            <input
+                                                type={showPassword ? 'text' : 'password'}
+                                                required
+                                                minLength={6}
+                                                className="block w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 hover:bg-white transition-all placeholder-slate-400"
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder="••••••••"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                            >
+                                                {showPassword ? <EyeOff className="h-5 w-5 text-slate-400 hover:text-slate-600" /> : <Eye className="h-5 w-5 text-slate-400 hover:text-slate-600" />}
+                                            </button>
+                                        </div>
+                                    </div>
 
-                        <button
-                            type="submit"
-                            disabled={status === 'loading'}
-                            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                        >
-                            {status === 'loading' ? 'Actualizando...' : 'Cambiar Contraseña'}
-                        </button>
-                    </form>
-                )}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Confirmar Contraseña</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                <Lock className="h-5 w-5" />
+                                            </div>
+                                            <input
+                                                type={showConfirmPassword ? 'text' : 'password'}
+                                                required
+                                                minLength={6}
+                                                className="block w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 hover:bg-white transition-all placeholder-slate-400"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                placeholder="••••••••"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            >
+                                                {showConfirmPassword ? <EyeOff className="h-5 w-5 text-slate-400 hover:text-slate-600" /> : <Eye className="h-5 w-5 text-slate-400 hover:text-slate-600" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={status === 'loading'}
+                                        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-teal-600 to-emerald-600 border border-transparent rounded-xl shadow-lg shadow-teal-500/30 text-white font-bold hover:from-teal-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:-translate-y-0.5"
+                                    >
+                                        {status === 'loading' ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                <span>Actualizando...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                Cambiar Contraseña <ArrowRight size={18} strokeWidth={2.5} />
+                                            </>
+                                        )}
+                                    </button>
+                                </form>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );

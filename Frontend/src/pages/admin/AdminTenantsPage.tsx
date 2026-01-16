@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { tenantsService } from '../../services/tenantsService';
 import type { Tenant } from '../../services/tenantsService';
-import { Plus, X, RefreshCw, Building2 } from 'lucide-react';
+import { Plus, X, RefreshCw, Building2, Search, Filter, Store, CheckCircle2, Clock, Ban } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import TenantForm from '../../components/tenants/TenantForm';
 import type { CreateTenantData } from '../../services/tenantsService';
@@ -39,14 +39,10 @@ export const AdminTenantsPage = () => {
     const handleCreate = async (data: any) => {
         try {
             setIsCreating(true);
-            // Extract logo from data if present
             const { logo, ...createData } = data;
-
-            // Call create service with separated logo
             await tenantsService.create(createData as CreateTenantData, logo);
-
             setIsModalOpen(false);
-            fetchTenants(); // Refresh list
+            fetchTenants();
         } catch (err: any) {
             console.error(err);
             const message = err.response?.data?.message || 'Error al crear la empresa';
@@ -61,64 +57,210 @@ export const AdminTenantsPage = () => {
         return tenant.estado === filterStatus;
     });
 
-    if (loading) return <div className="p-8 text-center">Cargando empresas...</div>;
+    const stats = {
+        total: tenants.length,
+        active: tenants.filter(t => t.estado === 'ACTIVA').length,
+        pending: tenants.filter(t => t.estado === 'PENDIENTE').length
+    };
 
     return (
-        <div className="space-y-6">
-            <div className="sm:flex sm:items-center sm:justify-between">
+        <div className="space-y-8 animate-fade-in-up">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        <Building2 className="h-8 w-8 text-indigo-600" />
+                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                        <Building2 className="text-teal-600" />
                         Gestión de Microempresas
                     </h1>
-                    <p className="mt-2 text-sm text-gray-700">
-                        Administración de tenants registrados en la plataforma SaaS.
-                    </p>
+                    <p className="text-slate-500 mt-1">Administración de tenants registrados en la plataforma SaaS.</p>
                 </div>
-                <div className="mt-4 sm:mt-0 flex gap-2">
-                    <input
-                        type="text"
-                        placeholder="Buscar por rubro (ej: juguetes)..."
-                        value={searchRubro}
-                        onChange={(e) => setSearchRubro(e.target.value)}
-                        className="block w-64 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3 py-2 border"
-                    />
-                    <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="block rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm border"
-                    >
-                        <option value="ALL">Todos</option>
-                        <option value="ACTIVA">Activas</option>
-                        <option value="INACTIVA">Inactivas</option>
-                        <option value="PENDIENTE">Pendientes</option>
-                    </select>
+                <div className="flex gap-2">
                     <button
                         onClick={() => fetchTenants()}
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        className="p-2.5 text-slate-400 hover:text-teal-600 bg-white border border-slate-200 hover:border-teal-200 rounded-xl transition-all shadow-sm"
+                        title="Refrescar lista"
                     >
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Refrescar
+                        <RefreshCw size={20} />
                     </button>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white hover:from-teal-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all hover:-translate-y-0.5 hover:shadow-teal-500/30"
                     >
-                        <Plus className="h-4 w-4 mr-2" />
+                        <Plus size={18} strokeWidth={2.5} />
                         Nueva Empresa
                     </button>
                 </div>
             </div>
 
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Empresas</p>
+                        <p className="text-2xl font-bold text-slate-800 mt-1">{stats.total}</p>
+                    </div>
+                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+                        <Store size={20} />
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Activas</p>
+                        <p className="text-2xl font-bold text-slate-800 mt-1">{stats.active}</p>
+                    </div>
+                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+                        <CheckCircle2 size={20} />
+                    </div>
+                </div>
+                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pendientes</p>
+                        <p className="text-2xl font-bold text-slate-800 mt-1">{stats.pending}</p>
+                    </div>
+                    <div className="p-3 bg-amber-50 text-amber-600 rounded-lg">
+                        <Clock size={20} />
+                    </div>
+                </div>
+            </div>
+
+            {error && (
+                <div className="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-3">
+                    <Ban size={20} />
+                    <span className="font-medium">{error}</span>
+                </div>
+            )}
+
+            {/* Content Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                {/* Toolbar */}
+                <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-50/50">
+                    <div className="relative w-full sm:w-72 group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Buscar por rubro (ej: juguetes)..."
+                            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                            value={searchRubro}
+                            onChange={(e) => setSearchRubro(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <div className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-xl w-full sm:w-auto">
+                            <Filter size={16} className="text-slate-400" />
+                            <select
+                                className="bg-transparent border-none text-sm text-slate-600 font-medium focus:outline-none w-full"
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                            >
+                                <option value="ALL">Todos los Estados</option>
+                                <option value="ACTIVA">Activas</option>
+                                <option value="INACTIVA">Inactivas</option>
+                                <option value="PENDIENTE">Pendientes</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Table */}
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-slate-50 border-b border-slate-200">
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Empresa</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Contacto</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Rubro</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Plan</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center gap-3">
+                                            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500 border-t-transparent"></div>
+                                            <span className="text-sm font-medium text-slate-500">Cargando empresas...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : filteredTenants.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                                        No se encontraron empresas que coincidan con los criterios.
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredTenants.map((tenant) => (
+                                    <tr key={tenant.tenant_id} className="group hover:bg-slate-50/80 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600 border border-teal-100">
+                                                    <Store size={20} />
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold text-slate-800">{tenant.nombre_empresa}</div>
+                                                    <div className="text-xs text-slate-400 font-mono">ID: {tenant.tenant_id}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm text-slate-600 font-medium">{tenant.email}</div>
+                                            <div className="text-xs text-slate-400">Reg: {new Date(tenant.fecha_registro).toLocaleDateString()}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 capitalize">
+                                                {tenant.rubro || 'N/A'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                                {tenant.plan?.nombre_plan || 'Sin Plan'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${tenant.estado === 'ACTIVA' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                                    tenant.estado === 'PENDIENTE' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                                                        'bg-red-50 text-red-700 border-red-100'
+                                                }`}>
+                                                <span className={`h-1.5 w-1.5 rounded-full ${tenant.estado === 'ACTIVA' ? 'bg-emerald-500' :
+                                                        tenant.estado === 'PENDIENTE' ? 'bg-amber-500' :
+                                                            'bg-red-500'
+                                                    }`}></span>
+                                                {tenant.estado}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <Link
+                                                to={`/admin/tenants/${tenant.tenant_id}`}
+                                                className="inline-flex items-center gap-1 text-sm font-semibold text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors"
+                                            >
+                                                Ver Detalles
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
-                        <div className="flex justify-between items-center p-6 border-b flex-shrink-0">
-                            <h3 className="text-xl font-semibold text-gray-800">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in p-4">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-scale-in border border-slate-100">
+                        <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <Building2 className="text-teal-600" />
                                 Registrar Nueva Microempresa
                             </h3>
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                                <X size={24} />
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                            >
+                                <X size={20} />
                             </button>
                         </div>
                         <div className="p-6 overflow-y-auto">
@@ -132,65 +274,6 @@ export const AdminTenantsPage = () => {
                     </div>
                 </div>
             )}
-
-
-            {
-                error && (
-                    <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-                        {error}
-                    </div>
-                )
-            }
-
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Empresa</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rubro</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredTenants.map((tenant) => (
-                            <tr key={tenant.tenant_id}>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-900">{tenant.nombre_empresa}</div>
-                                    <div className="text-xs text-gray-500">ID: {tenant.tenant_id}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900">{tenant.email}</div>
-                                    <div className="text-xs text-gray-500">Reg: {new Date(tenant.fecha_registro).toLocaleDateString()}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900">{tenant.rubro || 'N/A'}</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                        {tenant.plan?.nombre_plan || 'Sin Plan'}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                        ${tenant.estado === 'ACTIVA' ? 'bg-green-100 text-green-800' :
-                                            tenant.estado === 'PENDIENTE' ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-red-100 text-red-800'}`}>
-                                        {tenant.estado}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                    <Link to={`/admin/tenants/${tenant.tenant_id}`} className="text-indigo-600 hover:text-indigo-900 font-medium bg-indigo-50 px-3 py-1 rounded-md">
-                                        Ver Detalles
-                                    </Link>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div >
+        </div>
     );
 };

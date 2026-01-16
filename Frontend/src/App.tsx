@@ -21,6 +21,7 @@ import { UsersPage } from './pages/owner/UsersPage';
 import { SubscriptionPage } from './pages/owner/SubscriptionPage';
 import MyTenantPage from './pages/owner/MyTenantPage';
 import { ClientsPage } from './pages/owner/ClientsPage';
+import { OwnerDashboardPage } from './pages/owner/OwnerDashboardPage';
 
 function App() {
   return (
@@ -53,10 +54,7 @@ function App() {
             <Route
               index
               element={
-                <div className="p-4">
-                  <h1 className="text-2xl font-bold">Dashboard</h1>
-                  <p>Bienvenido al sistema multi-tenant.</p>
-                </div>
+                <OwnerDashboardPage />
               }
             />
 

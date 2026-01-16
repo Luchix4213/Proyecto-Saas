@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
-import { Building2, User, Mail, Lock, ArrowRight, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { Building2, User, Mail, Lock, ArrowRight, CheckCircle2, Eye, EyeOff, MapPin, Phone, Briefcase } from 'lucide-react';
 
 export const RegisterPage = () => {
     const navigate = useNavigate();
@@ -146,244 +146,306 @@ export const RegisterPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl">
-                <div className="text-center">
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-                        Crea tu cuenta Kipu
-                    </h2>
-                    <p className="mt-2 text-sm text-gray-600">
-                        {step === 1 ? 'Paso 1: Datos de tu Empresa' : 'Paso 2: Datos del Administrador'}
-                    </p>
-                </div>
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-900">
+            {/* Background Effects */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute -top-40 -left-40 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[100px]"></div>
+                <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+            </div>
 
-                {globalError && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm flex items-center gap-2">
-                        <span>•</span> {globalError}
-                    </div>
-                )}
-
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
-                    {step === 1 ? (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Nombre de la Empresa</label>
-                                <div className="mt-1 relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Building2 className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        name="nombre_empresa"
-                                        maxLength={100}
-                                        className={`block w-full pl-10 sm:text-sm rounded-md py-2 border ${errors.nombre_empresa ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'}`}
-                                        placeholder="Mi Empresa S.R.L."
-                                        value={formData.nombre_empresa}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                {errors.nombre_empresa && <p className="mt-1 text-xs text-red-600">{errors.nombre_empresa}</p>}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Email Corporativo / Contacto</label>
-                                <p className="text-xs text-gray-500 mb-1">Email general de la empresa (info, contacto...)</p>
-                                <div className="mt-1 relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Mail className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <input
-                                        type="email"
-                                        name="email_empresa"
-                                        maxLength={255}
-                                        className={`block w-full pl-10 sm:text-sm rounded-md py-2 border ${errors.email_empresa ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'}`}
-                                        placeholder="contacto@empresa.com"
-                                        value={formData.email_empresa}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                {errors.email_empresa && <p className="mt-1 text-xs text-red-600">{errors.email_empresa}</p>}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Teléfono (Opcional)</label>
-                                <input
-                                    type="tel"
-                                    name="telefono_empresa"
-                                    maxLength={20}
-                                    className={`mt-1 block w-full sm:text-sm rounded-md py-2 border px-3 ${errors.telefono_empresa ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'}`}
-                                    value={formData.telefono_empresa}
-                                    onChange={handleChange}
-                                    placeholder="+591 70000000"
-                                />
-                                {errors.telefono_empresa && <p className="mt-1 text-xs text-red-600">{errors.telefono_empresa}</p>}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Dirección (Opcional)</label>
-                                <input
-                                    type="text"
-                                    name="direccion_empresa"
-                                    maxLength={200}
-                                    placeholder="Av. Principal #123"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Rubro / Categoría de Negocio</label>
-                                <input
-                                    type="text"
-                                    name="rubro"
-                                    maxLength={50}
-                                    className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-2 border px-3"
-                                    value={formData.rubro}
-                                    onChange={handleChange}
-                                    placeholder="Ej: Juguetes, Farmacia, Ropa"
-                                />
-                            </div>
+            <div className="max-w-xl w-full relative z-10 p-6 animate-fade-in-up">
+                <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20">
+                    <div className="text-center mb-8">
+                        {/* Logo or Icon */}
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg shadow-teal-500/30 mb-6 transition-transform hover:scale-110 duration-500">
+                            <Building2 className="w-8 h-8 text-white" />
                         </div>
-                    ) : (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Nombre</label>
-                                    <input
-                                        type="text"
-                                        name="nombre"
-                                        maxLength={50}
-                                        className={`mt-1 block w-full sm:text-sm rounded-md py-2 border px-3 ${errors.nombre ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'}`}
-                                        value={formData.nombre}
-                                        onChange={handleChange}
-                                    />
-                                    {errors.nombre && <p className="mt-1 text-xs text-red-600">{errors.nombre}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Paterno</label>
-                                    <input
-                                        type="text"
-                                        name="paterno"
-                                        maxLength={50}
-                                        className={`mt-1 block w-full sm:text-sm rounded-md py-2 border px-3 ${errors.paterno ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'}`}
-                                        value={formData.paterno}
-                                        onChange={handleChange}
-                                    />
-                                    {errors.paterno && <p className="mt-1 text-xs text-red-600">{errors.paterno}</p>}
-                                </div>
-                            </div>
+                        <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+                            Crea tu cuenta Kipu
+                        </h2>
+                        <p className="mt-2 text-sm font-medium text-slate-500">
+                            {step === 1 ? 'Paso 1: Datos de tu Empresa' : 'Paso 2: Datos del Administrador'}
+                        </p>
+                        {/* Steps Indicator */}
+                        <div className="flex items-center justify-center gap-2 mt-4">
+                            <div className={`h-1.5 w-12 rounded-full transition-colors duration-300 ${step === 1 ? 'bg-teal-500' : 'bg-slate-200'}`}></div>
+                            <div className={`h-1.5 w-12 rounded-full transition-colors duration-300 ${step === 2 ? 'bg-teal-500' : 'bg-slate-200'}`}></div>
+                        </div>
+                    </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Materno (Opcional)</label>
-                                <input
-                                    type="text"
-                                    name="materno"
-                                    maxLength={50}
-                                    className={`mt-1 block w-full sm:text-sm rounded-md py-2 border px-3 ${errors.materno ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'}`}
-                                    value={formData.materno}
-                                    onChange={handleChange}
-                                />
-                                {errors.materno && <p className="mt-1 text-xs text-red-600">{errors.materno}</p>}
+                    {globalError && (
+                        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3 animate-shake">
+                            <div className="p-1 bg-red-100 rounded-full text-red-600 flex-shrink-0">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Email del Usuario (Login)</label>
-                                <p className="text-xs text-gray-500 mb-1">Este email será tu usuario para iniciar sesión.</p>
-                                <div className="mt-1 relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <User className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        maxLength={255}
-                                        className={`focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm rounded-md py-2 border ${errors.email ? 'border-red-300' : 'border-gray-300'}`}
-                                        placeholder="juan.perez@empresa.com"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                    />
-                                </div>
-                                {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Contraseña</label>
-                                <div className="mt-1 relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Lock className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <input
-                                        type={showPassword ? 'text' : 'password'}
-                                        name="password"
-                                        maxLength={100}
-                                        className={`focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-10 sm:text-sm rounded-md py-2 border ${errors.password ? 'border-red-300' : 'border-gray-300'}`}
-                                        value={formData.password}
-                                        onChange={handleChange}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                    >
-                                        {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
-                                    </button>
-                                </div>
-                                {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
-                            </div>
-
-                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Confirmar Contraseña</label>
-                                <div className="mt-1 relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Lock className="h-5 w-5 text-gray-400" />
-                                    </div>
-                                    <input
-                                        type={showConfirmPassword ? 'text' : 'password'}
-                                        name="confirmPassword"
-                                        maxLength={100}
-                                        className={`focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 pr-10 sm:text-sm rounded-md py-2 border ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'}`}
-                                        value={formData.confirmPassword}
-                                        onChange={handleChange}
-                                    />
-                                     <button
-                                        type="button"
-                                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    >
-                                        {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
-                                    </button>
-                                </div>
-                                {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword}</p>}
-                            </div>
+                            <p className="text-sm font-medium text-red-600 pt-0.5">{globalError}</p>
                         </div>
                     )}
 
-                    <div className="flex justify-between items-center gap-4 mt-6">
-                        {step === 2 && (
-                            <button
-                                type="button"
-                                onClick={() => setStep(1)}
-                                className="text-gray-600 hover:text-gray-900 font-medium"
-                            >
-                                Atrás
-                            </button>
+                    <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+                        {step === 1 ? (
+                            <div className="space-y-5 animate-fade-in">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Nombre de la Empresa</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <Building2 className="h-5 w-5" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="nombre_empresa"
+                                            maxLength={100}
+                                            className={`block w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.nombre_empresa
+                                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                    : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
+                                                }`}
+                                            placeholder="Ej: Mi Negocio S.R.L."
+                                            value={formData.nombre_empresa}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                    {errors.nombre_empresa && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.nombre_empresa}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Email Corporativo</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <Mail className="h-5 w-5" />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            name="email_empresa"
+                                            maxLength={255}
+                                            className={`block w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.email_empresa
+                                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                    : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
+                                                }`}
+                                            placeholder="contacto@empresa.com"
+                                            value={formData.email_empresa}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                    {errors.email_empresa && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.email_empresa}</p>}
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Teléfono (Opcional)</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                <Phone className="h-4 w-4" />
+                                            </div>
+                                            <input
+                                                type="tel"
+                                                name="telefono_empresa"
+                                                maxLength={20}
+                                                className={`block w-full pl-9 pr-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.telefono_empresa
+                                                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                        : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
+                                                    }`}
+                                                value={formData.telefono_empresa}
+                                                onChange={handleChange}
+                                                placeholder="+591 7000..."
+                                            />
+                                        </div>
+                                        {errors.telefono_empresa && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.telefono_empresa}</p>}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Rubro</label>
+                                        <div className="relative">
+                                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                                <Briefcase className="h-4 w-4" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="rubro"
+                                                maxLength={50}
+                                                className="block w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 hover:bg-white transition-all placeholder-slate-400"
+                                                value={formData.rubro}
+                                                onChange={handleChange}
+                                                placeholder="Ej: Farmacia"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Dirección (Opcional)</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <MapPin className="h-5 w-5" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            name="direccion_empresa"
+                                            maxLength={200}
+                                            className="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 hover:bg-white transition-all placeholder-slate-400"
+                                            placeholder="Av. Principal #123"
+                                            value={formData.direccion_empresa}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-5 animate-fade-in">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Nombre</label>
+                                        <input
+                                            type="text"
+                                            name="nombre"
+                                            maxLength={50}
+                                            className={`block w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.nombre
+                                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                    : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
+                                                }`}
+                                            value={formData.nombre}
+                                            onChange={handleChange}
+                                            placeholder="Juan"
+                                        />
+                                        {errors.nombre && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.nombre}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Apellido</label>
+                                        <input
+                                            type="text"
+                                            name="paterno"
+                                            maxLength={50}
+                                            className={`block w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.paterno
+                                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                    : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
+                                                }`}
+                                            value={formData.paterno}
+                                            onChange={handleChange}
+                                            placeholder="Pérez"
+                                        />
+                                        {errors.paterno && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.paterno}</p>}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Email (Usuario)</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <User className="h-5 w-5" />
+                                        </div>
+                                        <input
+                                            type="email"
+                                            name="email"
+                                            maxLength={255}
+                                            className={`block w-full pl-10 pr-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.email
+                                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                    : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
+                                                }`}
+                                            placeholder="juan.perez@empresa.com"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                        />
+                                    </div>
+                                    {errors.email && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.email}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Contraseña</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <Lock className="h-5 w-5" />
+                                        </div>
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            name="password"
+                                            maxLength={100}
+                                            className={`block w-full pl-10 pr-10 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.password
+                                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                    : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
+                                                }`}
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            placeholder="••••••••"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? <EyeOff className="h-5 w-5 text-slate-400 hover:text-slate-600" /> : <Eye className="h-5 w-5 text-slate-400 hover:text-slate-600" />}
+                                        </button>
+                                    </div>
+                                    {errors.password && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.password}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">Confirmar Contraseña</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <Lock className="h-5 w-5" />
+                                        </div>
+                                        <input
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            name="confirmPassword"
+                                            maxLength={100}
+                                            className={`block w-full pl-10 pr-10 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all placeholder-slate-400 ${errors.confirmPassword
+                                                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                                                    : 'border-slate-200 focus:ring-teal-500 focus:border-teal-500 hover:bg-white'
+                                                }`}
+                                            value={formData.confirmPassword}
+                                            onChange={handleChange}
+                                            placeholder="••••••••"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        >
+                                            {showConfirmPassword ? <EyeOff className="h-5 w-5 text-slate-400 hover:text-slate-600" /> : <Eye className="h-5 w-5 text-slate-400 hover:text-slate-600" />}
+                                        </button>
+                                    </div>
+                                    {errors.confirmPassword && <p className="mt-1 text-xs font-semibold text-red-500 ml-1">{errors.confirmPassword}</p>}
+                                </div>
+                            </div>
                         )}
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className={`flex-1 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 ${step === 1 ? 'ml-auto w-auto' : ''}`}
-                        >
-                            {loading ? 'Procesando...' : (step === 1 ? 'Siguiente' : 'Registrar Empresa')}
-                            {!loading && step === 1 && <ArrowRight className="ml-2 h-4 w-4" />}
-                            {!loading && step === 2 && <CheckCircle2 className="ml-2 h-4 w-4" />}
-                        </button>
-                    </div>
-                </form>
+                        <div className="flex justify-between items-center gap-4 pt-4">
+                            {step === 2 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setStep(1)}
+                                    className="px-6 py-2.5 text-slate-600 font-bold hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-colors"
+                                >
+                                    Atrás
+                                </button>
+                            )}
 
-                 <div className="mt-6 text-center">
-                    <p className="text-sm text-gray-600">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={`flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 border border-transparent rounded-xl shadow-lg shadow-teal-500/30 text-white font-bold hover:from-teal-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed ${step === 1 ? 'ml-auto w-full' : 'flex-1'}`}
+                            >
+                                {loading ? (
+                                    <>
+                                        <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        <span>Procesando...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        {step === 1 ? 'Siguiente' : 'Registrar Empresa'}
+                                        {step === 1 ? <ArrowRight size={18} strokeWidth={2.5} /> : <CheckCircle2 size={18} strokeWidth={2.5} />}
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div className="mt-8 text-center animate-fade-in-up delay-200">
+                    <p className="text-sm font-medium text-slate-400">
                         ¿Ya tienes cuenta?{' '}
-                        <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-                            Inicia Sesión
+                        <Link to="/login" className="text-teal-400 hover:text-teal-300 font-bold transition-colors">
+                            Inicia Sesión aquí
                         </Link>
                     </p>
                 </div>
