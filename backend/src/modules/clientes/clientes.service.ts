@@ -25,7 +25,7 @@ export class ClientesService {
         return this.prisma.cliente.findMany({
             where: {
                 tenant_id: tenantId,
-                estado: EstadoGenerico.ACTIVO // Por defecto solo mostramos activos
+                // Removed default filter to allow frontend filtering
             },
             orderBy: { fecha_registro: 'desc' },
         });

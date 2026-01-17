@@ -77,7 +77,7 @@ async function main() {
   for (const r of rubrosData) {
     let rubro = await prisma.rubro.findFirst({ where: { nombre: r.nombre } });
     if (!rubro) {
-        rubro = await prisma.rubro.create({ data: r });
+      rubro = await prisma.rubro.create({ data: r });
     }
     rubrosMap.set(r.nombre, rubro);
   }
@@ -115,15 +115,15 @@ async function main() {
   const techStore = await prisma.tenant.upsert({
     where: { email: 'contacto@techstore.bo' },
     update: {
-        slug: 'techstore-bolivia',
-        banner_url: 'https://images.unsplash.com/photo-1531297424005-06b9963a35ab?auto=format&fit=crop&w=1200&q=80',
-        logo_url: 'https://cdn-icons-png.flaticon.com/512/3094/3094363.png',
-        direccion: 'Av. Heroinas esq. Ayacucho, Cochabamba',
-        telefono: '70712345',
-        horario_atencion: 'Lunes a Sábado 9:00 - 19:00',
-        rubros: {
-            connect: [{ rubro_id: rubrosMap.get('Tecnología').rubro_id }]
-        }
+      slug: 'techstore-bolivia',
+      banner_url: 'https://images.unsplash.com/photo-1531297424005-06b9963a35ab?auto=format&fit=crop&w=1200&q=80',
+      logo_url: 'https://cdn-icons-png.flaticon.com/512/3094/3094363.png',
+      direccion: 'Av. Heroinas esq. Ayacucho, Cochabamba',
+      telefono: '70712345',
+      horario_atencion: 'Lunes a Sábado 9:00 - 19:00',
+      rubros: {
+        connect: [{ rubro_id: rubrosMap.get('Tecnología').rubro_id }]
+      }
     },
     create: {
       nombre_empresa: 'TechStore Bolivia',
@@ -137,7 +137,7 @@ async function main() {
       horario_atencion: 'Lunes a Sábado 9:00 - 19:00',
       banner_url: 'https://images.unsplash.com/photo-1531297424005-06b9963a35ab?auto=format&fit=crop&w=1200&q=80',
       rubros: {
-          connect: [{ rubro_id: rubrosMap.get('Tecnología').rubro_id }]
+        connect: [{ rubro_id: rubrosMap.get('Tecnología').rubro_id }]
       }
     },
   });
@@ -171,73 +171,97 @@ async function main() {
   });
 
   const catLaptops = await prisma.categoria.create({
-      data: {
-          nombre: 'Laptops',
-          descripcion: 'Portátiles de alto rendimiento',
-          tenant_id: techStore.tenant_id
-      }
+    data: {
+      nombre: 'Laptops',
+      descripcion: 'Portátiles de alto rendimiento',
+      tenant_id: techStore.tenant_id
+    }
   });
   const catPerifericos = await prisma.categoria.create({
-      data: {
-          nombre: 'Periféricos',
-          descripcion: 'Teclados, mouse y audífonos',
-          tenant_id: techStore.tenant_id
-      }
+    data: {
+      nombre: 'Periféricos',
+      descripcion: 'Teclados, mouse y audífonos',
+      tenant_id: techStore.tenant_id
+    }
   });
 
   const techProducts = [
-      {
-          tenant_id: techStore.tenant_id,
-          categoria_id: catLaptops.categoria_id,
-          nombre: 'MacBook Pro M2 14"',
-          descripcion: 'Potencia extrema para profesionales.',
-          precio: 14500,
-          stock_actual: 5,
-          slug: 'macbook-pro-m2-14',
-          imagen_url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&w=800&q=80',
-          destacado: true
-      },
-      {
-        tenant_id: techStore.tenant_id,
-        categoria_id: catLaptops.categoria_id,
-        nombre: 'Dell XPS 13 Plus',
-        descripcion: 'Diseño minimalista y pantalla OLED.',
-        precio: 10500,
-        stock_actual: 8,
-        slug: 'dell-xps-13-plus',
-        imagen_url: 'https://images.unsplash.com/photo-1593642632823-8f78536788c6?auto=format&fit=crop&w=800&q=80',
-        destacado: false
+    {
+      tenant_id: techStore.tenant_id,
+      categoria_id: catLaptops.categoria_id,
+      nombre: 'MacBook Pro M2 14"',
+      descripcion: 'Potencia extrema para profesionales.',
+      precio: 14500,
+      stock_actual: 5,
+      slug: 'macbook-pro-m2-14',
+      imagen_url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&w=800&q=80',
+      destacado: true
     },
     {
-        tenant_id: techStore.tenant_id,
-        categoria_id: catPerifericos.categoria_id,
-        nombre: 'Logitech MX Master 3S',
-        descripcion: 'El mejor mouse para productividad.',
-        precio: 850,
-        stock_actual: 30,
-        slug: 'logitech-mx-master-3s',
-        imagen_url: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=800&q=80',
-        destacado: true
+      tenant_id: techStore.tenant_id,
+      categoria_id: catLaptops.categoria_id,
+      nombre: 'Dell XPS 13 Plus',
+      descripcion: 'Diseño minimalista y pantalla OLED.',
+      precio: 10500,
+      stock_actual: 8,
+      slug: 'dell-xps-13-plus',
+      imagen_url: 'https://images.unsplash.com/photo-1593642632823-8f78536788c6?auto=format&fit=crop&w=800&q=80',
+      destacado: false
+    },
+    {
+      tenant_id: techStore.tenant_id,
+      categoria_id: catPerifericos.categoria_id,
+      nombre: 'Logitech MX Master 3S',
+      descripcion: 'El mejor mouse para productividad.',
+      precio: 850,
+      stock_actual: 30,
+      slug: 'logitech-mx-master-3s',
+      imagen_url: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=800&q=80',
+      destacado: true
     }
   ];
 
-  for (const prod of techProducts) {
-      const { imagen_url, ...prodData } = prod; // Extract imagen_url
 
-      const p = await prisma.producto.upsert({
-          where: { tenant_id_slug: { tenant_id: prodData.tenant_id, slug: prodData.slug } },
-          update: {},
+  // --- Proveedores TechStore ---
+  const provDell = await prisma.proveedor.create({
+    data: {
+      tenant_id: techStore.tenant_id,
+      nombre: 'Dell Bolivia S.A.',
+      email: 'ventas@dell.bo',
+      telefono: '800-100-200'
+    }
+  });
+
+  const provLogi = await prisma.proveedor.create({
+    data: {
+      tenant_id: techStore.tenant_id,
+      nombre: 'Logitech Distributor',
+      email: 'contacto@distlogi.com',
+      telefono: '77788899'
+    }
+  });
+
+  for (const prod of techProducts) {
+    const { imagen_url, ...prodData } = prod; // Extract imagen_url
+
+    // Asignar proveedor aleatorio o específico
+    const proveedor_id = prod.nombre.includes('Dell') ? provDell.proveedor_id : provLogi.proveedor_id;
+
+    const p = await prisma.producto.upsert({
+      where: { tenant_id_slug: { tenant_id: prodData.tenant_id, slug: prodData.slug } },
+      update: { proveedor_id },
+      create: {
+        ...prodData,
+        proveedor_id,
+        imagenes: {
           create: {
-              ...prodData,
-              imagenes: {
-                  create: {
-                      url: imagen_url,
-                      es_principal: true,
-                      orden: 1
-                  }
-              }
+            url: imagen_url,
+            es_principal: true,
+            orden: 1
           }
-      });
+        }
+      }
+    });
   }
 
 
@@ -246,8 +270,8 @@ async function main() {
   const farmaStore = await prisma.tenant.upsert({
     where: { email: 'farma@sanjuan.bo' },
     update: {
-        slug: 'farmacia-san-juan',
-        rubros: { connect: [{ rubro_id: rubrosMap.get('Farmacia').rubro_id }] }
+      slug: 'farmacia-san-juan',
+      rubros: { connect: [{ rubro_id: rubrosMap.get('Farmacia').rubro_id }] }
     },
     create: {
       nombre_empresa: 'Farmacia San Juan',
@@ -261,7 +285,7 @@ async function main() {
       horario_atencion: '24 Horas',
       banner_url: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=1200&q=80',
       rubros: {
-          connect: [{ rubro_id: rubrosMap.get('Farmacia').rubro_id }]
+        connect: [{ rubro_id: rubrosMap.get('Farmacia').rubro_id }]
       }
     },
   });
@@ -279,56 +303,56 @@ async function main() {
     }
   });
 
-   const farmaOwnerPassword = await bcrypt.hash('123456', 10);
-   await prisma.usuario.upsert({
-     where: { email: 'maria@farma.bo' },
-     update: { password_hash: farmaOwnerPassword },
-     create: {
-       tenant_id: farmaStore.tenant_id,
-       nombre: 'Maria',
-       paterno: 'San Juan',
-       email: 'maria@farma.bo',
-       password_hash: farmaOwnerPassword,
-       rol: RolUsuario.PROPIETARIO,
-       estado: EstadoGenerico.ACTIVO,
-     },
-   });
+  const farmaOwnerPassword = await bcrypt.hash('123456', 10);
+  await prisma.usuario.upsert({
+    where: { email: 'maria@farma.bo' },
+    update: { password_hash: farmaOwnerPassword },
+    create: {
+      tenant_id: farmaStore.tenant_id,
+      nombre: 'Maria',
+      paterno: 'San Juan',
+      email: 'maria@farma.bo',
+      password_hash: farmaOwnerPassword,
+      rol: RolUsuario.PROPIETARIO,
+      estado: EstadoGenerico.ACTIVO,
+    },
+  });
 
-   const catMedicamentos = await prisma.categoria.create({
-     data: { nombre: 'Medicamentos', tenant_id: farmaStore.tenant_id }
-   });
+  const catMedicamentos = await prisma.categoria.create({
+    data: { nombre: 'Medicamentos', tenant_id: farmaStore.tenant_id }
+  });
 
-   const farmaProducts = [
-        {
-            tenant_id: farmaStore.tenant_id,
-            categoria_id: catMedicamentos.categoria_id,
-            nombre: 'Paracetamol 500mg',
-            descripcion: 'Caja de 50 tabletas.',
-            precio: 25,
-            stock_actual: 100,
-            slug: 'paracetamol-500mg',
-            imagen_url: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80',
-            destacado: true
-        }
-    ];
-
-    for (const prod of farmaProducts) {
-        const { imagen_url, ...prodData } = prod;
-        await prisma.producto.upsert({
-            where: { tenant_id_slug: { tenant_id: prodData.tenant_id, slug: prodData.slug } },
-            update: {},
-            create: {
-                ...prodData,
-                imagenes: {
-                  create: {
-                      url: imagen_url,
-                      es_principal: true,
-                      orden: 1
-                  }
-              }
-            }
-        });
+  const farmaProducts = [
+    {
+      tenant_id: farmaStore.tenant_id,
+      categoria_id: catMedicamentos.categoria_id,
+      nombre: 'Paracetamol 500mg',
+      descripcion: 'Caja de 50 tabletas.',
+      precio: 25,
+      stock_actual: 100,
+      slug: 'paracetamol-500mg',
+      imagen_url: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80',
+      destacado: true
     }
+  ];
+
+  for (const prod of farmaProducts) {
+    const { imagen_url, ...prodData } = prod;
+    await prisma.producto.upsert({
+      where: { tenant_id_slug: { tenant_id: prodData.tenant_id, slug: prodData.slug } },
+      update: {},
+      create: {
+        ...prodData,
+        imagenes: {
+          create: {
+            url: imagen_url,
+            es_principal: true,
+            orden: 1
+          }
+        }
+      }
+    });
+  }
 
   const boutiqueStore = await prisma.tenant.upsert({
     where: { email: 'contacto@elegancia.bo' },
@@ -342,7 +366,7 @@ async function main() {
       moneda: 'BOB',
       direccion: 'Zona Sur, Santa Cruz',
       rubros: {
-          connect: [{ rubro_id: rubrosMap.get('Moda').rubro_id }]
+        connect: [{ rubro_id: rubrosMap.get('Moda').rubro_id }]
       }
     },
   });

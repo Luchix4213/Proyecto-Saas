@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, Users, Phone, FileText, History } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Users, Phone, FileText, History, Filter } from 'lucide-react';
 import { clientsService } from '../../services/clientsService';
 import type { Cliente } from '../../services/clientsService';
 import { ClientForm } from '../../components/clientes/ClientForm';
@@ -8,6 +8,7 @@ export const ClientsPage = () => {
     const [clientes, setClientes] = useState<Cliente[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'TODOS' | 'ACTIVO' | 'INACTIVO'>('TODOS');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
 
@@ -52,11 +53,26 @@ export const ClientsPage = () => {
         alert(`Historial de compras de ${client.nombre}: Esta función estará disponible con el módulo de Ventas.`);
     };
 
-    const filteredClients = clientes.filter(c =>
-        c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (c.paterno && c.paterno.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (c.nit_ci && c.nit_ci.includes(searchTerm))
-    );
+    const handleReactivate = async (client: Cliente) => {
+        if (!window.confirm(`¿Quieres reactivar al cliente ${client.nombre}?`)) return;
+
+        try {
+            await clientsService.update(client.cliente_id, { estado: 'ACTIVO' });
+            loadClients();
+        } catch (error) {
+            alert('Error al reactivar cliente');
+        }
+    };
+
+    const filteredClients = clientes.filter(c => {
+        const matchesSearch = c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (c.paterno && c.paterno.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (c.nit_ci && c.nit_ci.includes(searchTerm));
+
+        const matchesStatus = statusFilter === 'TODOS' || c.estado === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
 
     return (
         <div className="space-y-8 animate-fade-in-up">
@@ -82,18 +98,35 @@ export const ClientsPage = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 {/* Actions Bar */}
                 <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50/50">
-                    <div className="relative w-full md:w-96">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Buscar por nombre, apellido o NIT..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all text-slate-700 font-medium placeholder:text-slate-400"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                    <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto flex-1">
+                        <div className="relative w-full md:w-96">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                            <input
+                                type="text"
+                                placeholder="Buscar por nombre, apellido o NIT..."
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all text-slate-700 font-medium placeholder:text-slate-400"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="relative w-full sm:w-48">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                <Filter size={18} />
+                            </div>
+                            <select
+                                className="block w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all text-sm font-medium text-slate-700 appearance-none cursor-pointer hover:bg-slate-50"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value as any)}
+                            >
+                                <option value="TODOS">Todos los Estados</option>
+                                <option value="ACTIVO">Activos</option>
+                                <option value="INACTIVO">Inactivos</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="text-sm text-slate-500 font-medium">
+                    <div className="text-sm text-slate-500 font-medium whitespace-nowrap">
                         Mostrando <span className="text-slate-900 font-bold">{filteredClients.length}</span> clientes
                     </div>
                 </div>
@@ -128,7 +161,7 @@ export const ClientsPage = () => {
                                                 <Users size={32} className="text-slate-300" />
                                             </div>
                                             <p className="text-lg font-medium text-slate-600">No se encontraron clientes</p>
-                                            <p className="text-sm">Intenta ajustar tu búsqueda o crea uno nuevo.</p>
+                                            <p className="text-sm">Intenta ajustar tu búsqueda o filtros.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -191,13 +224,24 @@ export const ClientsPage = () => {
                                                 >
                                                     <Pencil size={18} />
                                                 </button>
-                                                <button
-                                                    onClick={() => handleDelete(client)}
-                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Dar de baja"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+
+                                                {client.estado === 'INACTIVO' ? (
+                                                    <button
+                                                        onClick={() => handleReactivate(client)}
+                                                        className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                        title="Reactivar Cliente"
+                                                    >
+                                                        <Plus size={18} className="rotate-45" />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleDelete(client)}
+                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                        title="Dar de baja"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
