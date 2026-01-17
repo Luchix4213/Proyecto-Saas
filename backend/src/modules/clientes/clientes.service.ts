@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { RegisterCustomerDto, LoginCustomerDto } from './dto/customer-auth.dto';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
@@ -84,5 +86,55 @@ export class ClientesService {
             orderBy: { fecha_registro: 'desc' },
             take: 100 // Limit results for performance
         });
+    }
+
+    // --- Customer Auth Logic ---
+
+    async register(tenantId: number, dto: RegisterCustomerDto) {
+        const { password, ...data } = dto;
+
+        // Verificar si el email ya existe en este tenant
+        const existing = await this.prisma.cliente.findFirst({
+            where: {
+                email: data.email,
+                tenant_id: tenantId,
+            }
+        });
+
+        if (existing) {
+            throw new ConflictException('El email ya está registrado en esta tienda.');
+        }
+
+        const password_hash = await bcrypt.hash(password, 10);
+
+        return this.prisma.cliente.create({
+            data: {
+                ...data,
+                password_hash,
+                tenant_id: tenantId,
+            },
+        });
+    }
+
+    async validateCustomer(tenantId: number, dto: LoginCustomerDto) {
+        const cliente = await this.prisma.cliente.findFirst({
+            where: {
+                email: dto.email,
+                tenant_id: tenantId,
+                estado: EstadoGenerico.ACTIVO,
+            }
+        });
+
+        if (!cliente || !cliente.password_hash) {
+            throw new UnauthorizedException('Credenciales inválidas');
+        }
+
+        const isMatch = await bcrypt.compare(dto.password, cliente.password_hash);
+        if (!isMatch) {
+            throw new UnauthorizedException('Credenciales inválidas');
+        }
+
+        const { password_hash, ...result } = cliente;
+        return result;
     }
 }

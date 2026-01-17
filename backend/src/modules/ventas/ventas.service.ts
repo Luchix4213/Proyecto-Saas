@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVentaDto } from './dto/create-venta.dto';
-import { EstadoEntrega, EstadoGenerico, EstadoVenta } from '@prisma/client';
+import { CheckoutDto } from './dto/checkout.dto';
+import { EstadoEntrega, EstadoGenerico, EstadoVenta, TipoVenta } from '@prisma/client';
 
 @Injectable()
 export class VentasService {
@@ -119,5 +120,106 @@ export class VentasService {
     }
 
     return venta;
+  }
+
+  async createOnlineSale(tenantId: number, clienteId: number | null, checkoutDto: CheckoutDto) {
+    const { productos, metodo_pago, nombre, email, nit_ci } = checkoutDto;
+
+    return await this.prisma.$transaction(async (prisma) => {
+      let finalClienteId = clienteId;
+
+      // 1. Si no está logueado, intentamos buscar/crear el cliente por email o NIT/CI
+      if (!finalClienteId && email) {
+        let cliente = await prisma.cliente.findFirst({
+          where: {
+            email: email,
+            tenant_id: tenantId,
+          },
+        });
+
+        if (!cliente && nit_ci) {
+           cliente = await prisma.cliente.findFirst({
+            where: {
+              nit_ci: nit_ci,
+              tenant_id: tenantId,
+            },
+          });
+        }
+
+        if (!cliente) {
+          cliente = await prisma.cliente.create({
+            data: {
+              tenant_id: tenantId,
+              nombre: nombre || 'Invitado',
+              email: email,
+              nit_ci: nit_ci,
+            },
+          });
+        }
+        finalClienteId = cliente.cliente_id;
+      }
+
+      let totalVenta = 0;
+      const detallesParaCrear: any[] = [];
+
+      // 2. Procesar productos y stock
+      for (const item of productos) {
+        const producto = await prisma.producto.findFirst({
+          where: {
+            producto_id: item.producto_id,
+            tenant_id: tenantId,
+            estado: EstadoGenerico.ACTIVO,
+          },
+        });
+
+        if (!producto) {
+          throw new NotFoundException(`Producto #${item.producto_id} no disponible.`);
+        }
+
+        if (producto.stock_actual < item.cantidad) {
+          throw new BadRequestException(`Stock insuficiente para ${producto.nombre}.`);
+        }
+
+        await prisma.producto.update({
+          where: { producto_id: item.producto_id },
+          data: { stock_actual: { decrement: item.cantidad } },
+        });
+
+        const precioUnitario = Number(producto.precio);
+        const subtotal = precioUnitario * item.cantidad;
+        totalVenta += subtotal;
+
+        detallesParaCrear.push({
+          producto_id: item.producto_id,
+          cantidad: item.cantidad,
+          precio_unitario: precioUnitario,
+          subtotal: subtotal,
+        });
+      }
+
+      // 3. Crear Venta Online
+      const nuevaVenta = await prisma.venta.create({
+        data: {
+          tenant_id: tenantId,
+          cliente_id: finalClienteId,
+          usuario_id: null, // Online, no worker
+          tipo_venta: TipoVenta.ONLINE,
+          metodo_pago: metodo_pago,
+          total: totalVenta,
+          fecha_venta: new Date(),
+          estado: EstadoVenta.REGISTRADA, // Esperando validación o pago
+          estado_entrega: EstadoEntrega.PENDIENTE,
+          detalles: {
+            create: detallesParaCrear,
+          },
+        },
+        include: {
+          detalles: { include: { producto: true } },
+          cliente: true,
+        },
+      });
+
+      return nuevaVenta;
+    });
   }
 }

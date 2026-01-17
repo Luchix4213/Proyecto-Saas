@@ -30,7 +30,8 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
 
 - **Funcionalidades:**
   - [x] Registro de microempresa (tiendas pequeñas o tenant)
-  - [x] Inicio de sesión
+  - [x] Inicio de sesión (Administradores, Propietarios, Vendedores)
+  - [x] Autenticación de Clientes Finales (Registro y Login en Storefront)
   - [x] Recuperación de contraseña (Lógica implementada)
   - [x] Gestión de planes (Básico / Premium / FREE)
   - [x] Activación / desactivación de empresa
@@ -100,8 +101,9 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
   - [x] Cálculo automático del total
   - [x] Descuento de stock automático
   - [ ] Historial de ventas (Vista pendiente, datos en BD)
-  - [ ] Cliente elige sus productos e incluye en su carrito
-  - [ ] Pagar mediante un QR
+  - [x] Cliente elige sus productos e incluye en su carrito (Persistencia local)
+  - [x] Checkout Híbrido (Invitado / Registrado)
+  - [x] Pagar mediante un QR (Simulación / Instrucciones)
   - [ ] Enviar un comprobante (documento PDF)
   - [ ] El administrador valida entrega de producto al cliente
 

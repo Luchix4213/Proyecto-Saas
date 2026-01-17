@@ -36,6 +36,7 @@ import { ProfilePage } from './pages/common/ProfilePage';
 import { MarketplaceLayout } from './layout/MarketplaceLayout';
 import { LandingPage } from './pages/marketplace/LandingPage';
 import { StorefrontPage } from './pages/marketplace/StorefrontPage';
+import { CheckoutPage } from './pages/marketplace/CheckoutPage';
 import { OwnerDashboardPage } from './pages/owner/OwnerDashboardPage';
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
            <Route element={<MarketplaceLayout />}>
               <Route path="/" element={<LandingPage />} />
               <Route path="/tienda/:slug" element={<StorefrontPage />} />
+              <Route path="/tienda/:slug/checkout" element={<CheckoutPage />} />
               <Route path="/stores" element={<LandingPage />} />
            </Route>
 

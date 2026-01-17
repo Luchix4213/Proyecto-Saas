@@ -3,7 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { tenantsService, type Tenant } from '../../services/tenantsService';
 import { productsService, type Product } from '../../services/productsService';
 import { type Category } from '../../services/categoriesService';
-import { ShoppingBag, Star, MapPin, Clock, Phone, Mail, ArrowLeft, Package, Search, Filter, Share2, Info } from 'lucide-react';
+import {
+    ShoppingBag, Star, MapPin, Clock, Phone, Mail, ArrowLeft,
+    Package, Search, Filter, Share2, Info, X, Minus, Plus, Trash2
+} from 'lucide-react';
+import { useCartStore } from '../../store/useCartStore';
+import { CartDrawer } from '../../components/marketplace/CartDrawer';
 
 export const StorefrontPage = () => {
     const { slug } = useParams<{ slug: string }>();
@@ -13,6 +18,9 @@ export const StorefrontPage = () => {
     const [activeCategory, setActiveCategory] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+
+    const { addItem, getItemCount } = useCartStore();
 
     useEffect(() => {
         if (slug) {
@@ -154,12 +162,12 @@ export const StorefrontPage = () => {
 
                                 <div className="flex flex-col items-center lg:items-end gap-3 px-6 py-4 bg-slate-50 rounded-3xl border border-slate-100">
                                      <div className="flex items-center gap-2 text-slate-600 text-sm font-medium">
-                                         <MapPin size={16} className="text-teal-500" />
-                                         <span>{tenant.direccion || 'Ubicación central'}</span>
+                                          <MapPin size={16} className="text-teal-500" />
+                                          <span>{tenant.direccion || 'Ubicación central'}</span>
                                      </div>
                                      <div className="flex items-center gap-2 text-slate-600 text-sm font-medium">
-                                         <Clock size={16} className="text-teal-500" />
-                                         <span>{tenant.horario_atencion || 'Lun-Vie: 09:00 - 18:00'}</span>
+                                          <Clock size={16} className="text-teal-500" />
+                                          <span>{tenant.horario_atencion || 'Lun-Vie: 09:00 - 18:00'}</span>
                                      </div>
                                 </div>
                              </div>
@@ -187,9 +195,17 @@ export const StorefrontPage = () => {
                         <Filter size={20} />
                         Filtros
                      </button>
-                     <button className="px-6 py-4 bg-slate-900 text-white rounded-[1.5rem] shadow-xl shadow-slate-900/10 flex items-center justify-center gap-2 font-bold hover:bg-slate-800 transition-all active:scale-95">
+                     <button
+                        onClick={() => setIsCartOpen(true)}
+                        className="px-6 py-4 bg-slate-900 text-white rounded-[1.5rem] shadow-xl shadow-slate-900/10 flex items-center justify-center gap-2 font-bold hover:bg-slate-800 transition-all active:scale-95 relative"
+                     >
                         <ShoppingBag size={20} />
                         Ver Pedido
+                        {getItemCount() > 0 && (
+                            <span className="absolute -top-2 -right-2 h-6 w-6 bg-teal-500 text-white text-[10px] font-black rounded-full flex items-center justify-center ring-4 ring-slate-50">
+                                {getItemCount()}
+                            </span>
+                        )}
                      </button>
                 </div>
 
@@ -332,7 +348,10 @@ export const StorefrontPage = () => {
                                                          {Number(product.precio).toFixed(2)} <span className="text-sm font-bold text-slate-500">{tenant.moneda || 'Bs'}</span>
                                                      </span>
                                                  </div>
-                                                 <button className="relative h-12 w-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center hover:bg-teal-600 transition-all hover:scale-110 shadow-xl shadow-slate-900/10 active:scale-90 group-hover:rotate-6">
+                                                 <button
+                                                    onClick={() => addItem(product)}
+                                                    className="relative h-12 w-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center hover:bg-teal-600 transition-all hover:scale-110 shadow-xl shadow-slate-900/10 active:scale-90 group-hover:rotate-6"
+                                                 >
                                                      <ShoppingBag size={20} />
                                                  </button>
                                              </div>
@@ -344,6 +363,14 @@ export const StorefrontPage = () => {
                     </div>
                 </div>
             </div>
+            {/* Cart Drawer */}
+            {tenant && (
+                <CartDrawer
+                    isOpen={isCartOpen}
+                    onClose={() => setIsCartOpen(false)}
+                    tenant={tenant}
+                />
+            )}
         </div>
     );
 };
