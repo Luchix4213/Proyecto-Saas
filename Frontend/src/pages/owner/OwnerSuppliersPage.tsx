@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Plus, Search, Pencil, Trash2, X, Save, AlertCircle, Phone, Mail, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Plus, Search, Pencil, Trash2, X, Save, AlertCircle, Phone, Mail, CreditCard, ChevronDown } from 'lucide-react';
 import { suppliersService, type Proveedor, type CreateProveedorData } from '../../services/suppliersService';
 
 export const OwnerSuppliersPage = () => {
@@ -15,6 +15,23 @@ export const OwnerSuppliersPage = () => {
         datos_pago: ''
     });
     const [error, setError] = useState('');
+
+    // Country code state
+    const [countryCode, setCountryCode] = useState('+591');
+
+    // Country codes data
+    const countryCodes = [
+        { code: '+591', country: 'Bolivia', flag: '🇧🇴' },
+        { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+        { code: '+51', country: 'Perú', flag: '🇵🇪' },
+        { code: '+56', country: 'Chile', flag: '🇨🇱' },
+        { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+        { code: '+52', country: 'México', flag: '🇲🇽' },
+        { code: '+1', country: 'USA', flag: '🇺🇸' },
+        { code: '+34', country: 'España', flag: '🇪🇸' },
+    ];
+
+
 
     useEffect(() => {
         fetchSuppliers();
@@ -35,14 +52,26 @@ export const OwnerSuppliersPage = () => {
     const handleOpenModal = (supplier?: Proveedor) => {
         if (supplier) {
             setEditingSupplier(supplier);
+
+            let phone = supplier.telefono || '';
+            let code = '+591';
+
+            const foundCode = countryCodes.find(c => phone.startsWith(c.code));
+            if (foundCode) {
+                code = foundCode.code;
+                phone = phone.substring(code.length).trim();
+            }
+            setCountryCode(code);
+
             setFormData({
                 nombre: supplier.nombre,
-                telefono: supplier.telefono || '',
+                telefono: phone,
                 email: supplier.email || '',
                 datos_pago: supplier.datos_pago || ''
             });
         } else {
             setEditingSupplier(null);
+            setCountryCode('+591');
             setFormData({
                 nombre: '',
                 telefono: '',
@@ -64,10 +93,15 @@ export const OwnerSuppliersPage = () => {
         }
 
         try {
+            const payload = {
+                ...formData,
+                telefono: formData.telefono ? `${countryCode} ${formData.telefono.trim()}` : undefined
+            };
+
             if (editingSupplier) {
-                await suppliersService.update(editingSupplier.proveedor_id, formData);
+                await suppliersService.update(editingSupplier.proveedor_id, payload);
             } else {
-                await suppliersService.create(formData);
+                await suppliersService.create(payload);
             }
             setIsModalOpen(false);
             fetchSuppliers();
@@ -277,13 +311,31 @@ export const OwnerSuppliersPage = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Teléfono</label>
-                                    <input
-                                        type="tel"
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                                        placeholder="70012345"
-                                        value={formData.telefono}
-                                        onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
-                                    />
+                                    <div className="flex gap-2">
+                                        <div className="relative w-24 shrink-0">
+                                            <select
+                                                value={countryCode}
+                                                onChange={(e) => setCountryCode(e.target.value)}
+                                                className="w-full appearance-none px-2 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer text-sm"
+                                            >
+                                                {countryCodes.map((item) => (
+                                                    <option key={item.code} value={item.code}>
+                                                        {item.flag} {item.code}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                                <ChevronDown className="h-3 w-3" />
+                                            </div>
+                                        </div>
+                                        <input
+                                            type="tel"
+                                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                                            placeholder="70012345"
+                                            value={formData.telefono}
+                                            onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>

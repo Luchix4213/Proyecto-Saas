@@ -53,6 +53,7 @@ export const AdminLayout = () => {
                         Administración
                     </div>
                     <NavLink to="/admin/tenants" icon={Building2} label={isSidebarOpen ? 'Microempresas' : ''} />
+                    <NavLink to="/admin/clientes" icon={Users} label={isSidebarOpen ? 'Clientes Globales' : ''} />
                     <NavLink to="/admin/rubros" icon={Tag} label={isSidebarOpen ? 'Rubros' : ''} />
                     <NavLink to="/admin/suscripciones" icon={CreditCard} label={isSidebarOpen ? 'Suscripciones' : ''} />
                     <NavLink to="/admin/usuarios" icon={Users} label={isSidebarOpen ? 'Administradores' : ''} />

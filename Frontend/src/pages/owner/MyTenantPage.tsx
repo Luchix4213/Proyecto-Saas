@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { tenantsService } from '../../services/tenantsService';
 import type { Tenant, UpdateTenantData } from '../../services/tenantsService';
-import { Building2, X, Check, Save, Upload, Mail, Phone, MapPin, DollarSign, Store, Tag, AlertTriangle } from 'lucide-react';
+import { Building2, X, Check, Save, Upload, Mail, Phone, MapPin, DollarSign, Store, Tag, AlertTriangle, ChevronDown } from 'lucide-react';
 import { ScheduleEditor } from '../../components/tenants/ScheduleEditor';
 import { useForm, Controller } from 'react-hook-form';
 import { rubrosService, type Rubro } from '../../services/rubrosService';
@@ -32,6 +32,21 @@ const MyTenantPage = () => {
     const [previewBanner, setPreviewBanner] = useState<string | null>(null);
     const [bannerFile, setBannerFile] = useState<File | null>(null);
 
+    // Country code state
+    const [countryCode, setCountryCode] = useState('+591');
+
+    // Country codes data
+    const countryCodes = [
+        { code: '+591', country: 'Bolivia', flag: '🇧🇴' },
+        { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+        { code: '+51', country: 'Perú', flag: '🇵🇪' },
+        { code: '+56', country: 'Chile', flag: '🇨🇱' },
+        { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+        { code: '+52', country: 'México', flag: '🇲🇽' },
+        { code: '+1', country: 'USA', flag: '🇺🇸' },
+        { code: '+34', country: 'España', flag: '🇪🇸' },
+    ];
+
     const { register, handleSubmit, formState: { errors }, control, reset, watch, getValues } = useForm<FormInputs>();
 
     useEffect(() => {
@@ -46,10 +61,22 @@ const MyTenantPage = () => {
             setTenant(data);
 
             // Pre-fill form
+            let phone = data.telefono || '';
+            let code = '+591';
+
+            // Try to find if the phone starts with any known country code
+            const foundCode = countryCodes.find(c => phone.startsWith(c.code));
+            if (foundCode) {
+                code = foundCode.code;
+                phone = phone.substring(code.length).trim();
+            }
+
+            setCountryCode(code);
+
             reset({
                 nombre_empresa: data.nombre_empresa,
                 email: data.email || '',
-                telefono: data.telefono || '',
+                telefono: phone,
                 direccion: data.direccion || '',
                 moneda: data.moneda,
                 impuesto_porcentaje: Number(data.impuesto_porcentaje),
@@ -114,6 +141,7 @@ const MyTenantPage = () => {
 
             const updateData: UpdateTenantData = {
                 ...data,
+                telefono: data.telefono ? `${countryCode} ${data.telefono}` : undefined,
                 impuesto_porcentaje: Number(data.impuesto_porcentaje),
                 logo: logoFile || undefined,
                 banner: bannerFile || undefined
@@ -342,14 +370,34 @@ const MyTenantPage = () => {
 
                                     <div className="space-y-2 group">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Teléfono / WhatsApp</label>
-                                        <div className="relative">
-                                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                            <input
-                                                type="text"
-                                                {...register('telefono')}
-                                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-slate-700"
-                                                placeholder="777123456"
-                                            />
+                                        <div className="flex gap-2">
+                                            {/* Country Code Selector */}
+                                            <div className="relative w-28 shrink-0">
+                                                <select
+                                                    value={countryCode}
+                                                    onChange={(e) => setCountryCode(e.target.value)}
+                                                    className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 py-3 pl-3 pr-8 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none cursor-pointer transition-all font-medium"
+                                                >
+                                                    {countryCodes.map((item) => (
+                                                        <option key={item.code} value={item.code}>
+                                                            {item.flag} {item.code}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                                    <ChevronDown className="h-4 w-4" />
+                                                </div>
+                                            </div>
+
+                                            <div className="relative w-full">
+                                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                                <input
+                                                    type="text"
+                                                    {...register('telefono')}
+                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-slate-700"
+                                                    placeholder="777123456"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 

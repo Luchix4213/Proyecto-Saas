@@ -19,6 +19,7 @@ import { AdminPlansPage } from './pages/admin/AdminPlansPage';
 import { AdminSystemUsersPage } from './pages/admin/AdminSystemUsersPage';
 import { AdminSubscriptionsPage } from './pages/admin/AdminSubscriptionsPage';
 import { AdminRubrosPage } from './pages/admin/AdminRubrosPage';
+import { AdminClientsPage } from './pages/admin/AdminClientsPage';
 
 import { UsersPage } from './pages/owner/UsersPage';
 import { SubscriptionPage } from './pages/owner/SubscriptionPage';
@@ -77,6 +78,7 @@ function App() {
             <Route path="/admin/usuarios" element={<AdminSystemUsersPage />} />
             <Route path="/admin/suscripciones" element={<AdminSubscriptionsPage />} />
             <Route path="/admin/rubros" element={<AdminRubrosPage />} />
+            <Route path="/admin/clientes" element={<AdminClientsPage />} />
             <Route path="/admin/profile" element={<ProfilePage />} />
           </Route>
 

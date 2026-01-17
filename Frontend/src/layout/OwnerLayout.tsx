@@ -1,13 +1,30 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, LogOut, CreditCard, Building2, Menu, Bell, User, Package, Tag, Truck, ShoppingCart, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { tenantsService } from '../services/tenantsService';
 
 export const OwnerLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { logout, user } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [companyName, setCompanyName] = useState<string>('');
+
+    useEffect(() => {
+        const fetchTenantInfo = async () => {
+            if (user?.tenant_id) {
+                try {
+                    const tenant = await tenantsService.getById(user.tenant_id);
+                    setCompanyName(tenant.nombre_empresa);
+                } catch (error) {
+                    console.error('Error fetching tenant info:', error);
+                }
+            }
+        };
+
+        fetchTenantInfo();
+    }, [user]);
 
     const isActive = (path: string) => location.pathname === path;
 
@@ -95,7 +112,7 @@ export const OwnerLayout = () => {
                             <Menu size={20} />
                         </button>
                         <h2 className="text-white font-semibold text-lg hidden sm:block">
-                            Panel de Control
+                            Panel de Control {companyName && `de ${companyName}`}
                         </h2>
                     </div>
 

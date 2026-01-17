@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, ChevronDown } from 'lucide-react';
 import { clientsService } from '../../services/clientsService';
 import type { Cliente } from '../../services/clientsService';
 
@@ -23,14 +23,39 @@ export const ClientForm = ({ isOpen, onClose, onSuccess, clientToEdit }: ClientF
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
+    // Country code state
+    const [countryCode, setCountryCode] = useState('+591');
+
+    // Country codes data
+    const countryCodes = [
+        { code: '+591', country: 'Bolivia', flag: '🇧🇴' },
+        { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+        { code: '+51', country: 'Perú', flag: '🇵🇪' },
+        { code: '+56', country: 'Chile', flag: '🇨🇱' },
+        { code: '+57', country: 'Colombia', flag: '🇨🇴' },
+        { code: '+52', country: 'México', flag: '🇲🇽' },
+        { code: '+1', country: 'USA', flag: '🇺🇸' },
+        { code: '+34', country: 'España', flag: '🇪🇸' },
+    ];
+
     useEffect(() => {
         if (clientToEdit) {
+            let phone = clientToEdit.telefono || '';
+            let code = '+591';
+
+            const foundCode = countryCodes.find(c => phone.startsWith(c.code));
+            if (foundCode) {
+                code = foundCode.code;
+                phone = phone.substring(code.length).trim();
+            }
+            setCountryCode(code);
+
             setFormData({
                 nombre: clientToEdit.nombre,
                 paterno: clientToEdit.paterno || '',
                 materno: clientToEdit.materno || '',
                 email: clientToEdit.email || '',
-                telefono: clientToEdit.telefono || '',
+                telefono: phone,
                 nit_ci: clientToEdit.nit_ci || ''
             });
         } else {
@@ -62,7 +87,7 @@ export const ClientForm = ({ isOpen, onClose, onSuccess, clientToEdit }: ClientF
                 paterno: formData.paterno?.trim() || undefined,
                 materno: formData.materno?.trim() || undefined,
                 email: formData.email?.trim() || undefined,
-                telefono: formData.telefono?.trim() || undefined,
+                telefono: formData.telefono?.trim() ? `${countryCode} ${formData.telefono.trim()}` : undefined,
                 nit_ci: formData.nit_ci?.trim() || undefined,
             };
 
@@ -150,13 +175,31 @@ export const ClientForm = ({ isOpen, onClose, onSuccess, clientToEdit }: ClientF
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                            <input
-                                type="tel"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                                value={formData.telefono}
-                                onChange={e => setFormData({ ...formData, telefono: e.target.value })}
-                                placeholder="Ej: 77712345"
-                            />
+                            <div className="flex gap-2">
+                                <div className="relative w-24 shrink-0">
+                                    <select
+                                        value={countryCode}
+                                        onChange={(e) => setCountryCode(e.target.value)}
+                                        className="w-full appearance-none px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer bg-white text-sm"
+                                    >
+                                        {countryCodes.map((item) => (
+                                            <option key={item.code} value={item.code}>
+                                                {item.flag} {item.code}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                        <ChevronDown className="h-3 w-3" />
+                                    </div>
+                                </div>
+                                <input
+                                    type="tel"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    value={formData.telefono}
+                                    onChange={e => setFormData({ ...formData, telefono: e.target.value })}
+                                    placeholder="77712345"
+                                />
+                            </div>
                         </div>
                     </div>
 

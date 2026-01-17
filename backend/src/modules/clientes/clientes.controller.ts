@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, ParseIntPipe, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, ParseIntPipe, UnauthorizedException, Query } from '@nestjs/common';
 import { ClientesService } from './clientes.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import type { RequestWithUser } from '../../common/interfaces/request-with-user.interface';
 
 @Controller('clientes')
@@ -21,6 +23,13 @@ export class ClientesController {
     create(@Body() createClienteDto: CreateClienteDto, @Req() req: RequestWithUser) {
         const tenantId = this.getTenantId(req);
         return this.clientesService.create(createClienteDto, tenantId);
+    }
+
+    @Get('admin/all')
+    @UseGuards(RolesGuard)
+    @Roles('ADMIN')
+    findAllGlobal(@Query('search') search?: string) {
+        return this.clientesService.findAllGlobal({ search });
     }
 
     @Get()

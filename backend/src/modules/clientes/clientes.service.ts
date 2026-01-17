@@ -11,7 +11,6 @@ export class ClientesService {
     async create(createClienteDto: CreateClienteDto, tenantId: number) {
         // Verificar si ya existe un cliente con el mismo email o nit_ci EN ESTE TENANT
         // (Opcional, dependiendo de cuán estricto queramos ser. Por ahora permitimos duplicados de nombre pero no de email si se provee)
-
         // Crear cliente
         return this.prisma.cliente.create({
             data: {
@@ -59,6 +58,31 @@ export class ClientesService {
         return this.prisma.cliente.update({
             where: { cliente_id: id },
             data: { estado: EstadoGenerico.INACTIVO },
+        });
+    }
+
+    async findAllGlobal(filters: { search?: string }) {
+        const { search } = filters;
+
+        return this.prisma.cliente.findMany({
+            where: search ? {
+                OR: [
+                    { nombre: { contains: search, mode: 'insensitive' } },
+                    { paterno: { contains: search, mode: 'insensitive' } },
+                    { materno: { contains: search, mode: 'insensitive' } },
+                    { tenant: { nombre_empresa: { contains: search, mode: 'insensitive' } } }
+                ]
+            } : {},
+            include: {
+                tenant: {
+                    select: {
+                        tenant_id: true,
+                        nombre_empresa: true
+                    }
+                }
+            },
+            orderBy: { fecha_registro: 'desc' },
+            take: 100 // Limit results for performance
         });
     }
 }

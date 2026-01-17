@@ -11,6 +11,10 @@ export interface Cliente {
     nit_ci?: string;
     estado: 'ACTIVO' | 'INACTIVO';
     fecha_registro: string;
+    tenant?: {
+        tenant_id: number;
+        nombre_empresa: string;
+    };
 }
 
 export interface CreateClienteData {
@@ -34,6 +38,13 @@ export const clientsService = {
 
     create: async (data: CreateClienteData): Promise<Cliente> => {
         const response = await api.post('/clientes', data);
+        return response.data;
+    },
+
+    getAllGlobal: async (search?: string) => {
+        const response = await api.get('/clientes/admin/all', {
+            params: search ? { search } : {}
+        });
         return response.data;
     },
 
