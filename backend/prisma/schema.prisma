@@ -291,6 +291,7 @@ model Venta {
   metodo_pago     MetodoPago    @default(EFECTIVO)
   estado_entrega  EstadoEntrega @default(PENDIENTE)
   qr_pago         String? // URL o base64
+  comprobante_pago String? // URL de la foto subida por el cliente
   comprobante_pdf String? // URL
   estado          EstadoVenta   @default(REGISTRADA)
 

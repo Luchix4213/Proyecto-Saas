@@ -45,4 +45,8 @@ export class CreateProductoDto {
     @IsOptional()
     @IsString()
     slug?: string;
+
+    @IsOptional()
+    @IsString()
+    estado?: 'ACTIVO' | 'INACTIVO';
 }

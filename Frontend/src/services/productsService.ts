@@ -1,6 +1,13 @@
 import api from '../api/axios';
 import type { Category } from './categoriesService';
 
+export interface ProductImage {
+    imagen_id: number;
+    url: string;
+    orden: number;
+    es_principal: boolean;
+}
+
 export interface Product {
     producto_id: number;
     nombre: string;
@@ -12,7 +19,7 @@ export interface Product {
     categoria?: Category;
     slug?: string;
     destacado: boolean;
-    imagenes?: any[]; // Todo: Define image interface
+    imagenes?: ProductImage[]; // Typed Image Array
     estado: 'ACTIVO' | 'INACTIVO';
 }
 
@@ -36,6 +43,7 @@ export interface UpdateProductData {
     categoria_id?: number;
     destacado?: boolean;
     slug?: string;
+    estado?: 'ACTIVO' | 'INACTIVO';
 }
 
 export const productsService = {
@@ -69,6 +77,31 @@ export const productsService = {
         const response = await api.get<Product[]>(`/productos/store/${tenantSlug}`, {
             params: categoryId ? { categoryId } : {}
         });
+        return response.data;
+    },
+
+    // Image Management
+    uploadImages: async (id: number, files: File[]) => {
+        const formData = new FormData();
+        files.forEach(file => {
+            formData.append('images', file);
+        });
+
+        const response = await api.post<ProductImage[]>(`/productos/${id}/imagenes`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    },
+
+    deleteImage: async (imageId: number) => {
+        const response = await api.delete(`/productos/imagenes/${imageId}`);
+        return response.data;
+    },
+
+    setPrincipalImage: async (imageId: number) => {
+        const response = await api.patch<ProductImage>(`/productos/imagenes/${imageId}/principal`);
         return response.data;
     }
 };

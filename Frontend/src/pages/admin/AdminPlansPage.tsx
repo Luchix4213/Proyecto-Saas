@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { planesService, type Plan, type CreatePlanData } from '../../services/planesService';
-import { Plus, Edit2, Trash2, Check, X, Shield, Users, Package, ShoppingCart, Globe } from 'lucide-react';
+import { Plus, Edit2, Trash2, Check, X, Shield } from 'lucide-react';
 
 export const AdminPlansPage = () => {
     const [plans, setPlans] = useState<Plan[]>([]);
@@ -185,15 +185,13 @@ export const AdminPlansPage = () => {
 
                         <div className="p-6 space-y-4 flex-1">
                             <div className="space-y-3">
-                                <FeatureItem icon={Users} label={`Hasta ${plan.max_usuarios} usuarios`} />
-                                <FeatureItem icon={Package} label={`Hasta ${plan.max_productos} productos`} />
+                                <FeatureItem label={`Hasta ${plan.max_usuarios} usuarios`} />
+                                <FeatureItem label={`Hasta ${plan.max_productos} productos`} />
                                 <FeatureItem
-                                    icon={ShoppingCart}
                                     label="Ventas Online"
                                     included={plan.ventas_online} highlight={plan.ventas_online}
                                 />
                                 <FeatureItem
-                                    icon={Globe}
                                     label="Reportes Avanzados"
                                     included={plan.reportes_avanzados} highlight={plan.reportes_avanzados}
                                 />
@@ -373,7 +371,7 @@ export const AdminPlansPage = () => {
     );
 };
 
-const FeatureItem = ({ icon: Icon, label, included = true, highlight = false }: { icon: any, label: string, included?: boolean, highlight?: boolean }) => (
+const FeatureItem = ({ label, included = true, highlight = false }: { label: string, included?: boolean, highlight?: boolean }) => (
     <div className={`flex items-center gap-3 text-sm ${!included ? 'opacity-50' : ''}`}>
         <div className={`p-1.5 rounded-full ${included ? (highlight ? 'bg-teal-100 text-teal-700' : 'bg-slate-100 text-slate-500') : 'bg-slate-50 text-slate-300'}`}>
             {included ? <Check size={14} strokeWidth={3} /> : <X size={14} />}

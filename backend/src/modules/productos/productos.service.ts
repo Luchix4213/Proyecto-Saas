@@ -10,7 +10,7 @@ export class ProductosService {
   constructor(
     private prisma: PrismaService,
     private capacidadService: CapacidadService
-  ) {}
+  ) { }
 
   async create(createProductoDto: CreateProductoDto, tenantId: number) {
     // 1. Validar Capacidad (Enforcement)
@@ -48,7 +48,7 @@ export class ProductosService {
 
   async findAll(tenantId: number) {
     return this.prisma.producto.findMany({
-      where: { tenant_id: tenantId, estado: 'ACTIVO' },
+      where: { tenant_id: tenantId },
       include: { categoria: true, imagenes: true }
     });
   }
@@ -88,7 +88,79 @@ export class ProductosService {
         stock_actual: { gt: 0 },
         ...(categoryId ? { categoria_id: categoryId } : {})
       },
-      include: { categoria: true, imagenes: true }
+      include: { categoria: true, imagenes: { orderBy: { orden: 'asc' } } }
+    });
+  }
+
+  async addImages(id: number, tenantId: number, files: Array<{ filename: string, path: string }>) {
+    const product = await this.findOne(id, tenantId);
+
+    // Get current max order
+    const lastImage = await this.prisma.productoImagen.findFirst({
+      where: { producto_id: id },
+      orderBy: { orden: 'desc' }
+    });
+    let nextOrder = (lastImage?.orden || 0) + 1;
+
+    // Check if it's the first image ever (to allow making it principal)
+    const hasImages = await this.prisma.productoImagen.count({ where: { producto_id: id } });
+    let isFirst = hasImages === 0;
+
+    const createdImages: any[] = [];
+
+    for (const file of files) {
+      const newImage = await this.prisma.productoImagen.create({
+        data: {
+          producto_id: id,
+          url: `/uploads/products/${file.filename}`,
+          orden: nextOrder++,
+          es_principal: isFirst, // First uploaded image becomes principal
+        }
+      });
+      createdImages.push(newImage);
+      isFirst = false; // Only the very first one is principal (if multiple uploaded)
+    }
+
+    return createdImages;
+  }
+
+  async removeImage(imageId: number, tenantId: number) {
+    // Verify ownership via product
+    const image = await this.prisma.productoImagen.findUnique({
+      where: { imagen_id: imageId },
+      include: { producto: true }
+    });
+
+    if (!image || image.producto.tenant_id !== tenantId) {
+      throw new NotFoundException('Imagen no encontrada o acceso denegado');
+    }
+
+    return this.prisma.productoImagen.delete({
+      where: { imagen_id: imageId }
+    });
+  }
+
+  async setPrincipalImage(imageId: number, tenantId: number) {
+    // Verify ownership
+    const image = await this.prisma.productoImagen.findUnique({
+      where: { imagen_id: imageId },
+      include: { producto: true }
+    });
+
+    if (!image || image.producto.tenant_id !== tenantId) {
+      throw new NotFoundException('Imagen no encontrada');
+    }
+
+    // Reset others
+    await this.prisma.productoImagen.updateMany({
+      where: { producto_id: image.producto_id },
+      data: { es_principal: false }
+    });
+
+    // Set new principal
+    return this.prisma.productoImagen.update({
+      where: { imagen_id: imageId },
+      data: { es_principal: true }
     });
   }
 }

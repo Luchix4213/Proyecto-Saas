@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useCartStore } from '../../store/useCartStore';
 import { ShoppingBag, ArrowLeft, CreditCard, QrCode, User, Mail, CreditCard as IdCard, CheckCircle2, Package } from 'lucide-react';
 import axios from 'axios';
@@ -15,6 +15,8 @@ export const CheckoutPage = () => {
     metodo_pago: 'QR',
   });
 
+  const [file, setFile] = useState<File | null>(null);
+  const [zoomQr, setZoomQr] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderResult, setOrderResult] = useState<any>(null);
@@ -29,23 +31,38 @@ export const CheckoutPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) return;
+    if (!file && formData.metodo_pago !== 'EFECTIVO') { // Assuming Efectivo logic might exist later, but for now enforcing file
+      alert('Por favor sube el comprobante de pago');
+      return;
+    }
 
     setLoading(true);
     try {
-      const response = await axios.post(`http://localhost:3000/api/public/${slug}/ventas/checkout`, {
-        ...formData,
-        productos: items.map(i => ({
-          producto_id: i.producto_id,
-          cantidad: i.cantidad,
-        })),
+      const formPayload = new FormData();
+      formPayload.append('nombre', formData.nombre);
+      formPayload.append('email', formData.email);
+      formPayload.append('nit_ci', formData.nit_ci);
+      formPayload.append('metodo_pago', formData.metodo_pago);
+      formPayload.append('productos', JSON.stringify(items.map(i => ({
+        producto_id: i.producto_id,
+        cantidad: i.cantidad,
+      }))));
+
+      if (file) {
+        formPayload.append('comprobante', file);
+      }
+
+      // Corrected URL: Removed /api prefix
+      const response = await axios.post(`http://localhost:3000/ventas/public/${slug}/checkout`, formPayload, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       setOrderResult(response.data);
       setIsSuccess(true);
       clearCart();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Checkout error:', err);
-      alert('Error al procesar el pedido. Por favor intente más tarde.');
+      alert(`Error al procesar el pedido: ${err.response?.data?.message || err.message}`);
     } finally {
       setLoading(false);
     }
@@ -65,27 +82,21 @@ export const CheckoutPage = () => {
           <p className="text-slate-500 mb-10 text-lg">Tu pedido ha sido registrado con éxito. El número de orden es <span className="font-bold text-slate-900">#{orderResult.venta_id}</span></p>
 
           <div className="bg-slate-50 rounded-[2rem] p-8 mb-10 border border-slate-100">
-            <h3 className="font-bold text-slate-900 mb-6 flex items-center justify-center gap-2">
-              <QrCode size={20} className="text-teal-600" /> Instrucciones de Pago
+            <h3 className="font-bold text-slate-900 mb-2 flex items-center justify-center gap-2">
+              <CheckCircle2 size={20} className="text-teal-600" /> Comprobante Recibido
             </h3>
+            <p className="text-slate-500 mb-6">Tu comprobante ha sido enviado a revisión. Te notificaremos cuando tu pedido sea aprobado.</p>
 
-            {formData.metodo_pago === 'QR' ? (
-              <div className="flex flex-col items-center">
-                <div className="bg-white p-6 rounded-3xl shadow-md mb-6 border border-slate-100">
-                  <div className="h-48 w-48 bg-slate-200 rounded-2xl flex items-center justify-center text-slate-400">
-                    <QrCode size={64} strokeWidth={1} />
-                  </div>
+            {formData.metodo_pago === 'QR' && (
+              <div className="flex flex-col items-center opacity-50 pointer-events-none grayscale">
+                <p className="text-xs mb-2">(Referencia del pago realizado)</p>
+                <div className="h-32 w-32 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-slate-200 p-2">
+                  <img
+                    src="http://localhost:3000/uploads/tenants/QR_generado.jpeg"
+                    alt="QR de Pago"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
-                <p className="text-sm font-medium text-slate-600">Escanea este código QR con tu aplicación bancaria para pagar <span className="font-bold text-teal-600 text-lg">{total.toFixed(2)}</span></p>
-              </div>
-            ) : (
-              <div className="text-center">
-                <p className="font-medium text-slate-700 mb-2">Realiza una transferencia a la siguiente cuenta:</p>
-                <div className="bg-white p-4 rounded-2xl border border-slate-100 font-mono text-slate-600 mb-4">
-                  BNB: 123456789 <br/>
-                  Titular: {slug?.toUpperCase()} SRL
-                </div>
-                <p className="text-sm text-slate-500 italic">Envía el comprobante al WhatsApp de la tienda.</p>
               </div>
             )}
           </div>
@@ -179,28 +190,84 @@ export const CheckoutPage = () => {
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, metodo_pago: 'QR' }))}
-                      className={`p-6 rounded-[1.5rem] border-2 transition-all flex flex-col items-center gap-3 ${
-                        formData.metodo_pago === 'QR'
+                      className={`p-6 rounded-[1.5rem] border-2 transition-all flex flex-col items-center gap-3 ${formData.metodo_pago === 'QR'
                         ? 'border-teal-500 bg-teal-50/30 text-teal-700'
                         : 'border-slate-100 bg-white text-slate-400 hover:bg-slate-50'
-                      }`}
+                        }`}
                     >
                       <QrCode size={32} />
                       <span className="font-bold">Pago QR</span>
+                      {formData.metodo_pago === 'QR' && (
+                        <>
+                          <div
+                            className="mt-4 h-64 w-64 bg-white rounded-2xl overflow-hidden border-2 border-teal-100 p-2 shadow-lg cursor-zoom-in group relative"
+                            onClick={() => setZoomQr(true)}
+                          >
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                              <span className="opacity-0 group-hover:opacity-100 bg-black/70 text-white text-xs px-2 py-1 rounded-md font-bold transition-opacity">Ampliar</span>
+                            </div>
+                            <img
+                              src="http://localhost:3000/uploads/tenants/QR_generado.jpeg"
+                              alt="Scan QR"
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+
+                          {/* Zoom Modal */}
+                          {zoomQr && (
+                            <div
+                              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in"
+                              onClick={() => setZoomQr(false)}
+                            >
+                              <div className="bg-white p-4 rounded-3xl animate-scale-in max-w-full max-h-full overflow-auto" onClick={e => e.stopPropagation()}>
+                                <img
+                                  src="http://localhost:3000/uploads/tenants/QR_generado.jpeg"
+                                  alt="Scan QR Full"
+                                  className="w-[500px] h-[500px] object-contain"
+                                />
+                                <button
+                                  onClick={() => setZoomQr(false)}
+                                  className="mt-4 w-full py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
+                                >
+                                  Cerrar
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </button>
                     <button
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, metodo_pago: 'TRANSFERENCIA' }))}
-                      className={`p-6 rounded-[1.5rem] border-2 transition-all flex flex-col items-center gap-3 ${
-                        formData.metodo_pago === 'TRANSFERENCIA'
+                      className={`p-6 rounded-[1.5rem] border-2 transition-all flex flex-col items-center gap-3 ${formData.metodo_pago === 'TRANSFERENCIA'
                         ? 'border-teal-500 bg-teal-50/30 text-teal-700'
                         : 'border-slate-100 bg-white text-slate-400 hover:bg-slate-50'
-                      }`}
+                        }`}
                     >
                       <IdCard size={32} />
                       <span className="font-bold">Transferencia</span>
                     </button>
                   </div>
+                </div>
+
+                <div className="pt-8">
+                  <label className="block text-sm font-bold text-slate-700 mb-2">Comprobante de Pago (Requerido)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    required
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                    className="block w-full text-sm text-slate-500
+                        file:mr-4 file:py-3 file:px-6
+                        file:rounded-xl file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-slate-900 file:text-white
+                        hover:file:bg-slate-800
+                        cursor-pointer
+                      "
+                  />
+                  <p className="text-xs text-slate-400 mt-2">Sube una captura de tu transferencia o pago QR para procesar el pedido.</p>
                 </div>
 
                 <div className="pt-8">
@@ -210,7 +277,7 @@ export const CheckoutPage = () => {
                     className="w-full h-16 bg-slate-900 text-white rounded-[1.5rem] font-black text-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] flex items-center justify-center gap-3"
                   >
                     {loading ? (
-                       <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                     ) : (
                       <>Confirmar Pedido • {total.toFixed(2)}</>
                     )}
@@ -232,7 +299,7 @@ export const CheckoutPage = () => {
                   <div key={item.producto_id} className="flex items-center gap-4 group">
                     <div className="h-16 w-16 bg-white/10 rounded-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/5">
                       {item.imagen_url ? (
-                        <img src={item.imagen_url} alt={item.nombre} className="w-full h-full object-cover" />
+                        <img src={`http://localhost:3000${item.imagen_url}`} alt={item.nombre} className="w-full h-full object-cover" />
                       ) : (
                         <Package size={24} className="text-white/20" />
                       )}

@@ -70,7 +70,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, tenant 
                   <div key={item.producto_id} className="group relative flex items-center gap-4 bg-slate-50 p-4 rounded-3xl border border-slate-100/50 hover:bg-white hover:border-slate-200 transition-all shadow-sm hover:shadow-md">
                     <div className="h-20 w-20 bg-white rounded-2xl flex-shrink-0 flex items-center justify-center border border-slate-100 overflow-hidden">
                       {item.imagen_url ? (
-                        <img src={item.imagen_url} alt={item.nombre} className="w-full h-full object-cover" />
+                        <img src={`http://localhost:3000${item.imagen_url}`} alt={item.nombre} className="w-full h-full object-cover" />
                       ) : (
                         <div className="text-slate-200"><ShoppingBag size={32} /></div>
                       )}

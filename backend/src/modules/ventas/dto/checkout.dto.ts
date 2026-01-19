@@ -35,4 +35,8 @@ export class CheckoutDto {
   @IsEnum(MetodoPago)
   @IsNotEmpty()
   metodo_pago: MetodoPago;
+
+  @IsString()
+  @IsOptional()
+  comprobante_pago?: string;
 }

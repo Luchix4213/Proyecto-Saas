@@ -30,6 +30,7 @@ import { CategoriesPage } from './pages/owner/categories/CategoriesPage';
 import { ProductsPage } from './pages/owner/products/ProductsPage';
 import { PosPage } from './pages/owner/sales/PosPage';
 import { OwnerPurchasesPage } from './pages/owner/purchases/OwnerPurchasesPage';
+import { OnlineSalesPage } from './pages/owner/OnlineSalesPage';
 import { ProfilePage } from './pages/common/ProfilePage';
 
 /* Marketplace Pages */
@@ -48,12 +49,12 @@ function App() {
           {/* ===================== */}
           {/* MARKETPLACE (PÚBLICO) */}
           {/* ===================== */}
-           <Route element={<MarketplaceLayout />}>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/tienda/:slug" element={<StorefrontPage />} />
-              <Route path="/tienda/:slug/checkout" element={<CheckoutPage />} />
-              <Route path="/stores" element={<LandingPage />} />
-           </Route>
+          <Route element={<MarketplaceLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/tienda/:slug" element={<StorefrontPage />} />
+            <Route path="/tienda/:slug/checkout" element={<CheckoutPage />} />
+            <Route path="/stores" element={<LandingPage />} />
+          </Route>
 
           {/* ===================== */}
           {/* AUTH */}
@@ -103,6 +104,8 @@ function App() {
             <Route path="/productos" element={<ProductsPage />} />
             <Route path="/proveedores" element={<OwnerSuppliersPage />} />
             <Route path="/compras" element={<OwnerPurchasesPage />} />
+            <Route path="/compras" element={<OwnerPurchasesPage />} />
+            <Route path="/ventas-online" element={<OnlineSalesPage />} />
             <Route path="/pos" element={<PosPage />} />
             <Route path="/profile" element={<ProfilePage />} />
           </Route>

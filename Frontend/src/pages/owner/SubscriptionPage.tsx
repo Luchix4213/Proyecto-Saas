@@ -81,7 +81,7 @@ export const SubscriptionPage = () => {
 
         try {
             await loadCreateSubscription({
-                tenant_id: user?.tenant_id,
+                tenant_id: user!.tenant_id,
                 plan_id: selectedPlanForModal.plan_id,
                 fecha_inicio: new Date().toISOString(),
                 ciclo: billingCycle,
@@ -346,8 +346,8 @@ export const SubscriptionPage = () => {
                                             onClick={() => handleOpenModal(plan)}
                                             disabled={isCurrentPlan}
                                             className={`w-full py-4 rounded-xl font-bold transition-all ${isCurrentPlan
-                                                    ? 'bg-slate-100 text-slate-400 cursor-default'
-                                                    : 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg hover:shadow-xl'
+                                                ? 'bg-slate-100 text-slate-400 cursor-default'
+                                                : 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg hover:shadow-xl'
                                                 }`}
                                         >
                                             {isCurrentPlan ? 'Plan Actual' : 'Seleccionar Plan'}
@@ -464,8 +464,8 @@ export const SubscriptionPage = () => {
                                 onClick={handleConfirmSubscription}
                                 disabled={!paymentProof}
                                 className={`flex-1 py-3 px-4 rounded-xl font-bold text-white shadow-lg transition-all ${!paymentProof
-                                        ? 'bg-slate-400 cursor-not-allowed shadow-none'
-                                        : 'bg-teal-600 hover:bg-teal-700 shadow-teal-500/30'
+                                    ? 'bg-slate-400 cursor-not-allowed shadow-none'
+                                    : 'bg-teal-600 hover:bg-teal-700 shadow-teal-500/30'
                                     }`}
                             >
                                 Confirmar Pago

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, CreditCard, Building2, Menu, Bell, User, Package, Tag, Truck, ShoppingCart, ShoppingBag } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, CreditCard, Building2, Menu, Bell, User, Package, Tag, Truck, ShoppingCart, ShoppingBag, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { tenantsService } from '../services/tenantsService';
@@ -82,7 +82,8 @@ export const OwnerLayout = () => {
                     </div>
                     <NavLink to="/pos" icon={ShoppingCart} label={isSidebarOpen ? 'Punto de Venta' : ''} />
                     <NavLink to="/clientes" icon={Users} label={isSidebarOpen ? 'Clientes' : ''} />
-                    {/* Add Sales / Orders here eventually */}
+
+                    <NavLink to="/ventas-online" icon={Globe} label={isSidebarOpen ? 'Ventas Online' : ''} />
 
                     <div className="border-t border-slate-800 my-2 pt-2">
                         <NavLink to="/profile" icon={User} label={isSidebarOpen ? 'Mi Perfil' : ''} />
