@@ -27,10 +27,14 @@ async function main() {
     update: {},
     create: {
       nombre_plan: 'FREE',
+      descripcion: 'Plan de prueba inicial',
       max_usuarios: 2,
       max_productos: 50,
+      ventas_online: false,
+      reportes_avanzados: false,
       precio_mensual: 0,
       precio_anual: 0,
+      estado: EstadoGenerico.ACTIVO,
     },
   });
 
@@ -39,11 +43,14 @@ async function main() {
     update: {},
     create: {
       nombre_plan: 'BASICO',
+      descripcion: 'Tienda física con funcionalidades básicas',
       max_usuarios: 5,
-      max_productos: 50,
+      max_productos: 300,
+      ventas_online: false,
+      reportes_avanzados: false,
       precio_mensual: 99,
       precio_anual: 990,
-      ventas_online: false,
+      estado: EstadoGenerico.ACTIVO,
     },
   });
 
@@ -52,12 +59,14 @@ async function main() {
     update: {},
     create: {
       nombre_plan: 'PREMIUM',
+      descripcion: 'Todas las funcionalidades + ventas online',
       max_usuarios: 1000,
       max_productos: 10000,
-      precio_mensual: 199,
-      precio_anual: 1990,
       ventas_online: true,
       reportes_avanzados: true,
+      precio_mensual: 199,
+      precio_anual: 1990,
+      estado: EstadoGenerico.ACTIVO,
     },
   });
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { productsService, type Product } from '../../services/productsService';
-import { ShoppingBag, ArrowRight, Store, Search, Filter, Tag } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Store, Search, Filter } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUtils';
 import { useCartStore } from '../../store/useCartStore';
 
@@ -9,7 +9,6 @@ export const GlobalProductsPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null); // For future filtering
     const { addItem } = useCartStore();
     const [addedId, setAddedId] = useState<number | null>(null);
 
