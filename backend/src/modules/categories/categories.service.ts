@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(tenantId: number, createCategoryDto: CreateCategoryDto) {
     return this.prisma.categoria.create({
@@ -16,12 +16,19 @@ export class CategoriesService {
     });
   }
 
-  async findAll(tenantId: number) {
+  async findAll(tenantId: number, estado?: string) {
+    const whereClause: any = {
+      tenant_id: tenantId,
+    };
+
+    if (estado) {
+      whereClause.estado = estado;
+    } else {
+      whereClause.estado = 'ACTIVO'; // Default behavior
+    }
+
     return this.prisma.categoria.findMany({
-      where: {
-        tenant_id: tenantId,
-        estado: 'ACTIVO',
-      },
+      where: whereClause,
       orderBy: {
         nombre: 'asc',
       }
@@ -51,7 +58,7 @@ export class CategoriesService {
   }
 
   async remove(id: number, tenantId: number) {
-     await this.findOne(id, tenantId); // Verificar propiedad
+    await this.findOne(id, tenantId); // Verificar propiedad
     return this.prisma.categoria.update({
       where: { categoria_id: id },
       data: { estado: 'INACTIVO' },

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -7,7 +7,7 @@ import { AuthGuard } from '../../common/guards/auth.guard';
 @Controller('categories')
 @UseGuards(AuthGuard)
 export class CategoriesController {
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(private readonly categoriesService: CategoriesService) { }
 
   @Post()
   create(@Body() createCategoryDto: CreateCategoryDto, @Req() req) {
@@ -15,8 +15,8 @@ export class CategoriesController {
   }
 
   @Get()
-  findAll(@Req() req) {
-    return this.categoriesService.findAll(req.user.tenant_id);
+  findAll(@Req() req, @Query('estado') estado?: string) {
+    return this.categoriesService.findAll(req.user.tenant_id, estado);
   }
 
   @Get(':id')

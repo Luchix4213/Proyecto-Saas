@@ -18,8 +18,9 @@ export interface UpdateCategoryData {
 }
 
 export const categoriesService = {
-    getAll: async () => {
-        const response = await api.get<Category[]>('/categories');
+    getAll: async (estado?: 'ACTIVO' | 'INACTIVO') => {
+        const params = estado ? { estado } : {};
+        const response = await api.get<Category[]>('/categories', { params });
         return response.data;
     },
 

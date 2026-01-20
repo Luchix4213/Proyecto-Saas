@@ -94,7 +94,11 @@ export const StorefrontPage = () => {
                 {/* Banner */}
                 <div className="h-[20rem] relative">
                     {tenant.banner_url ? (
-                        <img src={tenant.banner_url} alt="Banner" className="w-full h-full object-cover" />
+                        <img
+                            src={tenant.banner_url.startsWith('http') ? tenant.banner_url : `http://localhost:3000${tenant.banner_url}`}
+                            alt="Banner"
+                            className="w-full h-full object-cover"
+                        />
                     ) : (
                         <div className="w-full h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
                             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>

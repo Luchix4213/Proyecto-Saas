@@ -81,9 +81,18 @@ export class ProductosService {
   // --- Public / Marketplace Methods ---
 
   async findAllPublic(tenantSlug: string, categoryId?: number) {
+    // Check if identifier is numeric ID (to support tenants without valid slug or access by ID)
+    const id = parseInt(tenantSlug);
+    const isId = !isNaN(id);
+
     return this.prisma.producto.findMany({
       where: {
-        tenant: { slug: tenantSlug },
+        tenant: {
+          OR: [
+            { slug: tenantSlug },
+            ...(isId ? [{ tenant_id: id }] : [])
+          ]
+        },
         estado: 'ACTIVO',
         stock_actual: { gt: 0 },
         ...(categoryId ? { categoria_id: categoryId } : {})
