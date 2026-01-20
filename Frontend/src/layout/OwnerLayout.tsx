@@ -10,6 +10,7 @@ export const OwnerLayout = () => {
     const { logout, user } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [companyName, setCompanyName] = useState<string>('');
+    const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
         const fetchTenantInfo = async () => {
@@ -17,6 +18,9 @@ export const OwnerLayout = () => {
                 try {
                     const tenant = await tenantsService.getById(user.tenant_id);
                     setCompanyName(tenant.nombre_empresa);
+
+                    // Fetch notifications
+                    await fetchUnreadCount();
                 } catch (error) {
                     console.error('Error fetching tenant info:', error);
                 }
@@ -24,7 +28,18 @@ export const OwnerLayout = () => {
         };
 
         fetchTenantInfo();
-    }, [user]);
+    }, [user, location.pathname]); // Re-fetch on navigation
+
+    const fetchUnreadCount = async () => {
+        try {
+            // We could optimize this by adding a specific endpoint for count, but getAll is fine for now
+            const { notificationsService } = await import('../services/notificationsService');
+            const data = await notificationsService.getAll();
+            setUnreadCount(data.filter((n: any) => !n.leida).length);
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
 
     const isActive = (path: string) => location.pathname === path;
 
@@ -119,10 +134,12 @@ export const OwnerLayout = () => {
 
                     <div className="flex items-center gap-4">
                         <div className="relative">
-                            <button className="p-2 rounded-full text-white/80 hover:bg-white/10 transition-colors relative">
+                            <Link to="/notificaciones" className="p-2 rounded-full text-white/80 hover:bg-white/10 transition-colors relative block">
                                 <Bell size={20} />
-                                <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-400 rounded-full border border-teal-600"></span>
-                            </button>
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-400 rounded-full border border-teal-600 animate-pulse"></span>
+                                )}
+                            </Link>
                         </div>
 
                         <Link to="/profile" className="flex items-center gap-3 pl-4 border-l border-white/20 hover:opacity-80 transition-opacity">

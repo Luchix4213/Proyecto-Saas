@@ -5,7 +5,7 @@ import { productsService, type Product } from '../../services/productsService';
 import { type Category } from '../../services/categoriesService';
 import {
     ShoppingBag, Star, MapPin, Clock, Phone, Mail, ArrowLeft,
-    Package, Search, Filter, Share2, Info
+    Package, Search, Filter, Share2, Info, RefreshCw
 } from 'lucide-react';
 import { useCartStore } from '../../store/useCartStore';
 import { CartDrawer } from '../../components/marketplace/CartDrawer';
@@ -212,6 +212,13 @@ export const StorefrontPage = () => {
                                 {getItemCount()}
                             </span>
                         )}
+                    </button>
+                    <button
+                        onClick={() => loadStoreData(slug!)}
+                        className="p-4 bg-white border border-slate-200 rounded-[1.5rem] shadow-sm flex items-center justify-center text-slate-700 hover:text-teal-600 hover:bg-slate-50 transition-all active:scale-95 group"
+                        title="Actualizar catálogo"
+                    >
+                        <RefreshCw size={20} className={`transition-transform ${loading ? 'animate-spin' : 'group-hover:rotate-180'}`} />
                     </button>
                 </div>
 

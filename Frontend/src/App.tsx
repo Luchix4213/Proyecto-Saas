@@ -25,6 +25,7 @@ import { UsersPage } from './pages/owner/UsersPage';
 import { SubscriptionPage } from './pages/owner/SubscriptionPage';
 import { OwnerSuppliersPage } from './pages/owner/OwnerSuppliersPage';
 import MyTenantPage from './pages/owner/MyTenantPage';
+import { NotificationsPage } from './pages/owner/NotificationsPage';
 import { ClientsPage } from './pages/owner/ClientsPage';
 import { CategoriesPage } from './pages/owner/categories/CategoriesPage';
 import { ProductsPage } from './pages/owner/products/ProductsPage';
@@ -97,6 +98,7 @@ function App() {
           >
             <Route path="/dashboard" element={<OwnerDashboardPage />} />
             <Route path="/mi-empresa" element={<MyTenantPage />} />
+            <Route path="/notificaciones" element={<NotificationsPage />} />
             <Route path="/usuarios" element={<UsersPage />} />
             <Route path="/clientes" element={<ClientsPage />} />
             <Route path="/suscripcion" element={<SubscriptionPage />} />

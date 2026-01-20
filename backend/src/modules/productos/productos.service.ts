@@ -5,11 +5,14 @@ import { EstadoGenerico } from '@prisma/client';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
+
 @Injectable()
 export class ProductosService {
   constructor(
     private prisma: PrismaService,
-    private capacidadService: CapacidadService
+    private capacidadService: CapacidadService,
+    private notificacionesService: NotificacionesService
   ) { }
 
   async create(createProductoDto: CreateProductoDto, tenantId: number) {
@@ -35,7 +38,7 @@ export class ProductosService {
     }
 
     // 3. Crear Producto
-    return this.prisma.producto.create({
+    const newProduct = await this.prisma.producto.create({
       data: {
         ...createProductoDto,
         slug,
@@ -44,6 +47,18 @@ export class ProductosService {
         estado: EstadoGenerico.ACTIVO
       },
     });
+
+    // 4. Check Low Stock Notification
+    if (newProduct.stock_actual <= newProduct.stock_minimo) {
+      await this.notificacionesService.notificarStockBajo(
+        tenantId,
+        newProduct.nombre,
+        newProduct.stock_actual,
+        newProduct.stock_minimo
+      );
+    }
+
+    return newProduct;
   }
 
   async findAll(tenantId: number) {
@@ -64,10 +79,21 @@ export class ProductosService {
 
   async update(id: number, updateProductoDto: UpdateProductoDto, tenantId: number) {
     await this.findOne(id, tenantId);
-    return this.prisma.producto.update({
+    const updatedProduct = await this.prisma.producto.update({
       where: { producto_id: id },
       data: updateProductoDto,
     });
+
+    if (updatedProduct.stock_actual <= updatedProduct.stock_minimo) {
+      await this.notificacionesService.notificarStockBajo(
+        tenantId,
+        updatedProduct.nombre,
+        updatedProduct.stock_actual,
+        updatedProduct.stock_minimo
+      );
+    }
+
+    return updatedProduct;
   }
 
   async remove(id: number, tenantId: number) {

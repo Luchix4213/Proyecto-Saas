@@ -3,6 +3,7 @@ import { Plus, Search, Filter, ShoppingBag, Package, Image as ImageIcon, Trash2,
 import { productsService, type Product } from '../../../services/productsService';
 import { categoriesService, type Category } from '../../../services/categoriesService';
 import { ProductForm } from '../../../components/products/ProductForm';
+import { getImageUrl } from '../../../utils/imageUtils';
 
 export const ProductsPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -40,8 +41,8 @@ export const ProductsPage = () => {
         if (!window.confirm(`¿Estás seguro de eliminar el producto ${product.nombre}?`)) return;
         try {
             await productsService.delete(product.producto_id);
-            // Instead of removing, we update local state to reflect change if we were keeping it, 
-            // but delete usually sets to INACTIVE in backend. 
+            // Instead of removing, we update local state to reflect change if we were keeping it,
+            // but delete usually sets to INACTIVE in backend.
             // So we should verify if 'delete' sets to INACTIVE (soft delete) or actually deletes.
             // Based on backend service 'remove', it sets estado: 'INACTIVO'.
             // So we should update the local product state to INACTIVO.
@@ -173,7 +174,7 @@ export const ProductsPage = () => {
                                 <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
                                     {principalImage ? (
                                         <img
-                                            src={`http://localhost:3000${principalImage.url}`}
+                                            src={getImageUrl(principalImage.url)}
                                             alt={product.nombre}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { tenantsService } from '../../services/tenantsService';
 import type { Tenant, UpdateTenantData } from '../../services/tenantsService';
+import { getImageUrl } from '../../utils/imageUtils';
 import { Building2, X, Check, Save, Upload, Mail, Phone, MapPin, DollarSign, Store, Tag, AlertTriangle, ChevronDown } from 'lucide-react';
 import { ScheduleEditor } from '../../components/tenants/ScheduleEditor';
 import { useForm, Controller } from 'react-hook-form';
@@ -85,10 +86,10 @@ const MyTenantPage = () => {
             });
 
             if (data.logo_url) {
-                setPreviewLogo(`http://localhost:3000${data.logo_url}`);
+                setPreviewLogo(getImageUrl(data.logo_url));
             }
             if (data.banner_url) {
-                setPreviewBanner(`http://localhost:3000${data.banner_url}`); // Adjust if full URL stored
+                setPreviewBanner(getImageUrl(data.banner_url));
             }
 
         } catch (err) {

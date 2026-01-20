@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { X, Upload, Image as ImageIcon, Star, Trash2 } from 'lucide-react';
 import { productsService, type Product, type CreateProductData } from '../../services/productsService';
 import { type Category } from '../../services/categoriesService';
+import { getImageUrl } from '../../utils/imageUtils';
 
 interface ProductFormProps {
     isOpen: boolean;
@@ -315,7 +316,7 @@ export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categor
                                         {existingImages.map((img) => (
                                             <div key={img.imagen_id} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-sm">
                                                 <img
-                                                    src={`http://localhost:3000${img.url}`}
+                                                    src={getImageUrl(img.url)}
                                                     alt="Product"
                                                     className="w-full h-full object-cover"
                                                 />

@@ -4,9 +4,10 @@ import { ProductosService } from './productos.service';
 import { ProductosController } from './productos.controller';
 import { SuscripcionesModule } from '../suscripciones/suscripciones.module';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificacionesModule } from '../notificaciones/notificaciones.module';
 
 @Module({
-  imports: [SuscripcionesModule],
+  imports: [SuscripcionesModule, NotificacionesModule],
   controllers: [ProductosController],
   providers: [ProductosService, PrismaService],
   exports: [ProductosService]

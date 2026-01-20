@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Package, Star, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Product } from '../../services/productsService';
 import type { Tenant } from '../../services/tenantsService';
+import { getImageUrl } from '../../utils/imageUtils';
 
 interface StorefrontProductCardProps {
     product: Product;
@@ -39,7 +40,7 @@ export const StorefrontProductCard = ({ product, tenant, onAddToCart, animationD
                 {/* Image or Placeholder */}
                 {currentImage ? (
                     <img
-                        src={`http://localhost:3000${currentImage.url}`}
+                        src={getImageUrl(currentImage.url)}
                         alt={product.nombre}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
