@@ -67,4 +67,24 @@ export class NotificacionesService {
       data: { leida: true },
     });
   }
+
+  async remove(id: number, usuarioId: number) {
+    const notificacion = await this.prisma.notificacion.findFirst({
+      where: { notificacion_id: id, usuario_id: usuarioId },
+    });
+
+    if (!notificacion) {
+      throw new Error('Notificación no encontrada o no pertenece al usuario');
+    }
+
+    return this.prisma.notificacion.delete({
+      where: { notificacion_id: id },
+    });
+  }
+
+  async removeRead(usuarioId: number) {
+    return this.prisma.notificacion.deleteMany({
+      where: { usuario_id: usuarioId, leida: true },
+    });
+  }
 }
