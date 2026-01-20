@@ -13,7 +13,7 @@ export const NotificationsPage = () => {
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState<Notificacion[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState<'all' | 'unread'>('all');
+    const [filter, setFilter] = useState<'all' | 'unread' | 'history'>('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState<string>('all');
 
@@ -73,7 +73,7 @@ export const NotificationsPage = () => {
 
     const filteredNotifications = useMemo(() => {
         return notifications.filter(n => {
-            const matchesTab = filter === 'unread' ? !n.leida : true;
+            const matchesTab = filter === 'unread' ? !n.leida : (filter === 'history' ? n.leida : true);
             const matchesType = typeFilter === 'all' ? true : n.tipo === typeFilter;
             const matchesSearch = n.mensaje.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                 n.tipo.toLowerCase().includes(searchTerm.toLowerCase());
@@ -121,13 +121,13 @@ export const NotificationsPage = () => {
                 return {
                     label: 'Gestionar Inventario',
                     icon: <Package size={14} />,
-                    onClick: () => navigate('/owner/inventory') // Assuming this route exists
+                    onClick: () => navigate('/productos')
                 };
             case 'NUEVA_VENTA':
                 return {
                     label: 'Ver Venta',
                     icon: <ShoppingCart size={14} />,
-                    onClick: () => navigate('/owner/sales') // Assuming this route exists
+                    onClick: () => navigate('/ventas-online')
                 };
             default:
                 return null;
@@ -234,6 +234,16 @@ export const NotificationsPage = () => {
                                         {unreadCount}
                                     </span>
                                 )}
+                            </button>
+                            <button
+                                onClick={() => setFilter('history')}
+                                className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                                    filter === 'history'
+                                    ? 'bg-teal-50 text-teal-700'
+                                    : 'text-slate-500 hover:bg-slate-50'
+                                }`}
+                            >
+                                Historial (Leídas)
                             </button>
                         </div>
 

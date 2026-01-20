@@ -41,7 +41,7 @@ export class NotificacionesService {
     return this.prisma.notificacion.findMany({
       where: { usuario_id: usuarioId },
       orderBy: { fecha_envio: 'desc' },
-      take: 50, // Limit to last 50
+      take: 100, // Limit to last 100
     });
   }
 
