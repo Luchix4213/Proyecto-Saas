@@ -10,6 +10,7 @@ import {
 import { useCartStore } from '../../store/useCartStore';
 import { CartDrawer } from '../../components/marketplace/CartDrawer';
 import { StorefrontProductCard } from '../../components/marketplace/StorefrontProductCard';
+import { getImageUrl } from '../../utils/imageUtils';
 
 
 export const StorefrontPage = () => {
@@ -95,7 +96,7 @@ export const StorefrontPage = () => {
                 <div className="h-[20rem] relative">
                     {tenant.banner_url ? (
                         <img
-                            src={tenant.banner_url.startsWith('http') ? tenant.banner_url : `http://localhost:3000${tenant.banner_url}`}
+                            src={getImageUrl(tenant.banner_url)}
                             alt="Banner"
                             className="w-full h-full object-cover"
                         />
@@ -128,7 +129,7 @@ export const StorefrontPage = () => {
                         <div className="h-40 w-40 rounded-[2rem] bg-white p-2 shadow-2xl ring-8 ring-slate-50 flex-shrink-0 relative group">
                             {tenant.logo_url ? (
                                 <img
-                                    src={`http://localhost:3000${tenant.logo_url}`}
+                                    src={getImageUrl(tenant.logo_url)}
                                     alt="Logo"
                                     className="w-full h-full object-contain rounded-[1.5rem]"
                                     onError={(e) => {

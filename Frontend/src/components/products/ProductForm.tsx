@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, Upload, Image as ImageIcon, Star, Trash2 } from 'lucide-react';
+import { X, Upload, Image as ImageIcon, Star, Trash2, ShoppingBag } from 'lucide-react';
 import { productsService, type Product, type CreateProductData } from '../../services/productsService';
 import { type Category } from '../../services/categoriesService';
 import { getImageUrl } from '../../utils/imageUtils';
@@ -140,250 +140,278 @@ export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categor
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+            {/* Dynamic Backdrop */}
+            <div
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-fade-in"
+                onClick={onClose}
+            ></div>
+
+            {/* Premium Modal Container */}
+            <div className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-scale-in border border-slate-100">
+
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-800">
-                            {currentProduct ? 'Editar Producto' : 'Nuevo Producto'}
-                        </h2>
-                        <p className="text-sm text-slate-500">
-                            {activeTab === 'general' ? 'Información básica y precios' : 'Gestión de imágenes'}
-                        </p>
+                <div className="p-6 sm:p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center shrink-0">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl text-white shadow-lg shadow-teal-500/30">
+                            <ShoppingBag size={24} strokeWidth={2.5} />
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-black text-slate-800 tracking-tight leading-none mb-1">
+                                {currentProduct ? 'Editar Producto' : 'Nuevo Producto'}
+                            </h3>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                {activeTab === 'general' ? 'Información básica y precios' : 'Gestión de galería'}
+                            </p>
+                        </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                        <X size={20} className="text-slate-400" />
+                    <button
+                        onClick={onClose}
+                        className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-white rounded-2xl transition-all hover:rotate-90 duration-300 shadow-sm border border-transparent hover:border-slate-100"
+                    >
+                        <X size={24} />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-slate-100 px-6 gap-6">
+                <div className="px-8 pb-0 border-b border-slate-100 bg-white flex gap-6 shrink-0 z-10">
                     <button
                         onClick={() => setActiveTab('general')}
-                        className={`py-3 text-sm font-bold border-b-2 transition-colors ${activeTab === 'general'
-                            ? 'border-teal-600 text-teal-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-700'
-                            }`}
+                        className={`relative py-4 text-xs font-black uppercase tracking-widest transition-colors ${activeTab === 'general' ? 'text-teal-600' : 'text-slate-400 hover:text-slate-600'}`}
                     >
                         Información General
+                        {activeTab === 'general' && <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-t-full"></div>}
                     </button>
                     <button
                         onClick={() => setActiveTab('images')}
                         disabled={!currentProduct}
-                        className={`py-3 text-sm font-bold border-b-2 transition-colors flex items-center gap-2 ${activeTab === 'images'
-                            ? 'border-teal-600 text-teal-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed'
-                            }`}
+                        className={`relative py-4 text-xs font-black uppercase tracking-widest transition-colors flex items-center gap-2 ${activeTab === 'images' ? 'text-teal-600' : 'text-slate-400 hover:text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed'}`}
                     >
                         <ImageIcon size={16} />
-                        Imágenes
+                        Galería
+                        {activeTab === 'images' && <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-emerald-500 rounded-t-full"></div>}
                     </button>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 overflow-y-auto flex-1">
-                    {activeTab === 'general' ? (
-                        <form id="product-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Nombre del Producto *</label>
-                                    <input
-                                        {...register('nombre', { required: 'El nombre es obligatorio' })}
-                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none"
-                                        placeholder="Ej: Camiseta Polo Basic"
-                                    />
-                                    {errors.nombre && <span className="text-red-500 text-xs mt-1">{errors.nombre.message}</span>}
-                                </div>
+                {/* Content - Scrollable */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar bg-white relative">
+                    <div className="p-8">
+                        {activeTab === 'general' ? (
+                            <form id="product-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="col-span-1 md:col-span-2 space-y-2">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Nombre del Producto</label>
+                                        <input
+                                            {...register('nombre', { required: 'El nombre es obligatorio' })}
+                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700 placeholder:font-normal"
+                                            placeholder="Ej: Camiseta Polo Basic"
+                                        />
+                                        {errors.nombre && <span className="text-[10px] text-red-500 font-black uppercase tracking-wider ml-1">{errors.nombre.message}</span>}
+                                    </div>
 
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Descripción</label>
-                                    <textarea
-                                        {...register('descripcion')}
-                                        rows={3}
-                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none resize-none"
-                                        placeholder="Detalles del producto, materiales, etc."
-                                    />
-                                </div>
+                                    <div className="col-span-1 md:col-span-2 space-y-2">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Descripción</label>
+                                        <textarea
+                                            {...register('descripcion')}
+                                            rows={3}
+                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700 placeholder:font-normal resize-none"
+                                            placeholder="Detalles del producto, materiales, etc."
+                                        />
+                                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Precio (Bs) *</label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">Bs</span>
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Precio (Bs)</label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-black text-sm">Bs</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                {...register('precio', { required: true, min: 0 })}
+                                                className="w-full pl-10 pr-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Categoría</label>
+                                        <div className="relative">
+                                            <select
+                                                {...register('categoria_id', { required: true, valueAsNumber: true })}
+                                                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700 appearance-none cursor-pointer"
+                                            >
+                                                <option value="">Seleccionar...</option>
+                                                {categories.map(cat => (
+                                                    <option key={cat.categoria_id} value={cat.categoria_id}>{cat.nombre}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="rotate-90"><path d="m9 18 6-6-6-6"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Stock Actual</label>
                                         <input
                                             type="number"
-                                            step="0.01"
-                                            {...register('precio', { required: true, min: 0 })}
-                                            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none font-bold text-slate-700"
+                                            {...register('stock_actual', { min: 0, valueAsNumber: true })}
+                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700"
                                         />
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Categoría *</label>
-                                    <select
-                                        {...register('categoria_id', { required: true, valueAsNumber: true })}
-                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none bg-white"
-                                    >
-                                        <option value="">Seleccionar...</option>
-                                        {categories.map(cat => (
-                                            <option key={cat.categoria_id} value={cat.categoria_id}>{cat.nombre}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Stock Actual</label>
-                                    <input
-                                        type="number"
-                                        {...register('stock_actual', { min: 0, valueAsNumber: true })}
-                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1">Stock Mínimo</label>
-                                    <input
-                                        type="number"
-                                        {...register('stock_minimo', { min: 0, valueAsNumber: true })}
-                                        className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none"
-                                    />
-                                </div>
-
-                                <div className="col-span-2 pt-2">
-                                    <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Stock Mínimo</label>
                                         <input
-                                            type="checkbox"
-                                            {...register('destacado')}
-                                            className="w-5 h-5 text-teal-600 rounded focus:ring-teal-500"
+                                            type="number"
+                                            {...register('stock_minimo', { min: 0, valueAsNumber: true })}
+                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700"
                                         />
-                                        <div className="flex items-center gap-2">
-                                            <Star size={18} className="text-amber-400 fill-amber-400" />
-                                            <span className="font-bold text-slate-700">Producto Destacado</span>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                        </form>
-                    ) : (
-                        <div className="space-y-6">
-                            {/* Upload Area */}
-                            <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:bg-slate-50 transition-colors relative group">
-                                <input
-                                    type="file"
-                                    multiple
-                                    accept="image/*"
-                                    onChange={handleFileChange}
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                />
-                                <div className="flex flex-col items-center gap-3 text-slate-500 group-hover:text-teal-600">
-                                    <div className="p-4 bg-teal-50 text-teal-600 rounded-full">
-                                        <Upload size={32} />
                                     </div>
-                                    <p className="font-medium">Arrastra imágenes aquí o haz clic para subir</p>
-                                    <p className="text-xs text-slate-400">PNG, JPG hasta 5MB</p>
-                                </div>
-                            </div>
 
-                            {/* Pending Uploads */}
-                            {previewUrls.length > 0 && (
-                                <div className="space-y-2">
-                                    <h3 className="text-sm font-bold text-slate-700">Listas para subir ({previewUrls.length})</h3>
-                                    <div className="flex gap-4 overflow-x-auto pb-4">
-                                        {previewUrls.map((url, idx) => (
-                                            <div key={idx} className="w-24 h-24 relative rounded-lg overflow-hidden border border-slate-200 shrink-0">
-                                                <img src={url} alt="Preview" className="w-full h-full object-cover" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <button
-                                        onClick={handleUploadImages}
-                                        disabled={isSubmitting}
-                                        className="w-full py-2.5 bg-teal-600 text-white rounded-xl font-bold hover:bg-teal-700 transition-colors disabled:opacity-50"
-                                    >
-                                        {isSubmitting ? 'Subiendo...' : 'Confirmar Subida'}
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Existing Images */}
-                            <div className="space-y-3">
-                                <h3 className="text-sm font-bold text-slate-700">Galería Actual</h3>
-                                {existingImages.length === 0 ? (
-                                    <p className="text-sm text-slate-400 italic">No hay imágenes guardadas.</p>
-                                ) : (
-                                    <div className="grid grid-cols-3 gap-4">
-                                        {existingImages.map((img) => (
-                                            <div key={img.imagen_id} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                                                <img
-                                                    src={getImageUrl(img.url)}
-                                                    alt="Product"
-                                                    className="w-full h-full object-cover"
-                                                />
-
-                                                {/* Indicators */}
-                                                {img.es_principal && (
-                                                    <div className="absolute top-2 left-2 bg-teal-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                                                        Principal
-                                                    </div>
-                                                )}
-
-                                                {/* Actions */}
-                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                                    {!img.es_principal && (
-                                                        <button
-                                                            onClick={() => handleSetPrincipal(img.imagen_id)}
-                                                            className="p-1.5 bg-white text-teal-600 rounded-lg hover:bg-teal-50"
-                                                            title="Marcar como Principal"
-                                                        >
-                                                            <Star size={16} fill="currentColor" />
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        onClick={() => handleDeleteImage(img.imagen_id)}
-                                                        className="p-1.5 bg-white text-red-600 rounded-lg hover:bg-red-50"
-                                                        title="Eliminar"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
+                                    <div className="col-span-1 md:col-span-2 pt-2">
+                                        <label className="flex items-center gap-4 p-4 border border-slate-200 rounded-2xl cursor-pointer hover:bg-slate-50 hover:border-teal-200 transition-all group">
+                                            <input
+                                                type="checkbox"
+                                                {...register('destacado')}
+                                                className="w-6 h-6 text-teal-600 rounded-lg focus:ring-teal-500 border-slate-300"
+                                            />
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-2">
+                                                    <Star size={18} className="text-amber-400 fill-amber-400 group-hover:scale-110 transition-transform" />
+                                                    <span className="font-bold text-slate-800">Producto Destacado</span>
                                                 </div>
+                                                <span className="text-xs text-slate-400 font-medium">Este producto aparecerá en las secciones principales</span>
                                             </div>
-                                        ))}
+                                        </label>
+                                    </div>
+                                </div>
+                            </form>
+                        ) : (
+                            <div className="space-y-8 animate-fade-in">
+                                {/* Upload Area */}
+                                <div className="border-3 border-dashed border-slate-200 rounded-3xl p-10 text-center hover:bg-slate-50 hover:border-teal-300 transition-all relative group cursor-pointer bg-slate-50/50">
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    />
+                                    <div className="flex flex-col items-center gap-4 text-slate-500 group-hover:text-teal-600 transition-colors">
+                                        <div className="p-5 bg-white shadow-xl shadow-slate-200/50 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                                            <Upload size={32} className="text-teal-500" />
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-lg text-slate-700">Arrastra imágenes o haz clic</p>
+                                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">PNG, JPG hasta 5MB</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Pending Uploads */}
+                                {previewUrls.length > 0 && (
+                                    <div className="space-y-4">
+                                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Listas para subir ({previewUrls.length})</h3>
+                                        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                                            {previewUrls.map((url, idx) => (
+                                                <div key={idx} className="w-28 h-28 relative rounded-2xl overflow-hidden border border-slate-200 shrink-0 shadow-sm group">
+                                                    <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                        <span className="text-white text-xs font-bold">Pendiente</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <button
+                                            onClick={handleUploadImages}
+                                            disabled={isSubmitting}
+                                            className="w-full py-4 bg-teal-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-teal-700 transition-colors disabled:opacity-50 shadow-lg shadow-teal-500/20"
+                                        >
+                                            {isSubmitting ? 'Subiendo...' : 'Confirmar Subida de Imágenes'}
+                                        </button>
                                     </div>
                                 )}
+
+                                {/* Existing Images */}
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Galería Actual</h3>
+                                    {existingImages.length === 0 ? (
+                                        <div className="p-8 text-center bg-slate-50 rounded-3xl border border-slate-100 border-dashed">
+                                            <ImageIcon size={32} className="mx-auto text-slate-300 mb-2" />
+                                            <p className="text-sm font-bold text-slate-400">No hay imágenes en la galería.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                            {existingImages.map((img) => (
+                                                <div key={img.imagen_id} className="group relative aspect-square rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white">
+                                                    <img
+                                                        src={getImageUrl(img.url)}
+                                                        alt="Product"
+                                                        className="w-full h-full object-cover"
+                                                    />
+
+                                                    {/* Indicators */}
+                                                    {img.es_principal && (
+                                                        <div className="absolute top-2 left-2 bg-teal-600/90 backdrop-blur-sm text-white text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-lg shadow-sm z-10">
+                                                            Principal
+                                                        </div>
+                                                    )}
+
+                                                    {/* Actions Overlay */}
+                                                    <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 backdrop-blur-[2px]">
+                                                        {!img.es_principal && (
+                                                            <button
+                                                                onClick={() => handleSetPrincipal(img.imagen_id)}
+                                                                className="px-3 py-1.5 bg-white text-teal-600 rounded-xl hover:bg-teal-50 text-[10px] font-bold uppercase tracking-wider shadow-lg transform hover:-translate-y-0.5 transition-all w-24"
+                                                            >
+                                                                Hacer Principal
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={() => handleDeleteImage(img.imagen_id)}
+                                                            className="p-1.5 bg-white text-red-600 rounded-xl hover:bg-red-50 text-[10px] font-bold uppercase tracking-wider shadow-lg transform hover:-translate-y-0.5 transition-all"
+                                                            title="Eliminar"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
 
-                {/* Footer */}
-                {activeTab === 'general' && (
-                    <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                {/* Footer sticky */}
+                <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3 shrink-0">
+                    {activeTab === 'general' ? (
+                        <>
+                            <button
+                                onClick={onClose}
+                                className="px-6 py-3.5 text-slate-500 font-black uppercase tracking-widest text-[10px] hover:bg-white hover:text-slate-800 rounded-2xl transition-all border border-transparent hover:border-slate-100"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => document.getElementById('product-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
+                                disabled={isSubmitting}
+                                className="px-8 py-3.5 bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-slate-800 hover:shadow-lg hover:shadow-slate-900/20 hover:-translate-y-0.5 transition-all disabled:opacity-50"
+                            >
+                                {isSubmitting ? 'Guardando...' : (currentProduct ? 'Guardar Cambios' : 'Guardar y Continuar')}
+                            </button>
+                        </>
+                    ) : (
                         <button
                             onClick={onClose}
-                            className="px-5 py-2.5 text-slate-600 font-bold hover:bg-slate-200/50 rounded-xl transition-colors"
+                            className="px-8 py-3.5 bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-slate-800 hover:shadow-lg hover:shadow-slate-900/20 transition-all"
                         >
-                            Cancelar
+                            Finalizar y Cerrar
                         </button>
-                        <button
-                            onClick={() => document.getElementById('product-form')?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))}
-                            disabled={isSubmitting}
-                            className="px-6 py-2.5 bg-teal-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-teal-500/30 hover:-translate-y-0.5 transition-all disabled:opacity-50"
-                        >
-                            {isSubmitting ? 'Guardando...' : (currentProduct ? 'Guardar Cambios' : 'Guardar y Continuar')}
-                        </button>
-                    </div>
-                )}
-                {activeTab === 'images' && (
-                    <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-2.5 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition-colors"
-                        >
-                            Finalizar
-                        </button>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

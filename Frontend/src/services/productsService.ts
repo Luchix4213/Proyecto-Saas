@@ -21,6 +21,12 @@ export interface Product {
     destacado: boolean;
     imagenes?: ProductImage[]; // Typed Image Array
     estado: 'ACTIVO' | 'INACTIVO';
+    tenant?: {
+        tenant_id: number;
+        nombre_empresa: string;
+        slug: string | null;
+        logo_url: string | null;
+    };
 }
 
 export interface CreateProductData {
@@ -75,6 +81,13 @@ export const productsService = {
     // Public Storefront Method
     getStoreProducts: async (tenantSlug: string, categoryId?: number) => {
         const response = await api.get<Product[]>(`/productos/store/${tenantSlug}`, {
+            params: categoryId ? { categoryId } : {}
+        });
+        return response.data;
+    },
+
+    getGlobalProducts: async (categoryId?: number) => {
+        const response = await api.get<Product[]>('/productos/marketplace/all', {
             params: categoryId ? { categoryId } : {}
         });
         return response.data;

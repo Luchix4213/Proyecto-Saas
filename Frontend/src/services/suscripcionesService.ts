@@ -15,6 +15,8 @@ export interface Suscripcion {
     nombre_plan: string;
     precio_mensual: number;
     precio_anual: number;
+    max_usuarios: number;
+    max_productos: number;
   };
   tenant?: {
     nombre_empresa: string;

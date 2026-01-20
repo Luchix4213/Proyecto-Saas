@@ -89,8 +89,8 @@ export const ScheduleEditor = ({ value, onChange }: ScheduleEditorProps) => {
                 </div>
 
                 {hasWeekdays && (
-                    <div className="flex items-center gap-2 animate-fade-in">
-                        <div className="relative">
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 animate-fade-in w-full sm:w-auto">
+                        <div className="relative flex-1 sm:flex-none">
                             <input
                                 type="time"
                                 value={weekdaysOpen}
@@ -132,8 +132,8 @@ export const ScheduleEditor = ({ value, onChange }: ScheduleEditorProps) => {
                 </div>
 
                 {hasSaturday && (
-                    <div className="flex items-center gap-2 animate-fade-in">
-                        <div className="relative">
+                    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 animate-fade-in w-full sm:w-auto">
+                        <div className="relative flex-1 sm:flex-none">
                             <input
                                 type="time"
                                 value={saturdayOpen}
@@ -157,9 +157,9 @@ export const ScheduleEditor = ({ value, onChange }: ScheduleEditorProps) => {
             </div>
 
             {/* Preview Section */}
-            <div className="pt-2 text-center">
+             <div className="pt-2 text-center w-full overflow-hidden">
                 <p className="text-xs text-slate-400 uppercase tracking-wider font-bold mb-1">Vista Previa</p>
-                <div className="inline-block px-3 py-1.5 bg-slate-800 text-slate-200 text-xs rounded-lg font-mono">
+                <div className="inline-block px-3 py-1.5 bg-slate-800 text-slate-200 text-xs rounded-lg font-mono max-w-full break-words">
                     { !hasWeekdays && !hasSaturday ? 'Cerrado Temporalmente' :
                       `${hasWeekdays ? `Lun-Vie: ${weekdaysOpen}-${weekdaysClose}` : ''} ${hasWeekdays && hasSaturday ? '|' : ''} ${hasSaturday ? `Sáb: ${saturdayOpen}-${saturdayClose}` : ''}`
                     }

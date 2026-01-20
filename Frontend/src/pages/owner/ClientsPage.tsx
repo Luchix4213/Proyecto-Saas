@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, Users, Phone, FileText, History, Filter } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Users, Phone, FileText, History, Filter, UserCheck, UserX } from 'lucide-react';
 import { clientsService } from '../../services/clientsService';
 import type { Cliente } from '../../services/clientsService';
 import { ClientForm } from '../../components/clientes/ClientForm';
@@ -74,181 +74,229 @@ export const ClientsPage = () => {
         return matchesSearch && matchesStatus;
     });
 
+    const activeCount = clientes.filter(c => c.estado === 'ACTIVO').length;
+
     return (
-        <div className="space-y-8 animate-fade-in-up">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                        <Users className="text-teal-600" />
-                        Cartera de Clientes
-                    </h1>
-                    <p className="text-slate-500">Gestiona y fideliza a tus compradores.</p>
-                </div>
-                <button
-                    onClick={handleCreate}
-                    className="flex items-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/30 transition-all hover:-translate-y-0.5"
-                >
-                    <Plus size={20} className="stroke-[3]" />
-                    Nuevo Cliente
-                </button>
-            </div>
+        <>
+            <div className="relative min-h-[80vh] w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8 animate-fade-in-up">
+                {/* Ambient Backgrounds */}
+                <div className="absolute top-0 left-10 -mt-20 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute bottom-0 right-10 -mb-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            {/* Content Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                {/* Actions Bar */}
-                <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50/50">
-                    <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto flex-1">
-                        <div className="relative w-full md:w-96">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                            <input
-                                type="text"
-                                placeholder="Buscar por nombre, apellido o NIT..."
-                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all text-slate-700 font-medium placeholder:text-slate-400"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                <div className="relative z-10 space-y-8">
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
+                                <div className="p-2.5 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl text-white shadow-lg shadow-teal-500/30">
+                                    <Users size={28} />
+                                </div>
+                                Cartera de Clientes
+                            </h1>
+                            <p className="text-slate-500 mt-2 text-lg">Gestiona y fideliza a tus compradores.</p>
                         </div>
+                        <button
+                            onClick={handleCreate}
+                            className="group relative overflow-hidden bg-slate-900 text-white px-6 py-3.5 rounded-2xl font-bold shadow-xl shadow-slate-900/20 hover:shadow-2xl hover:bg-slate-800 transition-all hover:-translate-y-0.5"
+                        >
+                            <span className="relative z-10 flex items-center gap-2">
+                                <Plus size={20} className="stroke-[3] group-hover:rotate-90 transition-transform duration-300" />
+                                Nuevo Cliente
+                            </span>
+                        </button>
+                    </div>
 
-                        <div className="relative w-full sm:w-48">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                <Filter size={18} />
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-xl transition-all duration-300">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Clientes</p>
+                                <h3 className="text-3xl font-black text-slate-800">{clientes.length}</h3>
                             </div>
-                            <select
-                                className="block w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all text-sm font-medium text-slate-700 appearance-none cursor-pointer hover:bg-slate-50"
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value as any)}
-                            >
-                                <option value="TODOS">Todos los Estados</option>
-                                <option value="ACTIVO">Activos</option>
-                                <option value="INACTIVO">Inactivos</option>
-                            </select>
+                            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-500 transition-colors">
+                                <Users size={24} />
+                            </div>
+                        </div>
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-xl transition-all duration-300">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Activos</p>
+                                <h3 className="text-3xl font-black text-slate-800">{activeCount}</h3>
+                            </div>
+                            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors">
+                                <UserCheck size={24} />
+                            </div>
+                        </div>
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-xl transition-all duration-300">
+                            <div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Inactivos</p>
+                                <h3 className="text-3xl font-black text-slate-800">{clientes.length - activeCount}</h3>
+                            </div>
+                            <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-red-50 group-hover:text-red-500 transition-colors">
+                                <UserX size={24} />
+                            </div>
                         </div>
                     </div>
 
-                    <div className="text-sm text-slate-500 font-medium whitespace-nowrap">
-                        Mostrando <span className="text-slate-900 font-bold">{filteredClients.length}</span> clientes
-                    </div>
-                </div>
+                    {/* Content Card */}
+                    <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                        {/* Actions Bar */}
+                        <div className="p-8 border-b border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50/30 backdrop-blur-sm sticky top-0 z-10">
+                            <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto flex-1">
+                                <div className="relative w-full md:w-96 group">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={20} />
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por nombre, apellido o NIT..."
+                                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all text-slate-700 font-bold placeholder:text-slate-400"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
 
-                {/* Table */}
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-bold">
-                            <tr>
-                                <th className="px-6 py-4">Cliente</th>
-                                <th className="px-6 py-4">Documento (NIT/CI)</th>
-                                <th className="px-6 py-4">Contacto</th>
-                                <th className="px-6 py-4 text-center">Estado</th>
-                                <th className="px-6 py-4 text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 text-sm text-slate-600">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-500 border-t-transparent"></div>
-                                            <p className="text-slate-400 font-medium">Cargando lista de clientes...</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : filteredClients.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-16 text-center">
-                                        <div className="flex flex-col items-center justify-center text-slate-400">
-                                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                                                <Users size={32} className="text-slate-300" />
-                                            </div>
-                                            <p className="text-lg font-medium text-slate-600">No se encontraron clientes</p>
-                                            <p className="text-sm">Intenta ajustar tu búsqueda o filtros.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                filteredClients.map((client) => (
-                                    <tr key={client.cliente_id} className="hover:bg-slate-50/80 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                                                    {client.nombre.charAt(0).toUpperCase()}{client.paterno?.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-slate-800">{client.nombre} {client.paterno}</p>
-                                                    <p className="text-xs text-slate-400">ID: {client.cliente_id}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {client.nit_ci ? (
-                                                <div className="flex items-center gap-2 font-medium text-slate-700">
-                                                    <FileText size={16} className="text-slate-400" />
-                                                    {client.nit_ci}
-                                                </div>
-                                            ) : (
-                                                <span className="text-slate-400 italic">No registrado</span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {client.telefono ? (
-                                                <div className="flex items-center gap-2 font-medium text-slate-700">
-                                                    <Phone size={16} className="text-slate-400" />
-                                                    {client.telefono}
-                                                </div>
-                                            ) : (
-                                                <span className="text-slate-400 italic">--</span>
-                                            )}
-                                            {client.email && <div className="text-xs text-slate-400 mt-0.5">{client.email}</div>}
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide border
-                                                ${client.estado === 'ACTIVO'
-                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                                                    : 'bg-red-50 text-red-700 border-red-100'}`}>
-                                                {client.estado}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={() => handleHistory(client)}
-                                                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                    title="Historial de Compras"
-                                                >
-                                                    <History size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEdit(client)}
-                                                    className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
-                                                    title="Editar Cliente"
-                                                >
-                                                    <Pencil size={18} />
-                                                </button>
+                                <div className="relative w-full sm:w-56">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                                        <Filter size={18} />
+                                    </div>
+                                    <select
+                                        className="block w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all text-sm font-bold text-slate-700 appearance-none cursor-pointer hover:bg-slate-100"
+                                        value={statusFilter}
+                                        onChange={(e) => setStatusFilter(e.target.value as any)}
+                                    >
+                                        <option value="TODOS">Todos los Estados</option>
+                                        <option value="ACTIVO">Activos</option>
+                                        <option value="INACTIVO">Inactivos</option>
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                                        <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                                            <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" fillRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                                {client.estado === 'INACTIVO' ? (
-                                                    <button
-                                                        onClick={() => handleReactivate(client)}
-                                                        className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                                        title="Reactivar Cliente"
-                                                    >
-                                                        <Plus size={18} className="rotate-45" />
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => handleDelete(client)}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                        title="Dar de baja"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-slate-50/50 text-slate-400 text-xs uppercase tracking-widest font-extrabold">
+                                    <tr>
+                                        <th className="px-8 py-6">Cliente</th>
+                                        <th className="px-8 py-6">Documento</th>
+                                        <th className="px-8 py-6">Contacto</th>
+                                        <th className="px-8 py-6 text-center">Estado</th>
+                                        <th className="px-8 py-6 text-right">Acciones</th>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 text-sm text-slate-600">
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan={5} className="px-6 py-24 text-center">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-teal-500 border-t-transparent"></div>
+                                                    <p className="text-slate-400 font-bold animate-pulse">Cargando lista de clientes...</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : filteredClients.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={5} className="px-6 py-24 text-center">
+                                                <div className="flex flex-col items-center justify-center text-slate-400">
+                                                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+                                                        <Users size={40} className="text-slate-300" />
+                                                    </div>
+                                                    <p className="text-xl font-bold text-slate-600">No se encontraron clientes</p>
+                                                    <p className="text-slate-400 mt-2">Intenta ajustar tu búsqueda o crea un nuevo cliente.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredClients.map((client) => (
+                                            <tr key={client.cliente_id} className="hover:bg-slate-50/80 transition-all group">
+                                                <td className="px-8 py-5">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                                                            {client.nombre.charAt(0).toUpperCase()}{client.paterno?.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-slate-800 text-base">{client.nombre} {client.paterno}</p>
+                                                            <p className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-lg inline-block mt-1">ID: {client.cliente_id}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-5">
+                                                    {client.nit_ci ? (
+                                                        <div className="flex items-center gap-2 font-bold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl w-fit">
+                                                            <FileText size={16} className="text-slate-400" />
+                                                            {client.nit_ci}
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-slate-400 font-medium italic pl-3">No registrado</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-8 py-5">
+                                                    <div className="flex flex-col gap-1">
+                                                        {client.telefono ? (
+                                                            <div className="flex items-center gap-2 font-medium text-slate-700">
+                                                                <Phone size={14} className="text-slate-400" />
+                                                                {client.telefono}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-slate-400 text-xs italic">Sin teléfono</span>
+                                                        )}
+                                                        {client.email && <div className="text-xs font-medium text-slate-500">{client.email}</div>}
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-5 text-center">
+                                                    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wide border
+                                                        ${client.estado === 'ACTIVO'
+                                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                            : 'bg-red-50 text-red-600 border-red-100'}`}>
+                                                        {client.estado}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-5 text-right">
+                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                                        <button
+                                                            onClick={() => handleHistory(client)}
+                                                            className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                                                            title="Historial de Compras"
+                                                        >
+                                                            <History size={20} className="stroke-[2.5]" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleEdit(client)}
+                                                            className="p-2.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-colors"
+                                                            title="Editar Cliente"
+                                                        >
+                                                            <Pencil size={20} className="stroke-[2.5]" />
+                                                        </button>
+
+                                                        {client.estado === 'INACTIVO' ? (
+                                                            <button
+                                                                onClick={() => handleReactivate(client)}
+                                                                className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
+                                                                title="Reactivar Cliente"
+                                                            >
+                                                                <UserCheck size={20} className="stroke-[2.5]" />
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => handleDelete(client)}
+                                                                className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                                                                title="Dar de baja"
+                                                            >
+                                                                <Trash2 size={20} className="stroke-[2.5]" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -258,6 +306,6 @@ export const ClientsPage = () => {
                 onSuccess={loadClients}
                 clientToEdit={selectedClient}
             />
-        </div>
+        </>
     );
 };

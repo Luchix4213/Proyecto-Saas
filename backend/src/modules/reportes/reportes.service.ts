@@ -43,7 +43,41 @@ export class ReportesService {
         growth = 100;
     }
 
-    const history = [0, 0, 0, 0, 0, 0, 0]; // Keeping it simple for now
+    // History (Last 7 days of current week - Mon to Sun)
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0 (Sun) - 6 (Sat)
+
+    // Calculate start of week (Monday)
+    // If today is Sunday (0), we subtract 6 days. If Monday (1), subtract 0.
+    const diffToMon = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - diffToMon);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    const salesThisWeek = await this.prisma.venta.groupBy({
+        by: ['fecha_venta'],
+        _sum: { total: true },
+        where: {
+            tenant_id: tenantId,
+            estado: { not: EstadoVenta.CANCELADA },
+            fecha_venta: { gte: startOfWeek, lte: endOfWeek }
+        }
+    });
+
+    const history = [0, 0, 0, 0, 0, 0, 0]; // Mon, Tue, Wed, Thu, Fri, Sat, Sun
+
+    salesThisWeek.forEach(sale => {
+        const date = new Date(sale.fecha_venta);
+        // Adjust getDay(): Sunday is 0, we want it to be 6. Mon(1) -> 0.
+        let dayIndex = date.getDay() - 1;
+        if (dayIndex === -1) dayIndex = 6;
+
+        history[dayIndex] += Number(sale._sum.total || 0);
+    });
 
     // 2. Orders
     const totalOrders = await this.prisma.venta.count({

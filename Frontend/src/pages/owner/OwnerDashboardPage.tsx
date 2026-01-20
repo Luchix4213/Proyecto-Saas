@@ -169,20 +169,27 @@ export const OwnerDashboardPage = () => {
                         </div>
                     </div>
 
-                    {/* Fake Chart Bars using CSS */}
+                    {/* Chart Bars using CSS */}
                     <div className="h-64 flex items-end justify-between gap-2 px-2">
-                        {stats.sales.history.map((height, index) => (
-                            <div key={index} className="w-full bg-slate-100 rounded-t-lg relative group">
-                                <div
-                                    className="absolute bottom-0 w-full bg-gradient-to-t from-teal-500 to-emerald-400 rounded-t-lg transition-all duration-500 hover:opacity-90 cursor-pointer"
-                                    style={{ height: `${height}%` }}
-                                >
-                                    <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs py-1 px-2 rounded pointer-events-none transition-opacity">
-                                        Bs {(height * 150).toLocaleString()}
+                        {(() => {
+                            const maxSale = Math.max(...stats.sales.history, 1); // Avoid division by zero
+                            return stats.sales.history.map((amount, index) => {
+                                const heightPercentage = (amount / maxSale) * 100;
+                                return (
+                                    <div key={index} className="w-full bg-slate-100 rounded-t-lg relative group h-full flex items-end">
+                                        <div
+                                            className="w-full bg-gradient-to-t from-teal-500 to-emerald-400 rounded-t-lg transition-all duration-1000 ease-out hover:opacity-90 cursor-pointer relative"
+                                            style={{ height: `${heightPercentage}%` }}
+                                        >
+                                            <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg pointer-events-none transition-all shadow-lg whitespace-nowrap z-10">
+                                                Bs {amount.toLocaleString()}
+                                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-800 rotate-45"></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        ))}
+                                );
+                            });
+                        })()}
                     </div>
                     <div className="flex justify-between mt-4 text-xs text-slate-400 font-medium px-2">
                         <span>Lun</span><span>Mar</span><span>Mie</span><span>Jue</span><span>Vie</span><span>Sab</span><span>Dom</span>

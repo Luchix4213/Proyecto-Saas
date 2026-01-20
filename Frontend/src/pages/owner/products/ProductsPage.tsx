@@ -88,166 +88,246 @@ export const ProductsPage = () => {
         return matchesSearch && matchesCategory && matchesStatus;
     });
 
+    // Stats Calculation
+    const totalProducts = products.length;
+    const lowStockProducts = products.filter(p => p.stock_actual <= p.stock_minimo).length;
+    const activeProducts = products.filter(p => p.estado === 'ACTIVO').length;
+
     return (
-        <div className="space-y-8 animate-fade-in-up">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                        <ShoppingBag className="text-teal-600" />
-                        Catálogo de Productos
-                    </h1>
-                    <p className="text-slate-500">Gestiona tu inventario y precios.</p>
-                </div>
-                <button
-                    onClick={handleCreate}
-                    className="flex items-center gap-2 bg-gradient-to-r from-teal-600 to-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold hover:shadow-lg hover:shadow-teal-500/30 transition-all hover:-translate-y-0.5"
-                >
-                    <Plus size={20} className="stroke-[3]" />
-                    Nuevo Producto
-                </button>
-            </div>
+        <div className="relative min-h-[80vh] w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+             <div className="animate-fade-in-up">
+                {/* Ambient Background Elements */}
+                <div className="absolute top-0 left-10 -mt-20 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute bottom-0 right-10 -mb-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            {/* Filter Bar */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 justify-between items-center">
-                <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar producto..."
-                        className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 outline-none transition-all"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-
-                <div className="flex items-center gap-4 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-                    <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="rounded-xl border-slate-200 py-2 px-3 text-sm focus:border-teal-500 focus:ring-teal-500 bg-white shadow-sm font-medium text-slate-700"
-                    >
-                        <option value="TODAS">Todos los Estados</option>
-                        <option value="ACTIVO">Activos</option>
-                        <option value="INACTIVO">Inactivos</option>
-                    </select>
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 font-medium text-sm whitespace-nowrap">
-                        <Filter size={16} /> Filters:
+                {/* Header Section */}
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
+                            <div className="p-2.5 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl text-white shadow-lg shadow-teal-500/30">
+                                <ShoppingBag size={28} />
+                            </div>
+                            Catálogo de Productos
+                        </h1>
+                        <p className="text-slate-500 mt-2 text-lg">
+                            Gestiona tu inventario, precios y stock en tiempo real.
+                        </p>
                     </div>
+
                     <button
-                        onClick={() => setSelectedCategory('TODAS')}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === 'TODAS' ? 'bg-teal-100 text-teal-700' : 'text-slate-600 hover:bg-slate-50'}`}
+                        onClick={handleCreate}
+                        className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 border border-transparent rounded-2xl shadow-xl shadow-slate-900/20 text-sm font-bold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all hover:-translate-y-0.5"
                     >
-                        Todas
+                        <Plus size={20} className="stroke-[3]" />
+                        Nuevo Producto
                     </button>
-                    {categories.map(cat => (
-                        <button
-                            key={cat.categoria_id}
-                            onClick={() => setSelectedCategory(cat.categoria_id.toString())}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === cat.categoria_id.toString() ? 'bg-teal-100 text-teal-700' : 'text-slate-600 hover:bg-slate-50'}`}
-                        >
-                            {cat.nombre}
-                        </button>
-                    ))}
                 </div>
-            </div>
 
-            {/* Product Grid */}
-            {loading ? (
-                <div className="flex justify-center py-20">
-                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-teal-500 border-t-transparent"></div>
+                {/* Stats Overview */}
+                <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center justify-between group hover:border-indigo-200 transition-all duration-300">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Productos</p>
+                            <p className="text-3xl font-black text-slate-800 mt-1">{totalProducts}</p>
+                        </div>
+                        <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                            <Package size={24} />
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center justify-between group hover:border-teal-200 transition-all duration-300">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Activos en Venta</p>
+                            <p className="text-3xl font-black text-teal-600 mt-1">{activeProducts}</p>
+                        </div>
+                        <div className="p-4 bg-teal-50 text-teal-600 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                            <Star size={24} />
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center justify-between group hover:border-amber-200 transition-all duration-300">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Stock Bajo</p>
+                            <p className="text-3xl font-black text-amber-500 mt-1">{lowStockProducts}</p>
+                        </div>
+                        <div className="p-4 bg-amber-50 text-amber-500 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                            <Filter size={24} />
+                        </div>
+                    </div>
                 </div>
-            ) : filteredProducts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                    <ShoppingBag size={48} className="mb-4 text-slate-300" />
-                    <p className="text-lg font-medium text-slate-600">No hay productos</p>
-                    <p className="text-sm">Empieza agregando items a tu inventario.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredProducts.map(product => {
-                        const principalImage = product.imagenes?.find(img => img.es_principal) || product.imagenes?.[0];
 
-                        return (
-                            <div key={product.producto_id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow group flex flex-col">
-                                {/* Image Area */}
-                                <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
-                                    {principalImage ? (
-                                        <img
-                                            src={getImageUrl(principalImage.url)}
-                                            alt={product.nombre}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
-                                            <ImageIcon size={32} />
-                                            <span className="text-xs font-medium mt-1">Sin imagen</span>
-                                        </div>
-                                    )}
+                {/* Main Content Area */}
+                <div className="relative z-10 bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden">
 
-                                    {product.destacado && (
-                                        <div className="absolute top-3 left-3 bg-amber-400 text-amber-900 text-xs font-bold px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                                            <Star size={12} fill="currentColor" /> Destacado
-                                        </div>
-                                    )}
+                    {/* Toolbar */}
+                    <div className="p-6 border-b border-slate-100 flex flex-col xl:flex-row gap-4 justify-between items-center bg-slate-50/30">
+                        <div className="relative w-full xl:w-96 group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={20} />
+                            <input
+                                type="text"
+                                placeholder="Buscar por nombre..."
+                                className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all shadow-sm"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
 
-                                    {/* Actions Overlay */}
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                        <button
-                                            onClick={() => handleEdit(product)}
-                                            className="p-2 bg-white text-slate-700 rounded-xl hover:bg-teal-50 hover:text-teal-600 transition-colors shadow-lg"
-                                        >
-                                            <Pencil size={20} />
-                                        </button>
+                        <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0">
+                             <div className="flex items-center gap-2 px-4 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm min-w-max">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Estado:</span>
+                                <select
+                                    value={filterStatus}
+                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                    className="text-sm font-bold text-slate-700 bg-transparent outline-none cursor-pointer"
+                                >
+                                    <option value="TODAS">Todos</option>
+                                    <option value="ACTIVO">Activos</option>
+                                    <option value="INACTIVO">Inactivos</option>
+                                </select>
+                            </div>
 
-                                        {product.estado === 'INACTIVO' ? (
-                                            <button
-                                                onClick={() => handleReactivate(product)}
-                                                className="p-2 bg-white text-slate-700 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-colors shadow-lg"
-                                                title="Reactivar Producto"
-                                            >
-                                                <Package size={20} />
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => handleDelete(product)}
-                                                className="p-2 bg-white text-slate-700 rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors shadow-lg"
-                                            >
-                                                <Trash2 size={20} />
-                                            </button>
-                                        )}
-                                    </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setSelectedCategory('TODAS')}
+                                    className={`px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-sm whitespace-nowrap ${selectedCategory === 'TODAS' ? 'bg-slate-900 text-white shadow-slate-900/20' : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                                >
+                                    Todas
+                                </button>
+                                {categories.map(cat => (
+                                    <button
+                                        key={cat.categoria_id}
+                                        onClick={() => setSelectedCategory(cat.categoria_id.toString())}
+                                        className={`px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-sm whitespace-nowrap ${selectedCategory === cat.categoria_id.toString() ? 'bg-slate-900 text-white shadow-slate-900/20' : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                                    >
+                                        {cat.nombre}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Product Grid */}
+                    <div className="p-6 sm:p-8 bg-slate-50/30 min-h-[400px]">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                <div className="h-12 w-12 animate-spin rounded-full border-4 border-teal-500 border-t-transparent"></div>
+                                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Cargando inventario...</p>
+                            </div>
+                        ) : filteredProducts.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-4">
+                                <div className="p-6 bg-white rounded-full shadow-lg shadow-slate-200/50">
+                                    <ShoppingBag size={48} className="text-slate-300" />
                                 </div>
-
-                                {/* Info Area */}
-                                <div className="p-4 flex flex-col flex-1">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <span className="text-[10px] font-bold text-teal-600 uppercase tracking-wider bg-teal-50 px-2 py-1 rounded-md">
-                                                {product.categoria?.nombre || 'General'}
-                                            </span>
-                                            <h3 className="font-bold text-slate-800 mt-1 line-clamp-1" title={product.nombre}>{product.nombre}</h3>
-                                        </div>
-                                    </div>
-
-                                    <p className="text-sm text-slate-500 line-clamp-2 mb-4 flex-1">{product.descripcion || 'Sin descripción'}</p>
-
-                                    <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                                        <div className="flex items-center gap-1.5 text-slate-600 font-medium text-sm">
-                                            <Package size={16} className="text-slate-400" />
-                                            {product.stock_actual}
-                                        </div>
-                                        <div className="text-lg font-bold text-slate-800">
-                                            Bs {Number(product.precio).toFixed(2)}
-                                        </div>
-                                    </div>
+                                <div className="text-center">
+                                    <p className="text-lg font-bold text-slate-600">No se encontraron productos</p>
+                                    <p className="text-sm font-medium opacity-70">Intenta ajustar tu búsqueda o filtros.</p>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
-            )}
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {filteredProducts.map(product => {
+                                    const principalImage = product.imagenes?.find(img => img.es_principal) || product.imagenes?.[0];
 
+                                    return (
+                                        <div key={product.producto_id} className="group bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 flex flex-col relative">
+
+                                            {/* Image Area */}
+                                            <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
+                                                {principalImage ? (
+                                                    <img
+                                                        src={getImageUrl(principalImage.url)}
+                                                        alt={product.nombre}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 bg-slate-50">
+                                                        <ImageIcon size={32} />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest mt-2">Sin imagen</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Badges */}
+                                                <div className="absolute top-4 left-4 flex flex-col gap-2">
+                                                    {product.destacado && (
+                                                        <div className="bg-amber-400/90 backdrop-blur-sm text-amber-900 text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1">
+                                                            <Star size={10} fill="currentColor" /> Destacado
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Actions Overlay */}
+                                                <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                                                    <button
+                                                        onClick={() => handleEdit(product)}
+                                                        className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-teal-400 hover:text-white transition-all shadow-lg transform hover:scale-110"
+                                                        title="Editar"
+                                                    >
+                                                        <Pencil size={20} />
+                                                    </button>
+
+                                                    {product.estado === 'INACTIVO' ? (
+                                                        <button
+                                                            onClick={() => handleReactivate(product)}
+                                                            className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-emerald-500 hover:text-white transition-all shadow-lg transform hover:scale-110"
+                                                            title="Reactivar"
+                                                        >
+                                                            <Package size={20} />
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleDelete(product)}
+                                                            className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg transform hover:scale-110"
+                                                            title="Eliminar"
+                                                        >
+                                                            <Trash2 size={20} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Info Area */}
+                                            <div className="p-5 flex flex-col flex-1">
+                                                <div className="mb-3">
+                                                    <span className="text-[10px] font-black text-teal-600 uppercase tracking-widest bg-teal-50 px-2 py-1 rounded-lg">
+                                                        {product.categoria?.nombre || 'General'}
+                                                    </span>
+                                                    <h3 className="font-bold text-slate-800 mt-2 text-lg line-clamp-1 leading-tight" title={product.nombre}>{product.nombre}</h3>
+                                                </div>
+
+                                                <p className="text-sm text-slate-400 line-clamp-2 mb-4 flex-1 font-medium">{product.descripcion || 'Sin descripción disponible.'}</p>
+
+                                                <div className="flex items-end justify-between pt-4 border-t border-slate-50">
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Stock</p>
+                                                        <div className={`flex items-center gap-1.5 font-bold ${product.stock_actual <= product.stock_minimo ? 'text-amber-500' : 'text-slate-600'}`}>
+                                                            <Package size={16} />
+                                                            {product.stock_actual}
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Precio</p>
+                                                        <div className="text-xl font-black text-slate-800 bg-slate-100 px-3 py-1 rounded-xl">
+                                                            Bs {Number(product.precio).toFixed(2)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* Pagination or Footer info could go here */}
+                         <div className="mt-8 pt-4 border-t border-slate-200/50 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+                             <span>Mostrando {filteredProducts.length} productos</span>
+                             <span>Catálogo v2.0</span>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Modal Form - Placed outside animation wrapper for z-index safety */}
             {isFormOpen && (
                 <ProductForm
                     isOpen={isFormOpen}

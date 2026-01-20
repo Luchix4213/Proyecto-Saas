@@ -1,143 +1,145 @@
 import React from 'react';
-import { ShoppingBag, X, Minus, Plus, Trash2, ArrowRight } from 'lucide-react';
+import { ShoppingBag, X, Minus, Plus, ArrowRight, Store } from 'lucide-react';
 import { useCartStore } from '../../store/useCartStore';
 import { type Tenant } from '../../services/tenantsService';
 import { useNavigate } from 'react-router-dom';
 
-interface CartDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-  tenant: Tenant;
-}
-
-export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, tenant }) => {
-  const { items, removeItem, updateQuantity, getTotal, getItemCount } = useCartStore();
+export const CartDrawer: React.FC<{ isOpen: boolean; onClose: () => void; tenant?: Tenant }> = ({ isOpen, onClose, tenant }) => {
+  const { items, removeItem, updateQuantity, getTenantTotal, getItemCount } = useCartStore();
   const navigate = useNavigate();
+
+  // Group items by tenant if global view
+  const groupedItems = React.useMemo(() => {
+    if (tenant) {
+        return { [tenant.slug || '']: items.filter(i => i.tenant_slug === tenant.slug) };
+    }
+    return items.reduce((acc, item) => {
+        const key = item.tenant_slug;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(item);
+        return acc;
+    }, {} as Record<string, typeof items>);
+  }, [items, tenant]);
 
   if (!isOpen) return null;
 
-  const handleCheckout = () => {
+  const handleCheckout = (tenantSlug: string) => {
     onClose();
-    navigate(`/tienda/${tenant.slug}/checkout`);
+    navigate(`/tienda/${tenantSlug}/checkout`);
   };
 
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-fade-in"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-fade-in" onClick={onClose} />
 
       {/* Drawer */}
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
         <div className="w-screen max-w-md transform transition-transform animate-slide-in-right">
-          <div className="h-full flex flex-col bg-white shadow-2xl rounded-l-[3rem] overflow-hidden">
+          <div className="h-full flex flex-col bg-slate-50 shadow-2xl rounded-l-[2rem] overflow-hidden">
 
             {/* Header */}
-            <div className="px-8 py-10 bg-slate-900 text-white relative">
-              <div className="absolute top-0 right-0 p-8">
-                <button
-                  onClick={onClose}
-                  className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="flex items-center gap-4 mb-2">
-                <div className="h-12 w-12 bg-teal-500 rounded-2xl flex items-center justify-center">
-                  <ShoppingBag size={24} />
+            <div className="px-6 py-6 bg-white border-b border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center">
+                  <ShoppingBag size={20} />
                 </div>
-                <h2 className="text-2xl font-black">Tu Pedido</h2>
+                <div>
+                    <h2 className="text-xl font-bold text-slate-900">Tu Carrito</h2>
+                    <p className="text-xs text-slate-500 font-medium">{getItemCount()} items en total</p>
+                </div>
               </div>
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">
-                {tenant.nombre_empresa} • {getItemCount()} {getItemCount() === 1 ? 'artículo' : 'artículos'}
-              </p>
+              <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={20} />
+              </button>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
               {items.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
-                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 text-slate-300">
-                    <ShoppingBag size={32} />
+                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm">
+                    <ShoppingBag size={32} className="text-slate-300" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-2">Carrito vacío</h3>
-                  <p className="text-slate-500 max-w-[200px]">Explora el catálogo y agrega tus productos favoritos.</p>
+                  <h3 className="text-lg font-bold text-slate-800 mb-2">Tu carrito está vacío</h3>
+                  <p className="text-slate-500 text-sm max-w-[200px]">Explora nuestras tiendas y encuentra lo que necesitas.</p>
+                  <button onClick={onClose} className="mt-6 px-6 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm">
+                    Seguir comprando
+                  </button>
                 </div>
               ) : (
-                items.map((item) => (
-                  <div key={item.producto_id} className="group relative flex items-center gap-4 bg-slate-50 p-4 rounded-3xl border border-slate-100/50 hover:bg-white hover:border-slate-200 transition-all shadow-sm hover:shadow-md">
-                    <div className="h-20 w-20 bg-white rounded-2xl flex-shrink-0 flex items-center justify-center border border-slate-100 overflow-hidden">
-                      {item.imagen_url ? (
-                        <img src={`http://localhost:3000${item.imagen_url}`} alt={item.nombre} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="text-slate-200"><ShoppingBag size={32} /></div>
-                      )}
-                    </div>
+                Object.entries(groupedItems).map(([slug, groupItems]) => (
+                    <div key={slug} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+                        {/* Tenant Header */}
+                        {!tenant && (
+                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-50">
+                                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                                    <Store size={14} />
+                                </div>
+                                <span className="font-bold text-slate-800 text-sm">{groupItems[0].tenant_name || slug}</span>
+                            </div>
+                        )}
 
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-slate-900 truncate mb-1">{item.nombre}</h4>
-                      <p className="text-teal-600 font-black text-sm">
-                        {item.precio.toFixed(2)} {tenant.moneda}
-                      </p>
-
-                      <div className="flex items-center gap-3 mt-3">
-                        <div className="flex items-center bg-white rounded-xl border border-slate-100 shadow-sm">
-                          <button
-                            onClick={() => updateQuantity(item.producto_id, item.cantidad - 1)}
-                            className="p-1.5 hover:text-teal-600 transition-colors"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="w-8 text-center text-sm font-black text-slate-700">{item.cantidad}</span>
-                          <button
-                            onClick={() => updateQuantity(item.producto_id, item.cantidad + 1)}
-                            className="p-1.5 hover:text-teal-600 transition-colors"
-                          >
-                            <Plus size={14} />
-                          </button>
+                        <div className="space-y-4">
+                            {groupItems.map((item) => (
+                                <div key={item.producto_id} className="flex gap-3">
+                                    <div className="h-16 w-16 bg-slate-50 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-100">
+                                        {item.imagen_url ? (
+                                            <img src={`http://localhost:3000${item.imagen_url}`} alt={item.nombre} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <ShoppingBag size={20} className="text-slate-300" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <h4 className="font-bold text-slate-900 truncate text-sm">{item.nombre}</h4>
+                                            <button onClick={() => removeItem(item.producto_id)} className="text-slate-300 hover:text-red-500 transition-colors">
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                        <p className="text-teal-600 font-bold text-sm mb-2">{item.precio} Bs</p>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex items-center bg-slate-50 rounded-lg border border-slate-100">
+                                                <button onClick={() => updateQuantity(item.producto_id, item.cantidad - 1)} className="p-1 hover:text-teal-600 transition-colors">
+                                                    <Minus size={12} />
+                                                </button>
+                                                <span className="w-6 text-center text-xs font-bold text-slate-700">{item.cantidad}</span>
+                                                <button onClick={() => updateQuantity(item.producto_id, item.cantidad + 1)} className="p-1 hover:text-teal-600 transition-colors">
+                                                    <Plus size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                      </div>
-                    </div>
 
-                    <button
-                      onClick={() => removeItem(item.producto_id)}
-                      className="p-2 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+                        {/* Store Total & Checkout */}
+                         <div className="mt-4 pt-4 border-t border-slate-50">
+                            <div className="flex justify-between items-center mb-3">
+                                <span className="text-xs font-bold text-slate-500 uppercase">Subtotal</span>
+                                <span className="text-lg font-black text-slate-900">{getTenantTotal(slug).toFixed(2)} Bs</span>
+                            </div>
+                            <button
+                                onClick={() => handleCheckout(slug)}
+                                disabled={slug === 'undefined' || !slug}
+                                className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {slug === 'undefined' || !slug ? 'Tienda no disponible' : 'Proceder al Pago'}
+                                <ArrowRight size={16} />
+                            </button>
+                        </div>
+                    </div>
                 ))
               )}
             </div>
 
-            {/* Footer */}
-            {items.length > 0 && (
-              <div className="px-8 py-10 bg-slate-50 border-t border-slate-100">
-                <div className="flex items-center justify-between mb-8">
-                  <span className="text-slate-500 font-bold uppercase tracking-widest text-xs">Total a pagar</span>
-                  <div className="text-right">
-                    <span className="text-3xl font-black text-slate-900">
-                      {getTotal().toFixed(2)}
-                    </span>
-                    <span className="ml-1 text-sm font-bold text-slate-500">{tenant.moneda}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleCheckout}
-                  className="w-full h-16 bg-slate-900 text-white rounded-[1.5rem] flex items-center justify-center gap-3 font-bold text-lg hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-[0.98] group"
-                >
-                  Continuar pedido
-                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                </button>
-
-                <p className="text-center text-[10px] text-slate-400 font-medium mt-6 uppercase tracking-widest">
-                  Paga con QR o Transferencia bancaria
-                </p>
-              </div>
-            )}
+            {/* Footer Global (if needed, or just keep info) */}
+             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 text-center">
+                 <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">
+                     Kipu Secure Checkout
+                 </p>
+             </div>
           </div>
         </div>
       </div>

@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../store/useCartStore';
 import { ShoppingBag, ArrowLeft, CreditCard, QrCode, User, Mail, CreditCard as IdCard, CheckCircle2, Package } from 'lucide-react';
-import axios from 'axios';
+import api from '../../api/axios';
+import { getImageUrl } from '../../utils/imageUtils';
 
 export const CheckoutPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const { items, getTotal, clearCart } = useCartStore();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!slug || slug === 'undefined') {
+       navigate('/');
+    }
+  }, [slug, navigate]);
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -52,8 +60,8 @@ export const CheckoutPage = () => {
         formPayload.append('comprobante', file);
       }
 
-      // Corrected URL: Removed /api prefix
-      const response = await axios.post(`http://localhost:3000/ventas/public/${slug}/checkout`, formPayload, {
+      // Using api instance
+      const response = await api.post(`/ventas/public/${slug}/checkout`, formPayload, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -92,7 +100,7 @@ export const CheckoutPage = () => {
                 <p className="text-xs mb-2">(Referencia del pago realizado)</p>
                 <div className="h-32 w-32 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-slate-200 p-2">
                   <img
-                    src="http://localhost:3000/uploads/tenants/QR_generado.jpeg"
+                    src={getImageUrl("/uploads/tenants/QR_generado.jpeg")}
                     alt="QR de Pago"
                     className="w-full h-full object-contain"
                   />
@@ -207,7 +215,7 @@ export const CheckoutPage = () => {
                               <span className="opacity-0 group-hover:opacity-100 bg-black/70 text-white text-xs px-2 py-1 rounded-md font-bold transition-opacity">Ampliar</span>
                             </div>
                             <img
-                              src="http://localhost:3000/uploads/tenants/QR_generado.jpeg"
+                              src={getImageUrl("/uploads/tenants/QR_generado.jpeg")}
                               alt="Scan QR"
                               className="w-full h-full object-contain"
                             />
@@ -221,7 +229,7 @@ export const CheckoutPage = () => {
                             >
                               <div className="bg-white p-4 rounded-3xl animate-scale-in max-w-full max-h-full overflow-auto" onClick={e => e.stopPropagation()}>
                                 <img
-                                  src="http://localhost:3000/uploads/tenants/QR_generado.jpeg"
+                                  src={getImageUrl("/uploads/tenants/QR_generado.jpeg")}
                                   alt="Scan QR Full"
                                   className="w-[500px] h-[500px] object-contain"
                                 />
@@ -299,7 +307,7 @@ export const CheckoutPage = () => {
                   <div key={item.producto_id} className="flex items-center gap-4 group">
                     <div className="h-16 w-16 bg-white/10 rounded-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/5">
                       {item.imagen_url ? (
-                        <img src={`http://localhost:3000${item.imagen_url}`} alt={item.nombre} className="w-full h-full object-cover" />
+                        <img src={getImageUrl(item.imagen_url)} alt={item.nombre} className="w-full h-full object-cover" />
                       ) : (
                         <Package size={24} className="text-white/20" />
                       )}

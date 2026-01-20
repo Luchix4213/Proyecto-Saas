@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useLocation } from 'react-router-dom';
 import { tenantsService, type Tenant } from '../../services/tenantsService';
 import { Store, ArrowRight, Star, ShoppingBag, Zap, ShieldCheck, Globe } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageUtils';
 
 export const LandingPage = () => {
     const [searchParams] = useSearchParams();
+    const location = useLocation();
     const searchTerm = searchParams.get('search') || '';
+    const isStoresPage = location.pathname === '/stores';
 
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
@@ -28,8 +31,8 @@ export const LandingPage = () => {
 
     return (
         <div className="bg-white min-h-screen">
-            {/* Hero Section */}
-            {!searchTerm && (
+            {/* Hero Section - Only on Landing Home */}
+            {!searchTerm && !isStoresPage && (
                 <section className="relative min-h-[85vh] flex items-center pt-20 pb-16 overflow-hidden bg-slate-950">
                     {/* Atmospheric Background */}
                     <div className="absolute top-0 left-0 w-full h-full">
@@ -104,7 +107,7 @@ export const LandingPage = () => {
             )}
 
             {/* Results Section */}
-            <section id="stores" className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${searchTerm ? 'pt-24' : 'py-24'}`}>
+            <section id="stores" className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${searchTerm || isStoresPage ? 'pt-24' : 'py-24'}`}>
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                     <div>
                         <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
@@ -150,8 +153,8 @@ export const LandingPage = () => {
                             >
                                 {/* Banner Visual */}
                                 <div className="h-44 bg-slate-100 relative overflow-hidden">
-                                     {tenant.banner_url ? (
-                                        <img src={tenant.banner_url} alt="Cover" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                    {tenant.banner_url ? (
+                                        <img src={getImageUrl(tenant.banner_url)} alt="Cover" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                      ) : (
                                         <div className="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-100 group-hover:from-teal-100 group-hover:to-teal-50 transition-colors duration-500"></div>
                                      )}
@@ -161,7 +164,7 @@ export const LandingPage = () => {
                                          <div className="h-20 w-20 rounded-2xl bg-white p-1.5 shadow-2xl border-4 border-white group-hover:border-teal-50 transition-colors">
                                              {tenant.logo_url ? (
                                                  <img
-                                                    src={`http://localhost:3000${tenant.logo_url}`}
+                                                    src={getImageUrl(tenant.logo_url)}
                                                     className="w-full h-full object-contain rounded-xl bg-white"
                                                     alt="Logo"
                                                     onError={(e) => {

@@ -34,6 +34,11 @@ export class ProductosController {
     return this.productosService.findAllPublic(tenantSlug, categoryId ? +categoryId : undefined);
   }
 
+  @Get('marketplace/all')
+  findAllGlobal(@Query('categoryId') categoryId?: string) {
+      return this.productosService.findAllGlobal(categoryId ? +categoryId : undefined);
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard, RolesGuard)
   findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {

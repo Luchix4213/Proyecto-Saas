@@ -64,7 +64,7 @@ export const OwnerLayout = () => {
     return (
         <div className="flex h-screen bg-slate-100 font-sans">
             {/* Sidebar */}
-            <aside className={`bg-slate-900 shadow-xl flex flex-col transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'} z-20`}>
+            <aside className={`bg-slate-900 shadow-xl flex flex-col transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'} z-30`}>
                 <div className="p-6 border-b border-slate-800 flex items-center justify-between h-16">
                     {isSidebarOpen ? (
                         <div className="flex items-center gap-2">
@@ -159,7 +159,7 @@ export const OwnerLayout = () => {
                     {/* Decorative background element */}
                     <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-teal-600/5 to-emerald-500/5 pointer-events-none"></div>
 
-                    <div className="relative z-10 max-w-7xl mx-auto">
+                    <div className="relative max-w-7xl mx-auto">
                         <Outlet />
                     </div>
                 </main>

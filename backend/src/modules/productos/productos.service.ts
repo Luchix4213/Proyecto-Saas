@@ -127,6 +127,35 @@ export class ProductosService {
     });
   }
 
+  async findAllGlobal(categoryId?: number) {
+      return this.prisma.producto.findMany({
+          where: {
+              estado: 'ACTIVO',
+              stock_actual: { gt: 0 },
+              tenant: {
+                  estado: 'ACTIVA' // Only active tenants
+              },
+              ...(categoryId ? { categoria_id: categoryId } : {})
+          },
+          include: {
+              categoria: true,
+              imagenes: { orderBy: { orden: 'asc' } },
+              tenant: { // Include tenant info for display
+                  select: {
+                      tenant_id: true,
+                      nombre_empresa: true,
+                      slug: true,
+                      logo_url: true
+                  }
+              }
+          },
+          orderBy: {
+              producto_id: 'desc' // Most recent products first (using ID as proxy for creation time)
+          },
+          take: 50 // Limit for performance
+      });
+  }
+
   async addImages(id: number, tenantId: number, files: Array<{ filename: string, path: string }>) {
     const product = await this.findOne(id, tenantId);
 

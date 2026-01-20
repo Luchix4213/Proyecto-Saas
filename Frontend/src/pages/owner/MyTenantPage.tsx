@@ -190,10 +190,21 @@ const MyTenantPage = () => {
                 </div>
 
                  {(successMessage || error) && (
-                    <div className={`px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 animate-fade-in shadow-sm ${successMessage ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
-                        {successMessage ? <Check size={18} /> : <X size={18} />}
-                        {successMessage || error}
-                         {successMessage && <button onClick={() => setSuccessMessage('')} className="ml-2 hover:bg-emerald-100 p-1 rounded-full"><X size={14}/></button>}
+                    <div className={`w-full md:w-auto px-4 py-3 rounded-xl text-sm font-bold flex items-start sm:items-center gap-2 animate-fade-in shadow-sm ${successMessage ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+                        <div className="shrink-0 mt-0.5 sm:mt-0">
+                            {successMessage ? <Check size={18} /> : <X size={18} />}
+                        </div>
+                        <div className="flex-1">
+                            {successMessage || error}
+                        </div>
+                         {successMessage && (
+                            <button
+                                onClick={() => setSuccessMessage('')}
+                                className="ml-2 hover:bg-emerald-100 p-1 rounded-full shrink-0"
+                            >
+                                <X size={14}/>
+                            </button>
+                        )}
                     </div>
                 )}
             </div>
@@ -371,9 +382,9 @@ const MyTenantPage = () => {
 
                                     <div className="space-y-2 group">
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Teléfono / WhatsApp</label>
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-col sm:flex-row gap-2">
                                             {/* Country Code Selector */}
-                                            <div className="relative w-28 shrink-0">
+                                             <div className="relative w-full sm:w-32 shrink-0">
                                                 <select
                                                     value={countryCode}
                                                     onChange={(e) => setCountryCode(e.target.value)}
@@ -473,14 +484,14 @@ const MyTenantPage = () => {
                         </div>
 
                         {/* Footer Actions */}
-                         <div className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                            <p className="text-xs text-slate-400">
+                          <div className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+                            <p className="text-xs text-slate-400 text-center sm:text-left order-2 sm:order-1">
                                 Última actualización: {new Date().toLocaleDateString()}
                             </p>
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="relative overflow-hidden group flex items-center gap-2 px-8 py-3 bg-slate-900 border border-transparent rounded-xl shadow-xl shadow-slate-900/20 text-sm font-bold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:-translate-y-0.5"
+                                className="w-full sm:w-auto relative overflow-hidden group flex items-center justify-center gap-2 px-8 py-3.5 bg-slate-900 border border-transparent rounded-xl shadow-xl shadow-slate-900/20 text-sm font-bold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:-translate-y-0.5 order-1 sm:order-2"
                             >
                                 <Save size={18} className="group-hover:scale-110 transition-transform" />
                                 <span>{saving ? 'Guardando...' : 'Guardar Cambios'}</span>
