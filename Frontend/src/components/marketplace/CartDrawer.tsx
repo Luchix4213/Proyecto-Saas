@@ -4,22 +4,31 @@ import { useCartStore } from '../../store/useCartStore';
 import { type Tenant } from '../../services/tenantsService';
 import { useNavigate } from 'react-router-dom';
 
-export const CartDrawer: React.FC<{ isOpen: boolean; onClose: () => void; tenant?: Tenant }> = ({ isOpen, onClose, tenant }) => {
+export const CartDrawer: React.FC<{ isOpen: boolean; onClose: () => void; tenant?: Tenant; filterSlug?: string }> = ({ isOpen, onClose, tenant, filterSlug }) => {
   const { items, removeItem, updateQuantity, getTenantTotal, getItemCount } = useCartStore();
   const navigate = useNavigate();
 
   // Group items by tenant if global view
   const groupedItems = React.useMemo(() => {
     if (tenant) {
-        return { [tenant.slug || '']: items.filter(i => i.tenant_slug === tenant.slug) };
+      // Fallback to tenant_id if slug is null
+      const key = tenant.slug || String(tenant.tenant_id);
+      return { [key]: items.filter(i => i.tenant_slug === key) };
+    }
+    if (filterSlug) {
+      // Filter by slug (from URL context) without full tenant object
+      // Assuming filterSlug comes from URL, so it matches what was stored.
+      const matchingItems = items.filter(i => i.tenant_slug === filterSlug);
+      // If we want to show the store name header even if we don't have the Tenant object, we rely on the first item's tenant_name.
+      return matchingItems.length > 0 ? { [filterSlug]: matchingItems } : {};
     }
     return items.reduce((acc, item) => {
-        const key = item.tenant_slug;
-        if (!acc[key]) acc[key] = [];
-        acc[key].push(item);
-        return acc;
+      const key = item.tenant_slug;
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
     }, {} as Record<string, typeof items>);
-  }, [items, tenant]);
+  }, [items, tenant, filterSlug]);
 
   if (!isOpen) return null;
 
@@ -45,8 +54,8 @@ export const CartDrawer: React.FC<{ isOpen: boolean; onClose: () => void; tenant
                   <ShoppingBag size={20} />
                 </div>
                 <div>
-                    <h2 className="text-xl font-bold text-slate-900">Tu Carrito</h2>
-                    <p className="text-xs text-slate-500 font-medium">{getItemCount()} items en total</p>
+                  <h2 className="text-xl font-bold text-slate-900">Tu Carrito</h2>
+                  <p className="text-xs text-slate-500 font-medium">{getItemCount()} items en total</p>
                 </div>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
@@ -69,80 +78,89 @@ export const CartDrawer: React.FC<{ isOpen: boolean; onClose: () => void; tenant
                 </div>
               ) : (
                 Object.entries(groupedItems).map(([slug, groupItems]) => (
-                    <div key={slug} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-                        {/* Tenant Header */}
-                        {!tenant && (
-                            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-50">
-                                <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
-                                    <Store size={14} />
-                                </div>
-                                <span className="font-bold text-slate-800 text-sm">{groupItems[0].tenant_name || slug}</span>
-                            </div>
-                        )}
-
-                        <div className="space-y-4">
-                            {groupItems.map((item) => (
-                                <div key={item.producto_id} className="flex gap-3">
-                                    <div className="h-16 w-16 bg-slate-50 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-100">
-                                        {item.imagen_url ? (
-                                            <img src={`http://localhost:3000${item.imagen_url}`} alt={item.nombre} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <ShoppingBag size={20} className="text-slate-300" />
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <h4 className="font-bold text-slate-900 truncate text-sm">{item.nombre}</h4>
-                                            <button onClick={() => removeItem(item.producto_id)} className="text-slate-300 hover:text-red-500 transition-colors">
-                                                <X size={14} />
-                                            </button>
-                                        </div>
-                                        <p className="text-teal-600 font-bold text-sm mb-2">{item.precio} Bs</p>
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex items-center bg-slate-50 rounded-lg border border-slate-100">
-                                                <button onClick={() => updateQuantity(item.producto_id, item.cantidad - 1)} className="p-1 hover:text-teal-600 transition-colors">
-                                                    <Minus size={12} />
-                                                </button>
-                                                <span className="w-6 text-center text-xs font-bold text-slate-700">{item.cantidad}</span>
-                                                <button onClick={() => updateQuantity(item.producto_id, item.cantidad + 1)} className="p-1 hover:text-teal-600 transition-colors">
-                                                    <Plus size={12} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                  <div key={slug} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+                    {/* Tenant Header */}
+                    {!tenant && (
+                      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-50">
+                        <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                          <Store size={14} />
                         </div>
+                        <span className="font-bold text-slate-800 text-sm">{groupItems[0].tenant_name || slug}</span>
+                      </div>
+                    )}
 
-                        {/* Store Total & Checkout */}
-                         <div className="mt-4 pt-4 border-t border-slate-50">
-                            <div className="flex justify-between items-center mb-3">
-                                <span className="text-xs font-bold text-slate-500 uppercase">Subtotal</span>
-                                <span className="text-lg font-black text-slate-900">{getTenantTotal(slug).toFixed(2)} Bs</span>
+                    <div className="space-y-4">
+                      {groupItems.map((item) => (
+                        <div key={item.producto_id} className="flex gap-3">
+                          <div className="h-16 w-16 bg-slate-50 rounded-xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-100">
+                            {item.imagen_url ? (
+                              <img src={`http://localhost:3000${item.imagen_url}`} alt={item.nombre} className="w-full h-full object-cover" />
+                            ) : (
+                              <ShoppingBag size={20} className="text-slate-300" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start mb-1">
+                              <h4 className="font-bold text-slate-900 truncate text-sm">{item.nombre}</h4>
+                              <button onClick={() => removeItem(item.producto_id)} className="text-slate-300 hover:text-red-500 transition-colors">
+                                <X size={14} />
+                              </button>
                             </div>
-                            <button
-                                onClick={() => handleCheckout(slug)}
-                                disabled={slug === 'undefined' || !slug}
-                                className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {slug === 'undefined' || !slug ? 'Tienda no disponible' : 'Proceder al Pago'}
-                                <ArrowRight size={16} />
-                            </button>
+                            <p className="text-teal-600 font-bold text-sm mb-2">{item.precio} Bs</p>
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center bg-slate-50 rounded-lg border border-slate-100">
+                                <button onClick={() => updateQuantity(item.producto_id, item.cantidad - 1)} className="p-1 hover:text-teal-600 transition-colors">
+                                  <Minus size={12} />
+                                </button>
+                                <span className="w-6 text-center text-xs font-bold text-slate-700">{item.cantidad}</span>
+                                <button onClick={() => updateQuantity(item.producto_id, item.cantidad + 1)} className="p-1 hover:text-teal-600 transition-colors">
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
+                      ))}
                     </div>
+
+                    {/* Store Total */}
+                    <div className="mt-4 pt-4 border-t border-slate-50">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-bold text-slate-500 uppercase">Subtotal</span>
+                        <span className="text-lg font-black text-slate-900">{getTenantTotal(slug).toFixed(2)} Bs</span>
+                      </div>
+                    </div>
+                  </div>
                 ))
               )}
             </div>
 
-            {/* Footer Global (if needed, or just keep info) */}
-             <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 text-center">
-                 <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">
-                     Kipu Secure Checkout
-                 </p>
-             </div>
+            {/* Footer / Checkout Actions */}
+            <div className="px-6 py-6 bg-white border-t border-slate-100 space-y-3">
+              {items.length > 0 && (
+                <button
+                  onClick={() => {
+                    // Start sequential checkout with the first tenant
+                    const firstTenantSlug = Object.keys(groupedItems)[0];
+                    handleCheckout(firstTenantSlug);
+                  }}
+                  className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all flex items-center justify-between px-6 shadow-xl shadow-slate-900/10 group"
+                >
+                  <span>Procesar Compra ({items.length} items)</span>
+                  <div className="flex items-center gap-3">
+                    <span className="opacity-80 font-medium">{useCartStore.getState().getTotal().toFixed(2)} Bs</span>
+                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+              )}
+              <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest text-center pt-2">
+                Kipu Secure Checkout
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 };
+

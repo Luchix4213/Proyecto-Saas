@@ -7,12 +7,12 @@ import { getImageUrl } from '../../utils/imageUtils';
 
 export const CheckoutPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { items, getTotal, clearCart } = useCartStore();
+  const { items, removeItems } = useCartStore(); // Changed clearCart to removeItems
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!slug || slug === 'undefined') {
-       navigate('/');
+      navigate('/');
     }
   }, [slug, navigate]);
 
@@ -29,7 +29,13 @@ export const CheckoutPage = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderResult, setOrderResult] = useState<any>(null);
 
-  const total = getTotal();
+  // Filter items for the current store ONLY
+  const currentStoreItems = items.filter(item =>
+    item.tenant_slug === slug || String(item.tenant_slug) === String(slug)
+  );
+
+  // Calculate total for current store
+  const total = currentStoreItems.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -38,8 +44,11 @@ export const CheckoutPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (items.length === 0) return;
-    if (!file && formData.metodo_pago !== 'EFECTIVO') { // Assuming Efectivo logic might exist later, but for now enforcing file
+    if (currentStoreItems.length === 0) {
+      alert('No hay productos para esta tienda en el carrito.');
+      return;
+    }
+    if (!file && formData.metodo_pago !== 'EFECTIVO') {
       alert('Por favor sube el comprobante de pago');
       return;
     }
@@ -51,7 +60,7 @@ export const CheckoutPage = () => {
       formPayload.append('email', formData.email);
       formPayload.append('nit_ci', formData.nit_ci);
       formPayload.append('metodo_pago', formData.metodo_pago);
-      formPayload.append('productos', JSON.stringify(items.map(i => ({
+      formPayload.append('productos', JSON.stringify(currentStoreItems.map(i => ({
         producto_id: i.producto_id,
         cantidad: i.cantidad,
       }))));
@@ -67,7 +76,10 @@ export const CheckoutPage = () => {
 
       setOrderResult(response.data);
       setIsSuccess(true);
-      clearCart();
+
+      // Remove ONLY the items we just bought
+      removeItems(currentStoreItems.map(i => i.producto_id));
+
     } catch (err: any) {
       console.error('Checkout error:', err);
       alert(`Error al procesar el pedido: ${err.response?.data?.message || err.message}`);
@@ -77,6 +89,38 @@ export const CheckoutPage = () => {
   };
 
   if (isSuccess && orderResult) {
+    const remainingItems = useCartStore.getState().items;
+
+    if (remainingItems.length > 0) {
+      // Find the next tenant (could be a slug or ID)
+      const nextItem = remainingItems[0];
+      const nextSlug = nextItem.tenant_slug; // tenant_slug already has the fallback logic from addItem
+      const nextTenantName = nextItem.tenant_name || 'la siguiente tienda';
+
+      // Redirect automatically after a short delay
+      setTimeout(() => {
+        window.location.href = `/tienda/${nextSlug}/checkout`;
+      }, 3000);
+
+      return (
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 animate-fade-in">
+          <div className="bg-white max-w-md w-full rounded-[2rem] shadow-xl p-8 text-center border border-slate-100">
+            <div className="h-20 w-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6 text-teal-600 animate-pulse">
+              <CheckCircle2 size={40} />
+            </div>
+            <h2 className="text-2xl font-black text-slate-900 mb-2">¡Pago Recibido!</h2>
+            <p className="text-slate-500 mb-6">Tu pedido en esta tienda ha sido procesado.</p>
+
+            <div className="p-4 bg-indigo-50 rounded-xl text-indigo-900 font-bold mb-2 flex items-center justify-center gap-3">
+              <div className="h-5 w-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+              Redirigiendo a {nextTenantName}...
+            </div>
+            <p className="text-xs text-slate-400">Por favor prepara tu siguiente pago.</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 animate-fade-in">
         <div className="bg-white max-w-2xl w-full rounded-[3rem] shadow-2xl p-12 text-center border border-slate-100 relative overflow-hidden">
@@ -86,31 +130,18 @@ export const CheckoutPage = () => {
             <CheckCircle2 size={48} />
           </div>
 
-          <h2 className="text-4xl font-black text-slate-900 mb-4">¡Pedido Realizado!</h2>
-          <p className="text-slate-500 mb-10 text-lg">Tu pedido ha sido registrado con éxito. El número de orden es <span className="font-bold text-slate-900">#{orderResult.venta_id}</span></p>
+          <h2 className="text-4xl font-black text-slate-900 mb-4">¡Todo Listo!</h2>
+          <p className="text-slate-500 mb-10 text-lg">Todos tus pedidos han sido registrados con éxito.</p>
 
           <div className="bg-slate-50 rounded-[2rem] p-8 mb-10 border border-slate-100">
             <h3 className="font-bold text-slate-900 mb-2 flex items-center justify-center gap-2">
               <CheckCircle2 size={20} className="text-teal-600" /> Comprobante Recibido
             </h3>
-            <p className="text-slate-500 mb-6">Tu comprobante ha sido enviado a revisión. Te notificaremos cuando tu pedido sea aprobado.</p>
-
-            {formData.metodo_pago === 'QR' && (
-              <div className="flex flex-col items-center opacity-50 pointer-events-none grayscale">
-                <p className="text-xs mb-2">(Referencia del pago realizado)</p>
-                <div className="h-32 w-32 bg-white rounded-xl flex items-center justify-center overflow-hidden border border-slate-200 p-2">
-                  <img
-                    src={getImageUrl("/uploads/tenants/QR_generado.jpeg")}
-                    alt="QR de Pago"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-              </div>
-            )}
+            <p className="text-slate-500 mb-6">Tus comprobantes han sido enviados a revisión.</p>
           </div>
 
-          <Link to={`/tienda/${slug}`} className="inline-flex items-center gap-2 px-10 py-4 bg-slate-900 text-white rounded-[1.5rem] font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10">
-            Volver a la tienda
+          <Link to="/" className="inline-flex items-center gap-2 px-10 py-4 bg-slate-900 text-white rounded-[1.5rem] font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10">
+            Volver al Inicio
           </Link>
         </div>
       </div>
@@ -303,7 +334,7 @@ export const CheckoutPage = () => {
               </h2>
 
               <div className="space-y-6 mb-10 max-h-[40vh] overflow-y-auto pr-4 custom-scrollbar">
-                {items.map(item => (
+                {currentStoreItems.map(item => (
                   <div key={item.producto_id} className="flex items-center gap-4 group">
                     <div className="h-16 w-16 bg-white/10 rounded-2xl flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/5">
                       {item.imagen_url ? (

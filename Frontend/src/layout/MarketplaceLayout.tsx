@@ -1,4 +1,4 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useParams } from 'react-router-dom';
 import { Search, User, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
@@ -8,6 +8,7 @@ import { CartDrawer } from '../components/marketplace/CartDrawer';
 export const MarketplaceLayout = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { slug } = useParams<{ slug: string }>(); // Context awareness
     const [searchTerm, setSearchTerm] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -45,7 +46,7 @@ export const MarketplaceLayout = () => {
                         <Link to="/stores" className="text-sm font-bold text-slate-600 hover:text-teal-600 transition-colors">
                             Tiendas
                         </Link>
-                         <Link to="/productos-global" className="text-sm font-bold text-slate-600 hover:text-teal-600 transition-colors">
+                        <Link to="/productos-global" className="text-sm font-bold text-slate-600 hover:text-teal-600 transition-colors">
                             Productos
                         </Link>
                     </nav>
@@ -73,8 +74,8 @@ export const MarketplaceLayout = () => {
                             <Search size={22} />
                         </button>
 
-                         {/* Cart Trigger */}
-                         <button
+                        {/* Cart Trigger */}
+                        <button
                             className="relative p-2.5 text-slate-700 hover:bg-slate-100 hover:text-teal-600 rounded-xl transition-all group"
                             onClick={() => setIsCartOpen(true)}
                         >
@@ -110,7 +111,7 @@ export const MarketplaceLayout = () => {
                 {/* Mobile Menu Overlay */}
                 {isMobileMenuOpen && (
                     <div className="absolute top-20 left-0 w-full bg-white border-b border-slate-200 p-4 md:hidden shadow-xl animate-fade-in z-40">
-                         <form onSubmit={handleSearch} className="relative group mb-4">
+                        <form onSubmit={handleSearch} className="relative group mb-4">
                             <input
                                 type="text"
                                 placeholder="¿Qué estás buscando?"
@@ -128,12 +129,12 @@ export const MarketplaceLayout = () => {
                             <Link to="/stores" className="py-3 px-4 text-slate-600 font-bold hover:bg-slate-50 rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>
                                 Tiendas
                             </Link>
-                             <Link to="/productos-global" className="py-3 px-4 text-slate-600 font-bold hover:bg-slate-50 rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>
+                            <Link to="/productos-global" className="py-3 px-4 text-slate-600 font-bold hover:bg-slate-50 rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>
                                 Productos
                             </Link>
                             {!user && (
                                 <div className="pt-4 border-t border-slate-100 mt-2 flex flex-col gap-2">
-                                     <Link to="/login" className="py-3 px-4 text-slate-600 font-bold hover:bg-slate-50 rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>
+                                    <Link to="/login" className="py-3 px-4 text-slate-600 font-bold hover:bg-slate-50 rounded-xl" onClick={() => setIsMobileMenuOpen(false)}>
                                         Ingresar a mi cuenta
                                     </Link>
                                     <Link to="/register" className="py-3 px-4 bg-teal-50 text-teal-700 font-bold rounded-xl text-center" onClick={() => setIsMobileMenuOpen(false)}>
@@ -146,8 +147,11 @@ export const MarketplaceLayout = () => {
                 )}
             </header>
 
-            {/* Global Cart Drawer */}
-            <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+            {/* Global Cart Drawer - Context Aware */}
+            <CartDrawer
+                isOpen={isCartOpen}
+                onClose={() => setIsCartOpen(false)}
+            />
 
             {/* Main Content */}
             <main className="flex-1">
@@ -157,7 +161,7 @@ export const MarketplaceLayout = () => {
             {/* Footer */}
             <footer className="bg-white border-t border-slate-200 py-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <div className="col-span-1 md:col-span-1">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="h-8 w-8 bg-gradient-to-tr from-teal-500 to-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
@@ -189,10 +193,10 @@ export const MarketplaceLayout = () => {
                             <p className="text-slate-500 text-sm">soporte@kipu.bo</p>
                             <p className="text-slate-500 text-sm">+591 70000000</p>
                         </div>
-                     </div>
-                     <div className="mt-12 pt-8 border-t border-slate-100 text-center text-sm text-slate-400">
+                    </div>
+                    <div className="mt-12 pt-8 border-t border-slate-100 text-center text-sm text-slate-400">
                         &copy; {new Date().getFullYear()} Kipu SaaS. Todos los derechos reservados.
-                     </div>
+                    </div>
                 </div>
             </footer>
         </div>

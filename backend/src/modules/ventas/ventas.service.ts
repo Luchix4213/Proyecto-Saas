@@ -154,7 +154,17 @@ export class VentasService {
   }
 
   async createOnlineSaleBySlug(slug: string, checkoutDto: CheckoutDto) {
-    const tenant = await this.prisma.tenant.findUnique({ where: { slug } });
+    const id = parseInt(slug);
+    const isId = !isNaN(id);
+
+    const tenant = await this.prisma.tenant.findFirst({
+      where: {
+        OR: [
+          { slug: slug },
+          ...(isId ? [{ tenant_id: id }] : [])
+        ]
+      }
+    });
     if (!tenant) throw new NotFoundException('Tienda no encontrada');
     return this.createOnlineSale(tenant.tenant_id, null, checkoutDto);
   }

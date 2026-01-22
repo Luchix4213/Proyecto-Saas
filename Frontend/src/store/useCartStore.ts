@@ -22,6 +22,7 @@ interface CartState {
   getItemCount: () => number;
   getTenantTotal: (tenantSlug: string) => number;
   getTenantItemCount: (tenantSlug: string) => number;
+  removeItems: (productIds: number[]) => void;
 }
 
 export const useCartStore = create<CartState>()(
@@ -33,7 +34,7 @@ export const useCartStore = create<CartState>()(
         const existingItem = items.find((i) => i.producto_id === product.producto_id);
 
         if (existingItem) {
-           // Check stock limit if possible, for now just increment
+          // Check stock limit if possible, for now just increment
           set({
             items: items.map((i) =>
               i.producto_id === product.producto_id
@@ -51,7 +52,7 @@ export const useCartStore = create<CartState>()(
                 precio: Number(product.precio),
                 cantidad: product.cantidad || 1,
                 imagen_url: product.imagen_url || product.imagenes?.[0]?.url,
-                tenant_slug: product.tenant_slug || product.tenant?.slug,
+                tenant_slug: product.tenant_slug || product.tenant?.slug || String(product.tenant?.tenant_id),
                 tenant_name: product.tenant_name || product.tenant?.nombre_empresa,
                 stock_maximo: product.stock_actual || product.stock_maximo || 100
               },
@@ -81,14 +82,19 @@ export const useCartStore = create<CartState>()(
         return get().items.reduce((total, item) => total + item.cantidad, 0);
       },
       getTenantTotal: (tenantSlug: string) => {
-          return get().items
-            .filter(item => item.tenant_slug === tenantSlug)
-            .reduce((total, item) => total + item.precio * item.cantidad, 0);
+        return get().items
+          .filter(item => item.tenant_slug === tenantSlug)
+          .reduce((total, item) => total + item.precio * item.cantidad, 0);
       },
       getTenantItemCount: (tenantSlug: string) => {
-          return get().items
-            .filter(item => item.tenant_slug === tenantSlug)
-            .reduce((total, item) => total + item.cantidad, 0);
+        return get().items
+          .filter(item => item.tenant_slug === tenantSlug)
+          .reduce((total, item) => total + item.cantidad, 0);
+      },
+      removeItems: (productIds: number[]) => {
+        set({
+          items: get().items.filter((i) => !productIds.includes(i.producto_id))
+        });
       }
     }),
     {

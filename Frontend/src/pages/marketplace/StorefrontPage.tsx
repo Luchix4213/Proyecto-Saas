@@ -25,6 +25,16 @@ export const StorefrontPage = () => {
 
     const { addItem, getItemCount } = useCartStore();
 
+    const handleAddToCart = (product: Product) => {
+        if (!tenant) return;
+        addItem({
+            ...product, // Spread original product
+            tenant_slug: tenant.slug || String(tenant.tenant_id), // Force explicit slug or ID
+            tenant_name: tenant.nombre_empresa,
+            tenant: tenant // Pass full tenant just in case
+        });
+    };
+
     useEffect(() => {
         if (slug) {
             loadStoreData(slug);
@@ -317,7 +327,7 @@ export const StorefrontPage = () => {
                                         key={product.producto_id}
                                         product={product}
                                         tenant={tenant}
-                                        onAddToCart={addItem}
+                                        onAddToCart={handleAddToCart}
                                         animationDelay={idx * 0.05}
                                     />
                                 ))}
