@@ -13,6 +13,14 @@ import { RolUsuario } from '@prisma/client';
 export class VentasController {
   constructor(private readonly ventasService: VentasService) { }
 
+  @Post('public/:slug/check-client')
+  async checkClient(
+    @Param('slug') slug: string,
+    @Body('nit') nit: string
+  ) {
+    return this.ventasService.findClientByNitAndSlug(slug, nit);
+  }
+
   @Post('public/:slug/checkout')
   @UseInterceptors(
     FileInterceptor('comprobante', {

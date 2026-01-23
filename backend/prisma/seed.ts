@@ -227,6 +227,17 @@ async function main() {
       slug: 'logitech-mx-master-3s',
       imagen_url: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=800&q=80',
       destacado: true
+    },
+    {
+      tenant_id: techStore.tenant_id,
+      categoria_id: catPerifericos.categoria_id,
+      nombre: 'Autosis',
+      descripcion: 'Producto de prueba para presentación autosis.',
+      precio: 50,
+      stock_actual: 10,
+      slug: 'autosis',
+      imagen_url: 'https://placehold.co/600x400/png',
+      destacado: true
     }
   ];
 

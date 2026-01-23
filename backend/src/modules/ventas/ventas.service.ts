@@ -39,6 +39,32 @@ export class VentasService {
     }
   }
 
+  async findClientByNit(tenantId: number, nit: string) {
+    return this.prisma.cliente.findFirst({
+      where: {
+        tenant_id: tenantId,
+        nit_ci: nit
+      }
+    });
+  }
+
+  async findClientByNitAndSlug(slug: string, nit: string) {
+    const id = parseInt(slug);
+    const isId = !isNaN(id);
+
+    const tenant = await this.prisma.tenant.findFirst({
+      where: {
+        OR: [
+          { slug: slug },
+          ...(isId ? [{ tenant_id: id }] : [])
+        ]
+      }
+    });
+
+    if (!tenant) throw new NotFoundException('Tienda no encontrada');
+    return this.findClientByNit(tenant.tenant_id, nit);
+  }
+
   async create(tenantId: number, userId: number, createVentaDto: CreateVentaDto) {
     const { cliente_id, productos, tipo_venta, metodo_pago, qr_pago } = createVentaDto;
 
@@ -46,7 +72,7 @@ export class VentasService {
       let totalVenta = 0;
       const detallesParaCrear: any[] = [];
 
-      // 1. Validar y procesar cada producto
+      //productos
       for (const item of productos) {
         const producto = await prisma.producto.findFirst({
           where: {
@@ -64,7 +90,7 @@ export class VentasService {
           throw new BadRequestException(`Stock insuficiente para el producto: ${producto.nombre}. Stock actual: ${producto.stock_actual}`);
         }
 
-        // 2. Descontar Stock
+        //stock
         await prisma.producto.update({
           where: { producto_id: item.producto_id },
           data: {
@@ -84,12 +110,12 @@ export class VentasService {
         });
       }
 
-      // 3. Crear cabecera de Venta
+      // 3. Crear Venta
       const nuevaVenta = await prisma.venta.create({
         data: {
           tenant_id: tenantId,
           usuario_id: userId,
-          cliente_id: cliente_id || null, // Puede ser nulo para cliente genérico
+          cliente_id: cliente_id || null,
           tipo_venta: tipo_venta,
           metodo_pago: metodo_pago,
           qr_pago: qr_pago,
@@ -250,14 +276,14 @@ export class VentasService {
         data: {
           tenant_id: tenantId,
           cliente_id: finalClienteId,
-          usuario_id: null, // Online, no worker
+          usuario_id: null,
           tipo_venta: TipoVenta.ONLINE,
           metodo_pago: metodo_pago,
           total: totalVenta,
           fecha_venta: new Date(),
-          estado: EstadoVenta.REGISTRADA, // Esperando validación o pago
+          estado: EstadoVenta.REGISTRADA,
           estado_entrega: EstadoEntrega.PENDIENTE,
-          comprobante_pago: checkoutDto.comprobante_pago || null, // Guardar el comprobante
+          comprobante_pago: checkoutDto.comprobante_pago || null,
           detalles: {
             create: detallesParaCrear,
           },
