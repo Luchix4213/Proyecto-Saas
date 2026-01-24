@@ -71,15 +71,43 @@ export class ComprasService {
     });
   }
 
-  async findAll(tenantId: number) {
+  async findAll(tenantId: number, proveedorId?: number) {
     return this.prisma.compra.findMany({
-      where: { tenant_id: tenantId },
+      where: {
+        tenant_id: tenantId,
+        ...(proveedorId ? { proveedor_id: proveedorId } : {})
+      },
       orderBy: { fecha_compra: 'desc' },
       include: {
         proveedor: true,
         usuario: true,
-        detalles: true,
+        detalles: {
+          include: {
+            producto: true
+          }
+        }
       },
     });
+  }
+
+  async findOne(tenantId: number, id: number) {
+    const compra = await this.prisma.compra.findFirst({
+      where: { compra_id: id, tenant_id: tenantId },
+      include: {
+        proveedor: true,
+        usuario: true,
+        detalles: {
+          include: {
+            producto: true,
+          },
+        },
+      },
+    });
+
+    if (!compra) {
+      throw new NotFoundException(`Compra #${id} no encontrada`);
+    }
+
+    return compra;
   }
 }

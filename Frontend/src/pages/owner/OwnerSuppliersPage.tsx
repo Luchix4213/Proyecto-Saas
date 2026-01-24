@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Plus, Search, Pencil, Trash2, AlertCircle, Phone, Mail, CreditCard, CheckCircle2, TrendingUp, Truck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Plus, Search, Pencil, Trash2, AlertCircle, Phone, Mail, CreditCard, CheckCircle2, TrendingUp, Truck, History } from 'lucide-react';
 import { suppliersService, type Proveedor, type CreateProveedorData } from '../../services/suppliersService';
 import { SupplierForm } from '../../components/suppliers/SupplierForm';
 
 export const OwnerSuppliersPage = () => {
+    const navigate = useNavigate();
     const [suppliers, setSuppliers] = useState<Proveedor[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -247,6 +249,13 @@ export const OwnerSuppliersPage = () => {
                                             </td>
                                             <td className="px-8 py-5 whitespace-nowrap text-right">
                                                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => navigate(`/owner/purchases/history?proveedorId=${supplier.proveedor_id}`)}
+                                                        className="p-2.5 text-slate-500 hover:text-emerald-600 hover:bg-white rounded-xl transition-all shadow-sm hover:shadow-md border border-transparent hover:border-slate-100"
+                                                        title="Historial de Compras"
+                                                    >
+                                                        <History size={16} />
+                                                    </button>
                                                     <button
                                                         onClick={() => handleOpenModal(supplier)}
                                                         className="p-2.5 text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all shadow-sm hover:shadow-md border border-transparent hover:border-slate-100"

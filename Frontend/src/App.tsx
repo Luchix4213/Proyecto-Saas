@@ -32,6 +32,7 @@ import { ProductsPage } from './pages/owner/products/ProductsPage';
 import { PosPage } from './pages/owner/sales/PosPage';
 import { OwnerPurchasesPage } from './pages/owner/purchases/OwnerPurchasesPage';
 import { OnlineSalesPage } from './pages/owner/OnlineSalesPage';
+import { PurchaseHistoryPage } from './pages/owner/purchases/PurchaseHistoryPage';
 import { ProfilePage } from './pages/common/ProfilePage';
 
 /* Marketplace Pages */
@@ -108,7 +109,8 @@ function App() {
             <Route path="/productos" element={<ProductsPage />} />
             <Route path="/proveedores" element={<OwnerSuppliersPage />} />
             <Route path="/compras" element={<OwnerPurchasesPage />} />
-            <Route path="/compras" element={<OwnerPurchasesPage />} />
+            <Route path="/owner/purchases" element={<Navigate to="/compras" replace />} />
+            <Route path="/owner/purchases/history" element={<PurchaseHistoryPage />} />
             <Route path="/ventas-online" element={<OnlineSalesPage />} />
             <Route path="/pos" element={<PosPage />} />
             <Route path="/profile" element={<ProfilePage />} />

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Query, Param } from '@nestjs/common';
 import { ComprasService } from './compras.service';
 import { CreateCompraDto } from './dto/create-compra.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
@@ -19,7 +19,13 @@ export class ComprasController {
 
   @Get()
   @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN)
-  findAll(@Request() req) {
-    return this.comprasService.findAll(req.user.tenant_id);
+  findAll(@Request() req, @Query('proveedor_id') proveedorId?: string) {
+    return this.comprasService.findAll(req.user.tenant_id, proveedorId ? Number(proveedorId) : undefined);
+  }
+
+  @Get(':id')
+  @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN)
+  findOne(@Request() req, @Param('id') id: string) {
+    return this.comprasService.findOne(req.user.tenant_id, Number(id));
   }
 }

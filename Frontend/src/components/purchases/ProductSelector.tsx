@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Package, Plus, Filter } from 'lucide-react';
 import { type Product } from '../../services/productsService';
+import { getImageUrl } from '../../utils/imageUtils';
 
 interface ProductSelectorProps {
     products: Product[];
@@ -55,31 +56,43 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ products, load
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {filteredProducts.map(product => (
-                            <button
-                                key={product.producto_id}
-                                onClick={() => onSelect(product)}
-                                className="group relative bg-white border border-slate-100 rounded-3xl p-4 hover:border-teal-500 hover:shadow-lg hover:shadow-teal-500/20 transition-all text-left flex items-start gap-4 overflow-hidden"
-                            >
-                                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 shrink-0 group-hover:scale-105 transition-transform">
-                                    <Package size={28} strokeWidth={1.5} />
-                                </div>
-                                <div className="flex-1 min-w-0 z-10">
-                                    <span className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-1 block">
-                                        ID: #{product.producto_id}
-                                    </span>
-                                    <h4 className="font-bold text-slate-800 leading-tight mb-1 truncate">{product.nombre}</h4>
-                                    <p className="text-xs font-medium text-slate-400">
-                                        Stock actual: <span className="text-slate-600 font-bold">{product.stock_actual}</span>
-                                    </p>
-                                </div>
-                                <div className="absolute right-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-                                    <div className="bg-teal-500 text-white p-2 rounded-xl shadow-lg shadow-teal-500/30">
-                                        <Plus size={16} strokeWidth={3} />
+                        {filteredProducts.map(product => {
+                            const principalImage = product.imagenes?.find(img => img.es_principal)?.url || product.imagenes?.[0]?.url;
+
+                            return (
+                                <button
+                                    key={product.producto_id}
+                                    onClick={() => onSelect(product)}
+                                    className="group relative bg-white border border-slate-100 rounded-3xl p-4 hover:border-teal-500 hover:shadow-lg hover:shadow-teal-500/20 transition-all text-left flex items-start gap-4 overflow-hidden"
+                                >
+                                    <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 shrink-0 group-hover:scale-105 transition-transform overflow-hidden relative">
+                                        {principalImage ? (
+                                            <img
+                                                src={getImageUrl(principalImage)}
+                                                alt={product.nombre}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <Package size={28} strokeWidth={1.5} />
+                                        )}
                                     </div>
-                                </div>
-                            </button>
-                        ))}
+                                    <div className="flex-1 min-w-0 z-10">
+                                        <span className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-1 block">
+                                            ID: #{product.producto_id}
+                                        </span>
+                                        <h4 className="font-bold text-slate-800 leading-tight mb-1 truncate">{product.nombre}</h4>
+                                        <p className="text-xs font-medium text-slate-400">
+                                            Stock actual: <span className="text-slate-600 font-bold">{product.stock_actual}</span>
+                                        </p>
+                                    </div>
+                                    <div className="absolute right-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
+                                        <div className="bg-teal-500 text-white p-2 rounded-xl shadow-lg shadow-teal-500/30">
+                                            <Plus size={16} strokeWidth={3} />
+                                        </div>
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
                 )}
             </div>

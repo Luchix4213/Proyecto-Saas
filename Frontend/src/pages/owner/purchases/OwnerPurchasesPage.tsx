@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, History } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { productsService, type Product } from '../../../services/productsService';
 import { suppliersService, type Proveedor } from '../../../services/suppliersService';
 import { purchasesService, type CreateCompraData } from '../../../services/purchasesService';
@@ -108,6 +109,13 @@ export const OwnerPurchasesPage = () => {
                             <ShoppingBag size={28} />
                         </div>
                         Gestión de Compras (Stock)
+                        <Link
+                            to="/owner/purchases/history"
+                            className="ml-auto flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all hover:scale-105"
+                        >
+                            <History size={18} className="text-indigo-500" />
+                            Ver Historial
+                        </Link>
                     </h1>
                     <p className="text-slate-500 mt-2 text-lg max-w-2xl">
                         Registra ingresos de mercadería y actualiza automáticamente tu inventario y costos.

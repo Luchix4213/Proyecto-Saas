@@ -1,7 +1,8 @@
 import React from 'react';
-import { Truck, X, ArrowRight, Calculator } from 'lucide-react';
+import { Truck, X, ArrowRight, Calculator, Package } from 'lucide-react';
 import { type Product } from '../../services/productsService';
 import { type Proveedor } from '../../services/suppliersService';
+import { getImageUrl } from '../../utils/imageUtils';
 
 // Define the shape of items in the cart
 export interface PurchaseItem extends Product {
@@ -70,17 +71,33 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
                         <p className="text-xs">Agrega productos del catálogo</p>
                     </div>
                 ) : (
-                    cart.map(item => (
-                        <div key={item.producto_id} className="relative group bg-slate-50 border border-slate-100 rounded-3xl p-4 transition-all hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-teal-100">
-                            <div className="flex justify-between items-start mb-3 pr-6">
-                                <h4 className="font-bold text-slate-700 text-sm leading-tight">{item.nombre}</h4>
-                                <button
-                                    onClick={() => onRemoveItem(item.producto_id)}
-                                    className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
+                    cart.map(item => {
+                        const principalImage = item.imagenes?.find(img => img.es_principal)?.url || item.imagenes?.[0]?.url;
+
+                        return (
+                            <div key={item.producto_id} className="relative group bg-slate-50 border border-slate-100 rounded-3xl p-4 transition-all hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 hover:border-teal-100">
+                                <div className="flex justify-between items-start mb-3 pr-6">
+                                    <div className="flex items-center gap-3 w-full">
+                                        <div className="w-12 h-12 bg-white rounded-xl border border-slate-100 flex items-center justify-center text-slate-300 shrink-0 overflow-hidden relative">
+                                            {principalImage ? (
+                                                <img
+                                                    src={getImageUrl(principalImage)}
+                                                    alt={item.nombre}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <Package size={20} strokeWidth={1.5} />
+                                            )}
+                                        </div>
+                                        <h4 className="font-bold text-slate-700 text-sm leading-tight line-clamp-2">{item.nombre}</h4>
+                                    </div>
+                                    <button
+                                        onClick={() => onRemoveItem(item.producto_id)}
+                                        className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
@@ -111,8 +128,9 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
                                 <span className="font-black text-slate-800 text-sm">Bs {(item.purchaseQuantity * item.purchaseCost).toFixed(2)}</span>
                             </div>
                         </div>
-                    ))
-                )}
+                    );
+                })
+            )}
             </div>
 
             {/* Footer / Total */}

@@ -23,8 +23,15 @@ export interface Compra {
 }
 
 export const purchasesService = {
-    getAll: async () => {
-        const response = await api.get<Compra[]>('/compras');
+    getAll: async (proveedorId?: number) => {
+        const response = await api.get<Compra[]>('/compras', {
+            params: { proveedor_id: proveedorId }
+        });
+        return response.data;
+    },
+
+    getById: async (id: number) => {
+        const response = await api.get<Compra>(`/compras/${id}`);
         return response.data;
     },
 
