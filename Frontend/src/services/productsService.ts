@@ -21,6 +21,11 @@ export interface Product {
     destacado: boolean;
     imagenes?: ProductImage[]; // Typed Image Array
     estado: 'ACTIVO' | 'INACTIVO';
+    proveedor_id?: number | null;
+    proveedor?: {
+        proveedor_id: number;
+        nombre: string;
+    } | null;
     tenant?: {
         tenant_id: number;
         nombre_empresa: string;
@@ -38,6 +43,7 @@ export interface CreateProductData {
     categoria_id: number;
     destacado?: boolean;
     slug?: string;
+    proveedor_id?: number;
 }
 
 export interface UpdateProductData {

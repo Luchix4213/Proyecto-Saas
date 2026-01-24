@@ -3,6 +3,7 @@ import api from '../api/axios';
 export interface CreateCompraData {
     proveedor_id: number;
     productos: { producto_id: number; cantidad: number; costo_unitario: number }[];
+    metodo_pago: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';
 }
 
 export interface Compra {

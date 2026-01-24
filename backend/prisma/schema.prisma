@@ -259,6 +259,7 @@ model Compra {
   usuario      Usuario      @relation(fields: [usuario_id], references: [usuario_id])
   fecha_compra DateTime     @default(now())
   total        Decimal      @db.Decimal(10, 2)
+  metodo_pago  MetodoPago   @default(EFECTIVO)
   estado       EstadoCompra @default(PENDIENTE)
 
   detalles DetalleCompra[]
@@ -278,22 +279,22 @@ model DetalleCompra {
 }
 
 model Venta {
-  venta_id        Int           @id @default(autoincrement())
-  tenant_id       Int
-  tenant          Tenant        @relation(fields: [tenant_id], references: [tenant_id])
-  cliente_id      Int?
-  cliente         Cliente?      @relation(fields: [cliente_id], references: [cliente_id])
-  usuario_id      Int?
-  usuario         Usuario?      @relation(fields: [usuario_id], references: [usuario_id])
-  fecha_venta     DateTime      @default(now())
-  total           Decimal       @db.Decimal(10, 2)
-  tipo_venta      TipoVenta     @default(FISICA)
-  metodo_pago     MetodoPago    @default(EFECTIVO)
-  estado_entrega  EstadoEntrega @default(PENDIENTE)
-  qr_pago         String? // URL o base64
+  venta_id         Int           @id @default(autoincrement())
+  tenant_id        Int
+  tenant           Tenant        @relation(fields: [tenant_id], references: [tenant_id])
+  cliente_id       Int?
+  cliente          Cliente?      @relation(fields: [cliente_id], references: [cliente_id])
+  usuario_id       Int?
+  usuario          Usuario?      @relation(fields: [usuario_id], references: [usuario_id])
+  fecha_venta      DateTime      @default(now())
+  total            Decimal       @db.Decimal(10, 2)
+  tipo_venta       TipoVenta     @default(FISICA)
+  metodo_pago      MetodoPago    @default(EFECTIVO)
+  estado_entrega   EstadoEntrega @default(PENDIENTE)
+  qr_pago          String? // URL o base64
   comprobante_pago String? // URL de la foto subida por el cliente
-  comprobante_pdf String? // URL
-  estado          EstadoVenta   @default(REGISTRADA)
+  comprobante_pdf  String? // URL
+  estado           EstadoVenta   @default(REGISTRADA)
 
   detalles DetalleVenta[]
 

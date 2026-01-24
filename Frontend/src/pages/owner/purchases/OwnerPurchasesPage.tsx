@@ -6,7 +6,7 @@ import { suppliersService, type Proveedor } from '../../../services/suppliersSer
 import { purchasesService, type CreateCompraData } from '../../../services/purchasesService';
 import { ProductSelector } from '../../../components/purchases/ProductSelector';
 import { PurchaseCart, type PurchaseItem } from '../../../components/purchases/PurchaseCart';
-
+import { PurchasesPaymentModal } from '../../../components/purchases/PurchasesPaymentModal';
 
 
 export const OwnerPurchasesPage = () => {
@@ -17,6 +17,7 @@ export const OwnerPurchasesPage = () => {
     const [selectedSupplierId, setSelectedSupplierId] = useState<number | ''>('');
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -59,7 +60,8 @@ export const OwnerPurchasesPage = () => {
         }));
     };
 
-    const handleRegisterPurchase = async () => {
+    // Updated handleRegisterPurchase - Just opens modal
+    const handleRegisterPurchase = () => {
         if (!selectedSupplierId) {
             alert('Selecciona un proveedor');
             return;
@@ -68,11 +70,15 @@ export const OwnerPurchasesPage = () => {
             alert('Agrega productos a la compra');
             return;
         }
+        setIsPaymentModalOpen(true);
+    };
 
+    const handleConfirmPayment = async (paymentData: { paymentMethod: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA'; proof: File | null }) => {
         setProcessing(true);
         try {
             const purchaseData: CreateCompraData = {
                 proveedor_id: Number(selectedSupplierId),
+                metodo_pago: paymentData.paymentMethod,
                 productos: cart.map(item => ({
                     producto_id: item.producto_id,
                     cantidad: Number(item.purchaseQuantity),
@@ -85,6 +91,7 @@ export const OwnerPurchasesPage = () => {
             // Reset
             setCart([]);
             setSelectedSupplierId('');
+            setIsPaymentModalOpen(false);
             await loadData();
             alert('Compra registrada con éxito. Stock actualizado.');
         } catch (error: any) {
@@ -94,6 +101,8 @@ export const OwnerPurchasesPage = () => {
             setProcessing(false);
         }
     };
+
+    const cartTotal = cart.reduce((sum, item) => sum + (item.purchaseQuantity * item.purchaseCost), 0);
 
     return (
         <div className="relative min-h-[80vh] w-full max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8">
@@ -117,7 +126,7 @@ export const OwnerPurchasesPage = () => {
                             Ver Historial
                         </Link>
                     </h1>
-                    <p className="text-slate-500 mt-2 text-lg max-w-2xl">
+                     <p className="text-slate-500 mt-2 text-lg max-w-2xl">
                         Registra ingresos de mercadería y actualiza automáticamente tu inventario y costos.
                     </p>
                 </div>
@@ -147,6 +156,14 @@ export const OwnerPurchasesPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Payment Modal */}
+            <PurchasesPaymentModal
+                isOpen={isPaymentModalOpen}
+                total={cartTotal}
+                onClose={() => setIsPaymentModalOpen(false)}
+                onConfirm={handleConfirmPayment}
+            />
         </div>
     );
 };

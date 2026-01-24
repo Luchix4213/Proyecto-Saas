@@ -30,11 +30,12 @@ export class ComprasService {
           throw new NotFoundException(`Producto #${item.producto_id} no encontrado`);
         }
 
-        // 3. Incrementar Stock
+        // 3. Incrementar Stock y Vincular Proveedor
         await prisma.producto.update({
           where: { producto_id: item.producto_id },
           data: {
             stock_actual: { increment: item.cantidad },
+            proveedor_id: proveedor_id // Link product to this supplier
           },
         });
 
@@ -57,6 +58,7 @@ export class ComprasService {
           proveedor_id: proveedor_id,
           fecha_compra: new Date(),
           total: totalCompra,
+          metodo_pago: createCompraDto.metodo_pago as any, // Cast to enum
           estado: EstadoCompra.CONFIRMADA,
           detalles: {
             create: detallesParaCrear,

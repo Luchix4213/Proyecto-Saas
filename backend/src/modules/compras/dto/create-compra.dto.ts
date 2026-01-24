@@ -20,6 +20,9 @@ export class CreateCompraDto {
   @IsNotEmpty()
   proveedor_id: number;
 
+  @IsNotEmpty()
+  metodo_pago: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => DetalleCompraItemDto)

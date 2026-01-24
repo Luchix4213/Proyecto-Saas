@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { X, Upload, Image as ImageIcon, Star, Trash2, ShoppingBag } from 'lucide-react';
 import { productsService, type Product, type CreateProductData } from '../../services/productsService';
 import { type Category } from '../../services/categoriesService';
+import { suppliersService, type Proveedor } from '../../services/suppliersService';
 import { getImageUrl } from '../../utils/imageUtils';
 
 interface ProductFormProps {
@@ -19,11 +20,24 @@ export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categor
     const [currentProduct, setCurrentProduct] = useState<Product | null>(productToEdit);
     const [uploadedImages, setUploadedImages] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+    const [suppliers, setSuppliers] = useState<Proveedor[]>([]);
 
     // Derived state for existing images from backend
     const [existingImages, setExistingImages] = useState(productToEdit?.imagenes || []);
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateProductData>();
+
+     useEffect(() => {
+        const fetchSuppliers = async () => {
+             try {
+                const data = await suppliersService.getAll();
+                setSuppliers(data.filter(s => s.estado === 'ACTIVO'));
+             } catch (error) {
+                 console.error("Failed to load suppliers");
+             }
+        };
+        fetchSuppliers();
+    }, []);
 
     useEffect(() => {
         if (isOpen) {
@@ -242,6 +256,24 @@ export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categor
                                                 <option value="">Seleccionar...</option>
                                                 {categories.map(cat => (
                                                     <option key={cat.categoria_id} value={cat.categoria_id}>{cat.nombre}</option>
+                                                ))}
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="rotate-90"><path d="m9 18 6-6-6-6"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Proveedor (Opcional)</label>
+                                        <div className="relative">
+                                            <select
+                                                {...register('proveedor_id', { valueAsNumber: true })}
+                                                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700 appearance-none cursor-pointer"
+                                            >
+                                                <option value="">Ninguno</option>
+                                                {suppliers.map(sup => (
+                                                    <option key={sup.proveedor_id} value={sup.proveedor_id}>{sup.nombre}</option>
                                                 ))}
                                             </select>
                                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">

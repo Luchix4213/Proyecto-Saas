@@ -19,6 +19,7 @@ interface PurchaseCartProps {
     onRemoveItem: (productId: number) => void;
     onSubmit: () => void;
     processing: boolean;
+
 }
 
 export const PurchaseCart: React.FC<PurchaseCartProps> = ({
@@ -32,6 +33,11 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
     processing
 }) => {
     const total = cart.reduce((sum, item) => sum + (item.purchaseQuantity * item.purchaseCost), 0);
+
+    // Wait, I can't change the interface usage in OwnerPurchasesPage yet without breaking it.
+    // I will add an onPaymentMethodChange prop or similar, OR modify onSubmit to accept data.
+    // Let's check OwnerPurchasesPage again.
+
 
     return (
         <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 flex flex-col h-full overflow-hidden sticky top-8">
@@ -61,7 +67,6 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
                     </select>
                 </div>
             </div>
-
             {/* Cart Items */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4 bg-white">
                 {cart.length === 0 ? (
