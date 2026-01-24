@@ -167,3 +167,4 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
         </div>
     );
 };
+
