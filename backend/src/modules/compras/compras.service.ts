@@ -69,7 +69,7 @@ export class ComprasService {
       return await prisma.compra.create({
         data: {
           tenant_id: tenantId,
-          usuario_id: userId,
+          usuario_id: userId,//vivimos
           proveedor_id: (proveedor_id || null) as any, // Cast due to Prisma type mismatch
           fecha_compra: new Date(),
           total: totalCompra,
