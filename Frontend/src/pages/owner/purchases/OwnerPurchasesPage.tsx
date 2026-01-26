@@ -73,6 +73,8 @@ export const OwnerPurchasesPage = () => {
         setIsPaymentModalOpen(true);
     };
 
+    const [successCompraId, setSuccessCompraId] = useState<number | null>(null);
+
     const handleConfirmPayment = async (paymentData: { paymentMethod: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA'; proof: File | null }) => {
         setProcessing(true);
         try {
@@ -86,14 +88,21 @@ export const OwnerPurchasesPage = () => {
                 }))
             };
 
-            await purchasesService.create(purchaseData);
+            const response = await purchasesService.create(purchaseData);
 
-            // Reset
+            // Reset and show success
             setCart([]);
             setSelectedSupplierId('');
             setIsPaymentModalOpen(false);
             await loadData();
-            alert('Compra registrada con éxito. Stock actualizado.');
+
+            // Show Success UI or Alert with PDF Link
+            if (response && response.compra_id) {
+                setSuccessCompraId(response.compra_id);
+            } else {
+                alert('Compra registrada con éxito. Stock actualizado.');
+            }
+
         } catch (error: any) {
             console.error('Purchase error:', error);
             alert('Error al registrar la compra');
@@ -101,6 +110,52 @@ export const OwnerPurchasesPage = () => {
             setProcessing(false);
         }
     };
+    const handleDownloadPdf = async (id: number) => {
+        try {
+            const blob = await purchasesService.downloadPdf(id);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `compra-${id}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Download error:', error);
+            alert('Error al descargar el PDF');
+        }
+    };
+
+    // --- Render Success Modal or Message ---
+    if (successCompraId) {
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fade-in">
+                <div className="bg-white rounded-[2rem] shadow-2xl p-8 max-w-md w-full text-center border border-slate-100">
+                    <div className="h-20 w-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6 text-teal-600 animate-bounce">
+                        <ShoppingBag size={40} />
+                    </div>
+                    <h2 className="text-2xl font-black text-slate-800 mb-2">¡Compra Exitosa!</h2>
+                    <p className="text-slate-500 mb-8">El stock ha sido actualizado correctamente y se ha notificado al equipo.</p>
+
+                    <div className="space-y-3">
+                        <button
+                            onClick={() => handleDownloadPdf(successCompraId)}
+                            className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20"
+                        >
+                            <History size={20} /> Descargar Comprobante PDF
+                        </button>
+                        <button
+                            onClick={() => setSuccessCompraId(null)}
+                            className="w-full py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all"
+                        >
+                            Cerrar y Continuar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const cartTotal = cart.reduce((sum, item) => sum + (item.purchaseQuantity * item.purchaseCost), 0);
 
@@ -126,7 +181,7 @@ export const OwnerPurchasesPage = () => {
                             Ver Historial
                         </Link>
                     </h1>
-                     <p className="text-slate-500 mt-2 text-lg max-w-2xl">
+                    <p className="text-slate-500 mt-2 text-lg max-w-2xl">
                         Registra ingresos de mercadería y actualiza automáticamente tu inventario y costos.
                     </p>
                 </div>
@@ -134,11 +189,11 @@ export const OwnerPurchasesPage = () => {
                 <div className="relative z-10 grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
                     {/* Left: Product Selector (2 cols) */}
                     <div className="xl:col-span-2 h-full">
-                         <ProductSelector
+                        <ProductSelector
                             products={products}
                             loading={loading}
                             onSelect={addToCart}
-                         />
+                        />
                     </div>
 
                     {/* Right: Cart (1 col) */}

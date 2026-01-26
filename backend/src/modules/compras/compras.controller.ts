@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, UseGuards, Request, Query, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Query, Param, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ComprasService } from './compras.service';
 import { CreateCompraDto } from './dto/create-compra.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
@@ -9,7 +10,7 @@ import { RolUsuario } from '@prisma/client';
 @Controller('compras')
 @UseGuards(AuthGuard, RolesGuard)
 export class ComprasController {
-  constructor(private readonly comprasService: ComprasService) {}
+  constructor(private readonly comprasService: ComprasService) { }
 
   @Post()
   @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN)
@@ -27,5 +28,19 @@ export class ComprasController {
   @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN)
   findOne(@Request() req, @Param('id') id: string) {
     return this.comprasService.findOne(req.user.tenant_id, Number(id));
+  }
+
+  @Get(':id/pdf')
+  @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN)
+  async getPdf(@Request() req, @Param('id') id: string, @Res() res: Response) {
+    const buffer = await this.comprasService.generarPdf(req.user.tenant_id, +id);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=compra-${id}.pdf`,
+      'Content-Length': buffer.length,
+    });
+
+    res.end(buffer);
   }
 }

@@ -4,7 +4,7 @@ import { RolUsuario } from '@prisma/client';
 
 @Injectable()
 export class NotificacionesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async crearNotificacion(usuarioId: number, tipo: string, mensaje: string) {
     return this.prisma.notificacion.create({
@@ -30,6 +30,25 @@ export class NotificacionesService {
     const tipo = stockActual <= 0 ? 'STOCK_AGOTADO' : 'STOCK_BAJO';
 
     // 2. Crear notificaciones
+    const notificaciones = usuarios.map((usuario) =>
+      this.crearNotificacion(usuario.usuario_id, tipo, mensaje),
+    );
+
+    await Promise.all(notificaciones);
+  }
+
+  async notificarCompraRealizada(tenantId: number, compraId: number, cantidadProductos: number) {
+    const usuarios = await this.prisma.usuario.findMany({
+      where: {
+        tenant_id: tenantId,
+        rol: { in: [RolUsuario.PROPIETARIO, RolUsuario.ADMIN] },
+        estado: 'ACTIVO',
+      },
+    });
+
+    const mensaje = `Compra #${compraId} registrada exitosamente. Stock actualizado para ${cantidadProductos} productos.`;
+    const tipo = 'STOCK_ACTUALIZADO';
+
     const notificaciones = usuarios.map((usuario) =>
       this.crearNotificacion(usuario.usuario_id, tipo, mensaje),
     );

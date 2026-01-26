@@ -40,4 +40,11 @@ export const purchasesService = {
         const response = await api.post<Compra>('/compras', data);
         return response.data;
     },
+
+    downloadPdf: async (id: number) => {
+        const response = await api.get(`/compras/${id}/pdf`, {
+            responseType: 'blob'
+        });
+        return response.data;
+    },
 };

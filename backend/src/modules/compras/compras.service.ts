@@ -2,15 +2,21 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCompraDto } from './dto/create-compra.dto';
 import { EstadoGenerico, EstadoCompra } from '@prisma/client';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { ComprasPdfService } from './compras-pdf.service';
 
 @Injectable()
 export class ComprasService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificacionesService: NotificacionesService,
+    private comprasPdfService: ComprasPdfService,
+  ) { }
 
   async create(tenantId: number, userId: number, createCompraDto: CreateCompraDto) {
     const { proveedor_id, productos } = createCompraDto;
 
-    return await this.prisma.$transaction(async (prisma) => {
+    const compra = await this.prisma.$transaction(async (prisma) => {
       let totalCompra = 0;
       const detallesParaCrear: any[] = [];
 
@@ -71,6 +77,16 @@ export class ComprasService {
         },
       });
     });
+
+    // 5. Notificar
+    // No esperamos la promesa para no bloquear la respuesta
+    this.notificacionesService.notificarCompraRealizada(
+      tenantId,
+      compra.compra_id,
+      compra.detalles.length
+    ).catch(e => console.error('Error enviando notificacion de compra', e));
+
+    return compra;
   }
 
   async findAll(tenantId: number, proveedorId?: number) {
@@ -103,6 +119,7 @@ export class ComprasService {
             producto: true,
           },
         },
+        tenant: true, // Need tenant info for PDF
       },
     });
 
@@ -111,5 +128,10 @@ export class ComprasService {
     }
 
     return compra;
+  }
+
+  async generarPdf(tenantId: number, compraId: number): Promise<Buffer> {
+    const compra = await this.findOne(tenantId, compraId);
+    return this.comprasPdfService.generatePurchasePdf(compra);
   }
 }
