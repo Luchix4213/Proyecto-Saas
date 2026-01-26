@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+
+import { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import { Search, Loader, CheckCircle, XCircle, Truck, FileText, Calendar, DollarSign, User, ExternalLink } from 'lucide-react';
+import { Truck, CheckCircle, XCircle, Loader, User, FileText } from 'lucide-react';
 
 interface Venta {
     venta_id: number;
@@ -24,7 +24,8 @@ interface Venta {
 }
 
 export const OnlineSalesPage = () => {
-    const { user } = useAuth();
+
+
     const [sales, setSales] = useState<Venta[]>([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('REGISTRADA'); // Default to pending verification

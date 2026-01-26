@@ -35,9 +35,13 @@ export class ComprasController {
   async getPdf(@Request() req, @Param('id') id: string, @Res() res: Response) {
     const buffer = await this.comprasService.generarPdf(req.user.tenant_id, +id);
 
+    const compra = await this.comprasService.findOne(req.user.tenant_id, +id);
+    const empresa = compra.tenant?.nombre_empresa.replace(/\s+/g, '_') || 'Empresa';
+    const fecha = new Date(compra.fecha_compra).toISOString().split('T')[0];
+
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename=compra-${id}.pdf`,
+      'Content-Disposition': `attachment; filename=${empresa}_Compra_${id}_${fecha}.pdf`,
       'Content-Length': buffer.length,
     });
 

@@ -1,4 +1,4 @@
-import { IsArray, IsInt, IsNotEmpty, IsPositive, ValidateNested, IsNumber } from 'class-validator';
+import { IsArray, IsInt, IsNotEmpty, IsPositive, ValidateNested, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class DetalleCompraItemDto {
@@ -13,6 +13,14 @@ class DetalleCompraItemDto {
   @IsNumber()
   @IsPositive()
   costo_unitario: number;
+
+  @IsOptional()
+  @IsString()
+  lote?: string;
+
+  @IsOptional()
+  @IsString()
+  fecha_vencimiento?: string;
 }
 
 export class CreateCompraDto {

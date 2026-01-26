@@ -268,14 +268,16 @@ model Compra {
 }
 
 model DetalleCompra {
-  detalle_compra_id Int      @id @default(autoincrement())
+  detalle_compra_id Int       @id @default(autoincrement())
   compra_id         Int
-  compra            Compra   @relation(fields: [compra_id], references: [compra_id])
+  compra            Compra    @relation(fields: [compra_id], references: [compra_id])
   producto_id       Int
-  producto          Producto @relation(fields: [producto_id], references: [producto_id])
+  producto          Producto  @relation(fields: [producto_id], references: [producto_id])
   cantidad          Int
-  precio_unitario   Decimal  @db.Decimal(10, 2)
-  subtotal          Decimal  @db.Decimal(10, 2)
+  precio_unitario   Decimal   @db.Decimal(10, 2)
+  subtotal          Decimal   @db.Decimal(10, 2)
+  lote              String?
+  fecha_vencimiento DateTime?
 }
 
 model Venta {
