@@ -224,6 +224,9 @@ export class VentasService {
             data: {
               tenant_id: tenantId,
               nombre: nombre || 'Invitado',
+              paterno: checkoutDto.paterno || null,
+              materno: checkoutDto.materno || null,
+              telefono: checkoutDto.telefono || null,
               email: email,
               nit_ci: nit_ci,
             },

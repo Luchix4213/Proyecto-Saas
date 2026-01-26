@@ -21,7 +21,10 @@ export const CheckoutPage = () => {
 
   const [formData, setFormData] = useState({
     nombre: '',
+    paterno: '',
+    materno: '',
     email: '',
+    telefono: '',
     nit_ci: '',
     metodo_pago: 'QR',
   });
@@ -79,20 +82,29 @@ export const CheckoutPage = () => {
         setFormData(prev => ({
           ...prev,
           nombre: client.nombre || '',
+          paterno: client.paterno || '',
+          materno: client.materno || '',
           email: client.email || '',
+          telefono: client.telefono || '',
         }));
         // Update local storage just in case
         localStorage.setItem('kipu_client_data', JSON.stringify({
           nit_ci: client.nit_ci,
           nombre: client.nombre,
-          email: client.email
+          paterno: client.paterno,
+          materno: client.materno,
+          email: client.email,
+          telefono: client.telefono
         }));
       } else {
         setClientFound(false);
         setFormData(prev => ({
           ...prev,
           nombre: '',
+          paterno: '',
+          materno: '',
           email: '',
+          telefono: '',
         }));
         localStorage.removeItem('kipu_client_data');
       }
@@ -124,7 +136,10 @@ export const CheckoutPage = () => {
     try {
       const formPayload = new FormData();
       formPayload.append('nombre', formData.nombre);
+      formPayload.append('paterno', formData.paterno);
+      formPayload.append('materno', formData.materno);
       formPayload.append('email', formData.email);
+      formPayload.append('telefono', formData.telefono);
       formPayload.append('nit_ci', formData.nit_ci);
       formPayload.append('metodo_pago', formData.metodo_pago);
       formPayload.append('productos', JSON.stringify(currentStoreItems.map(i => ({
@@ -140,7 +155,10 @@ export const CheckoutPage = () => {
       localStorage.setItem('kipu_client_data', JSON.stringify({
         nit_ci: formData.nit_ci,
         nombre: formData.nombre,
-        email: formData.email
+        paterno: formData.paterno,
+        materno: formData.materno,
+        email: formData.email,
+        telefono: formData.telefono
       }));
 
       // Using api instance
@@ -288,36 +306,81 @@ export const CheckoutPage = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Tu Nombre</label>
-                      <div className="relative group">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={20} />
-                        <input
-                          type="text"
-                          name="nombre"
-                          required
-                          value={formData.nombre}
-                          onChange={handleInputChange}
-                          className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium"
-                          placeholder="Ej: Juan Perez"
-                        />
+                  <div className="space-y-4">
+                    {/* Name Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Tu Nombre</label>
+                        <div className="relative group">
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={20} />
+                          <input
+                            type="text"
+                            name="nombre"
+                            required
+                            value={formData.nombre}
+                            onChange={handleInputChange}
+                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium"
+                            placeholder="Ej: Juan"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Apellido Paterno</label>
+                        <div className="relative group">
+                          <input
+                            type="text"
+                            name="paterno"
+                            value={formData.paterno}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-4 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium"
+                            placeholder="Ej: Perez"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Apellido Materno</label>
+                        <div className="relative group">
+                          <input
+                            type="text"
+                            name="materno"
+                            value={formData.materno}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-4 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium"
+                            placeholder="Ej: Gomez"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Email</label>
-                      <div className="relative group">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={20} />
-                        <input
-                          type="email"
-                          name="email"
-                          required
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium"
-                          placeholder="juan@ejemplo.com"
-                        />
+                    {/* Contact Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Teléfono / Celular</label>
+                        <div className="relative group">
+                          <input
+                            type="tel"
+                            name="telefono"
+                            value={formData.telefono}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-4 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium"
+                            placeholder="Ej: 77712345"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Email</label>
+                        <div className="relative group">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={20} />
+                          <input
+                            type="email"
+                            name="email"
+                            required
+                            value={formData.email}
+                            onChange={handleInputChange}
+                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium"
+                            placeholder="juan@ejemplo.com"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

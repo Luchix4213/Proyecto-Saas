@@ -24,7 +24,21 @@ export class CheckoutDto {
 
   @IsString()
   @IsOptional()
+  @IsString()
+  @IsOptional()
   nit_ci?: string;
+
+  @IsString()
+  @IsOptional()
+  paterno?: string;
+
+  @IsString()
+  @IsOptional()
+  materno?: string;
+
+  @IsString()
+  @IsOptional()
+  telefono?: string;
 
   @IsArray()
   @ValidateNested({ each: true })
