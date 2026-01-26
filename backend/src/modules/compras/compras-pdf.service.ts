@@ -4,7 +4,7 @@ import { Compra, DetalleCompra, Producto, Proveedor, Tenant, Usuario } from '@pr
 
 type CompraWithDetails = Compra & {
     detalles: (DetalleCompra & { producto: Producto })[];
-    proveedor: Proveedor;
+    proveedor: Proveedor | null;
     usuario: Usuario;
     tenant: Tenant;
 };
@@ -69,11 +69,20 @@ export class ComprasPdfService {
         doc
             .fontSize(10)
             .text('PROVEEDOR:', 300, 160)
-            .font('Helvetica-Bold')
-            .text(compra.proveedor.nombre, 300, 175)
-            .font('Helvetica')
-            .text(`Tel: ${compra.proveedor.telefono || '-'}`, 300, 190)
-            .text(`Email: ${compra.proveedor.email || '-'}`, 300, 205);
+            .font('Helvetica-Bold');
+
+        if (compra.proveedor) {
+            doc
+                .text(compra.proveedor.nombre, 300, 175)
+                .font('Helvetica')
+                .text(`Tel: ${compra.proveedor.telefono || '-'}`, 300, 190)
+                .text(`Email: ${compra.proveedor.email || '-'}`, 300, 205);
+        } else {
+            doc
+                .text('COMPRA PROPIA / SIN PROVEEDOR', 300, 175)
+                .font('Helvetica')
+                .text('-', 300, 190);
+        }
 
         doc.moveDown();
     }

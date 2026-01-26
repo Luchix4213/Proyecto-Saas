@@ -15,8 +15,8 @@ export interface PurchaseItem extends Product {
 interface PurchaseCartProps {
     cart: PurchaseItem[];
     suppliers: Proveedor[];
-    selectedSupplierId: number | '';
-    onSelectSupplier: (id: number) => void;
+    selectedSupplierId: number | 'OWN' | '';
+    onSelectSupplier: (id: number | 'OWN' | '') => void;
     onUpdateItem: (productId: number, field: 'purchaseQuantity' | 'purchaseCost' | 'purchaseLote' | 'purchaseExpiry', value: string | number) => void;
     onRemoveItem: (productId: number) => void;
     onSubmit: () => void;
@@ -36,12 +36,6 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
     onCreateNewSupplier
 }) => {
     const total = cart.reduce((sum, item) => sum + (item.purchaseQuantity * item.purchaseCost), 0);
-
-    // Wait, I can't change the interface usage in OwnerPurchasesPage yet without breaking it.
-    // I will add an onPaymentMethodChange prop or similar, OR modify onSubmit to accept data.
-    // Let's check OwnerPurchasesPage again.
-
-
     return (
         <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 flex flex-col h-full overflow-hidden sticky top-8">
             {/* Header */}
@@ -61,9 +55,15 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
                     <select
                         className="w-full appearance-none px-4 py-3.5 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 text-sm font-bold text-slate-700 outline-none transition-all cursor-pointer"
                         value={selectedSupplierId}
-                        onChange={(e) => onSelectSupplier(Number(e.target.value))}
+                        onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === 'OWN') onSelectSupplier('OWN');
+                            else if (val === '') onSelectSupplier('');
+                            else onSelectSupplier(Number(val));
+                        }}
                     >
                         <option value="">Seleccionar Proveedor...</option>
+                        <option value="OWN">🔹 Compra Propia / Sin Proveedor</option>
                         {suppliers.map(s => (
                             <option key={s.proveedor_id} value={s.proveedor_id}>{s.nombre}</option>
                         ))}
@@ -116,60 +116,60 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
                                     </button>
                                 </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Cantidad</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={item.purchaseQuantity}
-                                        onChange={(e) => onUpdateItem(item.producto_id, 'purchaseQuantity', parseInt(e.target.value) || 0)}
-                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 outline-none"
-                                    />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Cantidad</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={item.purchaseQuantity}
+                                            onChange={(e) => onUpdateItem(item.producto_id, 'purchaseQuantity', parseInt(e.target.value) || 0)}
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Costo (Bs)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={item.purchaseCost}
+                                            onChange={(e) => onUpdateItem(item.producto_id, 'purchaseCost', parseFloat(e.target.value) || 0)}
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 outline-none"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Costo (Bs)</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="0.01"
-                                        value={item.purchaseCost}
-                                        onChange={(e) => onUpdateItem(item.producto_id, 'purchaseCost', parseFloat(e.target.value) || 0)}
-                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 outline-none"
-                                    />
-                                </div>
-                            </div>
 
-                            <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
-                                <span className="text-xs font-medium text-slate-400">Subtotal</span>
-                                <span className="font-black text-slate-800 text-sm">Bs {(item.purchaseQuantity * item.purchaseCost).toFixed(2)}</span>
-                            </div>
+                                <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
+                                    <span className="text-xs font-medium text-slate-400">Subtotal</span>
+                                    <span className="font-black text-slate-800 text-sm">Bs {(item.purchaseQuantity * item.purchaseCost).toFixed(2)}</span>
+                                </div>
 
-                            <div className="grid grid-cols-2 gap-3 mt-3">
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Lote</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Opcional"
-                                        value={item.purchaseLote || ''}
-                                        onChange={(e) => onUpdateItem(item.producto_id, 'purchaseLote', e.target.value)}
-                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 outline-none text-xs"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Vencimiento</label>
-                                    <input
-                                        type="date"
-                                        value={item.purchaseExpiry || ''}
-                                        onChange={(e) => onUpdateItem(item.producto_id, 'purchaseExpiry', e.target.value)}
-                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 outline-none text-xs"
-                                    />
+                                <div className="grid grid-cols-2 gap-3 mt-3">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Lote</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Opcional"
+                                            value={item.purchaseLote || ''}
+                                            onChange={(e) => onUpdateItem(item.producto_id, 'purchaseLote', e.target.value)}
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 outline-none text-xs"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Vencimiento</label>
+                                        <input
+                                            type="date"
+                                            value={item.purchaseExpiry || ''}
+                                            onChange={(e) => onUpdateItem(item.producto_id, 'purchaseExpiry', e.target.value)}
+                                            className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 outline-none text-xs"
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })
-            )}
+                        );
+                    })
+                )}
             </div>
 
             {/* Footer / Total */}

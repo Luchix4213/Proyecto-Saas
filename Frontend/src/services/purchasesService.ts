@@ -1,8 +1,8 @@
 import api from '../api/axios';
 
 export interface CreateCompraData {
-    proveedor_id: number;
-    productos: { producto_id: number; cantidad: number; costo_unitario: number }[];
+    proveedor_id?: number;
+    productos: { producto_id: number; cantidad: number; costo_unitario: number; lote?: string; fecha_vencimiento?: string }[];
     metodo_pago: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';
 }
 

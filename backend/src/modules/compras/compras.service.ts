@@ -20,11 +20,13 @@ export class ComprasService {
       let totalCompra = 0;
       const detallesParaCrear: any[] = [];
 
-      // 1. Validar Proveedor
-      const proveedor = await prisma.proveedor.findFirst({
-        where: { proveedor_id, tenant_id: tenantId },
-      });
-      if (!proveedor) throw new NotFoundException('Proveedor no encontrado');
+      // 1. Validar Proveedor (Si se envió)
+      if (proveedor_id) {
+        const proveedor = await prisma.proveedor.findFirst({
+          where: { proveedor_id, tenant_id: tenantId },
+        });
+        if (!proveedor) throw new NotFoundException('Proveedor no encontrado');
+      }
 
       // 2. Procesar productos
       for (const item of productos) {
@@ -36,13 +38,18 @@ export class ComprasService {
           throw new NotFoundException(`Producto #${item.producto_id} no encontrado`);
         }
 
-        // 3. Incrementar Stock y Vincular Proveedor
+        // 3. Incrementar Stock y Vincular Proveedor (solo si hay proveedor nuevo)
+        const updateData: any = {
+          stock_actual: { increment: item.cantidad },
+        };
+
+        if (proveedor_id) {
+          updateData.proveedor_id = proveedor_id;
+        }
+
         await prisma.producto.update({
           where: { producto_id: item.producto_id },
-          data: {
-            stock_actual: { increment: item.cantidad },
-            proveedor_id: proveedor_id // Link product to this supplier
-          },
+          data: updateData,
         });
 
         const subtotal = item.costo_unitario * item.cantidad;
@@ -63,7 +70,7 @@ export class ComprasService {
         data: {
           tenant_id: tenantId,
           usuario_id: userId,
-          proveedor_id: proveedor_id,
+          proveedor_id: (proveedor_id || null) as any, // Cast due to Prisma type mismatch
           fecha_compra: new Date(),
           total: totalCompra,
           metodo_pago: createCompraDto.metodo_pago as any, // Cast to enum
@@ -82,11 +89,13 @@ export class ComprasService {
 
     // 5. Notificar
     // No esperamos la promesa para no bloquear la respuesta
-    this.notificacionesService.notificarCompraRealizada(
-      tenantId,
-      compra.compra_id,
-      compra.detalles.length
-    ).catch(e => console.error('Error enviando notificacion de compra', e));
+    if (compra && compra.detalles) {
+      this.notificacionesService.notificarCompraRealizada(
+        tenantId,
+        compra.compra_id,
+        compra.detalles.length
+      ).catch(e => console.error('Error enviando notificacion de compra', e));
+    }
 
     return compra;
   }

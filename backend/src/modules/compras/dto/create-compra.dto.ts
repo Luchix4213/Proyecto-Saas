@@ -25,8 +25,8 @@ class DetalleCompraItemDto {
 
 export class CreateCompraDto {
   @IsInt()
-  @IsNotEmpty()
-  proveedor_id: number;
+  @IsOptional()
+  proveedor_id?: number;
 
   @IsNotEmpty()
   metodo_pago: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';

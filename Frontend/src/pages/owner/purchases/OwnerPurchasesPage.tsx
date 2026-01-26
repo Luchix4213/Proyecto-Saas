@@ -19,7 +19,7 @@ export const OwnerPurchasesPage = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [cart, setCart] = useState<PurchaseItem[]>([]);
 
-    const [selectedSupplierId, setSelectedSupplierId] = useState<number | ''>('');
+    const [selectedSupplierId, setSelectedSupplierId] = useState<number | 'OWN' | ''>('');
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -47,6 +47,13 @@ export const OwnerPurchasesPage = () => {
         }
     };
 
+    // Filter products based on selection
+    const availableProducts = selectedSupplierId === ''
+        ? products // Show all if nothing selected (or maybe show none? Let's show all for browsing)
+        : selectedSupplierId === 'OWN'
+            ? products // Own purchase -> Show all (internal stock management)
+            : products.filter(p => p.proveedor_id === Number(selectedSupplierId));
+
     const addToCart = (product: Product) => {
         setCart(prev => {
             const existing = prev.find(item => item.producto_id === product.producto_id);
@@ -55,7 +62,7 @@ export const OwnerPurchasesPage = () => {
             return [...prev, {
                 ...product,
                 purchaseQuantity: 1,
-                purchaseCost: Number(product.precio) * 0.7,
+                purchaseCost: Number(product.precio) * 0.7, // Estimate cost
                 purchaseLote: '',
                 purchaseExpiry: ''
             }];
@@ -77,8 +84,8 @@ export const OwnerPurchasesPage = () => {
 
     // Updated handleRegisterPurchase - Just opens modal
     const handleRegisterPurchase = () => {
-        if (!selectedSupplierId) {
-            alert('Selecciona un proveedor');
+        if (selectedSupplierId === '') {
+            alert('Selecciona un proveedor o Compra Propia');
             return;
         }
         if (cart.length === 0) {
@@ -94,12 +101,15 @@ export const OwnerPurchasesPage = () => {
         setProcessing(true);
         try {
             const purchaseData: CreateCompraData = {
-                proveedor_id: Number(selectedSupplierId),
+                // If OWN, don't send proveedor_id (or send undefined if DTO allows)
+                ...(selectedSupplierId !== 'OWN' && { proveedor_id: Number(selectedSupplierId) }),
                 metodo_pago: paymentData.paymentMethod,
                 productos: cart.map(item => ({
                     producto_id: item.producto_id,
                     cantidad: Number(item.purchaseQuantity),
-                    costo_unitario: Number(item.purchaseCost)
+                    costo_unitario: Number(item.purchaseCost),
+                    lote: item.purchaseLote,
+                    fecha_vencimiento: item.purchaseExpiry,
                 }))
             };
 
@@ -214,7 +224,7 @@ export const OwnerPurchasesPage = () => {
                     {/* Left: Product Selector (2 cols) */}
                     <div className="xl:col-span-2 h-full">
                         <ProductSelector
-                            products={products}
+                            products={availableProducts}
                             loading={loading}
                             onSelect={addToCart}
                             onCreateNew={() => setIsProductModalOpen(true)}
@@ -226,8 +236,8 @@ export const OwnerPurchasesPage = () => {
                         <PurchaseCart
                             cart={cart}
                             suppliers={suppliers}
-                            selectedSupplierId={selectedSupplierId}
-                            onSelectSupplier={setSelectedSupplierId}
+                            selectedSupplierId={selectedSupplierId as any} // Temporary cast until Comp update
+                            onSelectSupplier={(val) => setSelectedSupplierId(val as any)}
                             onUpdateItem={updateItem}
                             onRemoveItem={removeFromCart}
                             onSubmit={handleRegisterPurchase}
