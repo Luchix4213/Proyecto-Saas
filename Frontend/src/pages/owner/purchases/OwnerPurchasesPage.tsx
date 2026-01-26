@@ -7,17 +7,24 @@ import { purchasesService, type CreateCompraData } from '../../../services/purch
 import { ProductSelector } from '../../../components/purchases/ProductSelector';
 import { PurchaseCart, type PurchaseItem } from '../../../components/purchases/PurchaseCart';
 import { PurchasesPaymentModal } from '../../../components/purchases/PurchasesPaymentModal';
+import { ProductForm } from '../../../components/products/ProductForm';
+import { SupplierForm } from '../../../components/suppliers/SupplierForm';
 
+
+import { categoriesService, type Category } from '../../../services/categoriesService';
 
 export const OwnerPurchasesPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [suppliers, setSuppliers] = useState<Proveedor[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [cart, setCart] = useState<PurchaseItem[]>([]);
 
     const [selectedSupplierId, setSelectedSupplierId] = useState<number | ''>('');
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -25,12 +32,14 @@ export const OwnerPurchasesPage = () => {
 
     const loadData = async () => {
         try {
-            const [productsData, suppliersData] = await Promise.all([
+            const [productsData, suppliersData, categoriesData] = await Promise.all([
                 productsService.getAll(),
-                suppliersService.getAll()
+                suppliersService.getAll(),
+                categoriesService.getAll()
             ]);
             setProducts(productsData.filter(p => p.estado === 'ACTIVO'));
             setSuppliers(suppliersData.filter(s => s.estado === 'ACTIVO'));
+            setCategories(categoriesData);
         } catch (error) {
             console.error('Error loading data:', error);
         } finally {
@@ -43,7 +52,13 @@ export const OwnerPurchasesPage = () => {
             const existing = prev.find(item => item.producto_id === product.producto_id);
             if (existing) return prev;
             // Default cost estimation (70% of price)
-            return [...prev, { ...product, purchaseQuantity: 1, purchaseCost: Number(product.precio) * 0.7 }];
+            return [...prev, {
+                ...product,
+                purchaseQuantity: 1,
+                purchaseCost: Number(product.precio) * 0.7,
+                purchaseLote: '',
+                purchaseExpiry: ''
+            }];
         });
     };
 
@@ -51,7 +66,7 @@ export const OwnerPurchasesPage = () => {
         setCart(prev => prev.filter(item => item.producto_id !== productId));
     };
 
-    const updateItem = (productId: number, field: 'purchaseQuantity' | 'purchaseCost', value: number) => {
+    const updateItem = (productId: number, field: 'purchaseQuantity' | 'purchaseCost' | 'purchaseLote' | 'purchaseExpiry', value: number | string) => {
         setCart(prev => prev.map(item => {
             if (item.producto_id === productId) {
                 return { ...item, [field]: value };
@@ -92,7 +107,7 @@ export const OwnerPurchasesPage = () => {
 
             // Reset and show success
             setCart([]);
-            setSelectedSupplierId('');
+
             setIsPaymentModalOpen(false);
             await loadData();
 
@@ -116,7 +131,13 @@ export const OwnerPurchasesPage = () => {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `compra-${id}.pdf`);
+
+            // Get supplier name for filename
+            const supplier = suppliers.find(s => s.proveedor_id === Number(selectedSupplierId));
+            const empresa = supplier?.nombre.replace(/\s+/g, '_') || 'Empresa';
+            const fecha = new Date().toISOString().split('T')[0];
+
+            link.setAttribute('download', `${empresa}_Compra_${id}_${fecha}.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -146,7 +167,10 @@ export const OwnerPurchasesPage = () => {
                             <History size={20} /> Descargar Comprobante PDF
                         </button>
                         <button
-                            onClick={() => setSuccessCompraId(null)}
+                            onClick={() => {
+                                setSuccessCompraId(null);
+                                setSelectedSupplierId('');
+                            }}
                             className="w-full py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all"
                         >
                             Cerrar y Continuar
@@ -193,6 +217,7 @@ export const OwnerPurchasesPage = () => {
                             products={products}
                             loading={loading}
                             onSelect={addToCart}
+                            onCreateNew={() => setIsProductModalOpen(true)}
                         />
                     </div>
 
@@ -207,6 +232,7 @@ export const OwnerPurchasesPage = () => {
                             onRemoveItem={removeFromCart}
                             onSubmit={handleRegisterPurchase}
                             processing={processing}
+                            onCreateNewSupplier={() => setIsSupplierModalOpen(true)}
                         />
                     </div>
                 </div>
@@ -218,6 +244,34 @@ export const OwnerPurchasesPage = () => {
                 total={cartTotal}
                 onClose={() => setIsPaymentModalOpen(false)}
                 onConfirm={handleConfirmPayment}
+            />
+
+            {/* Quick Create Modals */}
+            <ProductForm
+                isOpen={isProductModalOpen}
+                onClose={() => setIsProductModalOpen(false)}
+                onSuccess={() => {
+                    loadData();
+                    setIsProductModalOpen(false);
+                }}
+                productToEdit={null}
+                categories={categories}
+            />
+
+            <SupplierForm
+                isOpen={isSupplierModalOpen}
+                onClose={() => setIsSupplierModalOpen(false)}
+                onSubmit={async (data) => {
+                    try {
+                        await suppliersService.create(data);
+                        loadData();
+                        setIsSupplierModalOpen(false);
+                    } catch (error) {
+                        alert('Error al crear proveedor');
+                    }
+                }}
+                supplier={null}
+                isLoading={false}
             />
         </div>
     );

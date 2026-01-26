@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { X, Save, Phone, Mail, CreditCard, ChevronDown, Rocket, Truck } from 'lucide-react';
+import { X, Mail, Truck, ChevronDown, CreditCard, Save } from 'lucide-react';
 import { type Proveedor, type CreateProveedorData } from '../../services/suppliersService';
 
 interface SupplierFormProps {
@@ -17,8 +17,7 @@ interface SupplierFormValues extends CreateProveedorData {
 }
 
 export const SupplierForm: React.FC<SupplierFormProps> = ({ isOpen, onClose, onSubmit, supplier, isLoading }) => {
-    const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<SupplierFormValues>();
-    const countryCode = watch('countryCode', '+591');
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<SupplierFormValues>();
 
     // Country codes data
     const countryCodes = [

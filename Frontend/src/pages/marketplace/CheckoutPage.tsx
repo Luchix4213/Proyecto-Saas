@@ -32,7 +32,6 @@ export const CheckoutPage = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderResult, setOrderResult] = useState<any>(null);
   const [checkingNit, setCheckingNit] = useState(false);
-  const [clientFound, setClientFound] = useState(false);
 
   // Load saved client data on mount
   useEffect(() => {
@@ -43,7 +42,7 @@ export const CheckoutPage = () => {
         if (parsed.nit_ci) {
           setFormData(prev => ({ ...prev, ...parsed }));
           setStep('details');
-          setClientFound(true);
+
         }
       } catch (e) {
         console.error('Error parsing saved client data', e);
@@ -88,7 +87,7 @@ export const CheckoutPage = () => {
           email: client.email
         }));
       } else {
-        setClientFound(false);
+
         setFormData(prev => ({
           ...prev,
           nombre: '',

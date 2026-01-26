@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Plus, Search, Pencil, Trash2, AlertCircle, Phone, Mail, CreditCard, CheckCircle2, TrendingUp, Truck, History } from 'lucide-react';
+import { LayoutDashboard, Plus, Search, Pencil, Trash2, AlertCircle, Phone, Mail, CreditCard, CheckCircle2, TrendingUp, Truck, History, XCircle } from 'lucide-react';
 import { suppliersService, type Proveedor, type CreateProveedorData } from '../../services/suppliersService';
 import { SupplierForm } from '../../components/suppliers/SupplierForm';
 
@@ -95,7 +95,13 @@ export const OwnerSuppliersPage = () => {
                 <div className="absolute bottom-0 right-10 -mb-20 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 {/* Header */}
-                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+            {error && (
+                <div className="bg-red-50 text-red-600 p-4 mb-4 rounded-xl border border-red-100 flex items-center justify-between">
+                    <span>{error}</span>
+                    <button onClick={() => setError('')} className="text-red-400 hover:text-red-600"><XCircle size={18} /></button>
+                </div>
+            )}
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                     <div>
                         <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
                             <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl text-white shadow-lg shadow-indigo-500/30">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Calendar, History, Search, Eye, ArrowLeft, Filter, Truck } from 'lucide-react';
+import { Calendar, History, Search, Eye, ArrowLeft, Filter, Truck, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { purchasesService, type Compra } from '../../../services/purchasesService';
 import { PurchaseDetailModal } from '../../../components/purchases/PurchaseDetailModal';
@@ -169,13 +169,44 @@ export const PurchaseHistoryPage = () => {
                                                 </span>
                                             </td>
                                             <td className="px-8 py-5 whitespace-nowrap text-right">
-                                                <button
-                                                    onClick={() => handleViewDetail(p)}
-                                                    className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all shadow-sm hover:shadow-md border border-transparent hover:border-slate-100 flex items-center gap-2 ml-auto"
-                                                >
-                                                    <Eye size={16} />
-                                                    <span className="text-xs font-bold">Ver Detalles</span>
-                                                </button>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            try {
+                                                                const blob = await purchasesService.downloadPdf(p.compra_id);
+                                                                const url = window.URL.createObjectURL(blob);
+                                                                const link = document.createElement('a');
+                                                                link.href = url;
+
+                                                                const empresa = p.proveedor?.nombre.replace(/\s+/g, '_') || 'Empresa';
+                                                                const fecha = new Date(p.fecha_compra).toISOString().split('T')[0];
+                                                                link.setAttribute('download', `${empresa}_Compra_${p.compra_id}_${fecha}.pdf`);
+
+                                                                document.body.appendChild(link);
+                                                                // Actually, if backend sets header, this download attribute might be overridden or ignored depending on browser.
+                                                                // But better to let the blob handle it if possible.
+                                                                // Let's just create the link.
+                                                                document.body.appendChild(link);
+                                                                link.click();
+                                                                link.remove();
+                                                            } catch (error) {
+                                                                console.error('Error downloading PDF:', error);
+                                                            }
+                                                        }}
+                                                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all shadow-sm hover:shadow-md border border-transparent hover:border-slate-100"
+                                                        title="Descargar Comprobante"
+                                                    >
+                                                        <FileText size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleViewDetail(p)}
+                                                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all shadow-sm hover:shadow-md border border-transparent hover:border-slate-100 flex items-center gap-2"
+                                                    >
+                                                        <Eye size={16} />
+                                                        <span className="text-xs font-bold">Ver Detalles</span>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

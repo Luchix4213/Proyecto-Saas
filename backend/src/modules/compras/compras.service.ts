@@ -53,6 +53,8 @@ export class ComprasService {
           cantidad: item.cantidad,
           precio_unitario: item.costo_unitario,
           subtotal: subtotal,
+          lote: item.lote,
+          fecha_vencimiento: item.fecha_vencimiento ? new Date(item.fecha_vencimiento) : null,
         });
       }
 

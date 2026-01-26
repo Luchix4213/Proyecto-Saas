@@ -7,9 +7,10 @@ interface ProductSelectorProps {
     products: Product[];
     loading: boolean;
     onSelect: (product: Product) => void;
+    onCreateNew?: () => void;
 }
 
-export const ProductSelector: React.FC<ProductSelectorProps> = ({ products, loading, onSelect }) => {
+export const ProductSelector: React.FC<ProductSelectorProps> = ({ products, loading, onSelect, onCreateNew }) => {
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredProducts = products.filter(p =>
@@ -25,8 +26,19 @@ export const ProductSelector: React.FC<ProductSelectorProps> = ({ products, load
                         <h3 className="text-xl font-black text-slate-800 tracking-tight">Catálogo de Productos</h3>
                         <p className="text-sm font-medium text-slate-400">Selecciona items para reabastecer</p>
                     </div>
-                    <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 text-slate-400">
-                        <Package size={24} />
+                    <div className="flex gap-2">
+                        {onCreateNew && (
+                            <button
+                                onClick={onCreateNew}
+                                className="p-3 bg-slate-900 rounded-2xl shadow-sm border border-transparent text-white hover:bg-slate-800 transition-all"
+                                title="Crear Nuevo Producto"
+                            >
+                                <Plus size={24} />
+                            </button>
+                        )}
+                        <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100 text-slate-400">
+                            <Package size={24} />
+                        </div>
                     </div>
                 </div>
 

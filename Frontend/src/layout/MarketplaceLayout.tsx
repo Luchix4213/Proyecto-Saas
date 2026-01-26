@@ -1,4 +1,4 @@
-import { Outlet, Link, useNavigate, useParams } from 'react-router-dom';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { Search, User, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
@@ -8,7 +8,7 @@ import { CartDrawer } from '../components/marketplace/CartDrawer';
 export const MarketplaceLayout = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const { slug } = useParams<{ slug: string }>(); // Context awareness
+    // const { slug } = useParams(); // Unused<{ slug: string }>(); // Context awareness
     const [searchTerm, setSearchTerm] = useState('');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

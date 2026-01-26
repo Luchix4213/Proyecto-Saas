@@ -1,5 +1,5 @@
 import React from 'react';
-import { Truck, X, ArrowRight, Calculator, Package } from 'lucide-react';
+import { Truck, X, ArrowRight, Calculator, Package, Plus } from 'lucide-react';
 import { type Product } from '../../services/productsService';
 import { type Proveedor } from '../../services/suppliersService';
 import { getImageUrl } from '../../utils/imageUtils';
@@ -8,6 +8,8 @@ import { getImageUrl } from '../../utils/imageUtils';
 export interface PurchaseItem extends Product {
     purchaseQuantity: number;
     purchaseCost: number;
+    purchaseLote: string;
+    purchaseExpiry: string;
 }
 
 interface PurchaseCartProps {
@@ -15,11 +17,11 @@ interface PurchaseCartProps {
     suppliers: Proveedor[];
     selectedSupplierId: number | '';
     onSelectSupplier: (id: number) => void;
-    onUpdateItem: (productId: number, field: 'purchaseQuantity' | 'purchaseCost', value: number) => void;
+    onUpdateItem: (productId: number, field: 'purchaseQuantity' | 'purchaseCost' | 'purchaseLote' | 'purchaseExpiry', value: string | number) => void;
     onRemoveItem: (productId: number) => void;
     onSubmit: () => void;
     processing: boolean;
-
+    onCreateNewSupplier?: () => void;
 }
 
 export const PurchaseCart: React.FC<PurchaseCartProps> = ({
@@ -30,7 +32,8 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
     onUpdateItem,
     onRemoveItem,
     onSubmit,
-    processing
+    processing,
+    onCreateNewSupplier
 }) => {
     const total = cart.reduce((sum, item) => sum + (item.purchaseQuantity * item.purchaseCost), 0);
 
@@ -65,6 +68,15 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
                             <option key={s.proveedor_id} value={s.proveedor_id}>{s.nombre}</option>
                         ))}
                     </select>
+                    {onCreateNewSupplier && (
+                        <button
+                            onClick={onCreateNewSupplier}
+                            className="absolute right-1 top-1 bottom-1 px-3 bg-slate-900 rounded-xl text-white hover:bg-slate-800 transition-all flex items-center justify-center"
+                            title="Registrar Nuevo Proveedor"
+                        >
+                            <Plus size={18} />
+                        </button>
+                    )}
                 </div>
             </div>
             {/* Cart Items */}
@@ -131,6 +143,28 @@ export const PurchaseCart: React.FC<PurchaseCartProps> = ({
                             <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
                                 <span className="text-xs font-medium text-slate-400">Subtotal</span>
                                 <span className="font-black text-slate-800 text-sm">Bs {(item.purchaseQuantity * item.purchaseCost).toFixed(2)}</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 mt-3">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Lote</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Opcional"
+                                        value={item.purchaseLote || ''}
+                                        onChange={(e) => onUpdateItem(item.producto_id, 'purchaseLote', e.target.value)}
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 outline-none text-xs"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Vencimiento</label>
+                                    <input
+                                        type="date"
+                                        value={item.purchaseExpiry || ''}
+                                        onChange={(e) => onUpdateItem(item.producto_id, 'purchaseExpiry', e.target.value)}
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-center font-bold text-slate-700 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/10 outline-none text-xs"
+                                    />
+                                </div>
                             </div>
                         </div>
                     );
