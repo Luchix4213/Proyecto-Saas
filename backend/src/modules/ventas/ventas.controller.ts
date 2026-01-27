@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request, Patch, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request, Patch, UseInterceptors, UploadedFile, BadRequestException, Res, Header } from '@nestjs/common';
+import { type Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { editFileName, imageFileFilter } from '../../common/utils/file-upload.utils';
@@ -87,8 +88,12 @@ export class VentasController {
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN, RolUsuario.VENDEDOR)
-  findAll(@Request() req) {
-    return this.ventasService.findAll(req.user.tenant_id);
+  findAll(
+    @Request() req,
+    @Request() reqQuery: any // Express request for query params
+  ) {
+    const { tipo, inicio, fin, cliente_id } = req.query;
+    return this.ventasService.findAll(req.user.tenant_id, { tipo, inicio, fin, cliente_id });
   }
 
   @Get(':id')
@@ -117,5 +122,27 @@ export class VentasController {
   @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN, RolUsuario.VENDEDOR)
   setEntregado(@Request() req, @Param('id') id: string) {
     return this.ventasService.setEntregado(+id, req.user.tenant_id);
+  }
+
+  @Get(':id/pdf')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN, RolUsuario.VENDEDOR)
+  async getPdf(@Request() req, @Param('id') id: string, @Res() res: Response) {
+    const buffer = await this.ventasService.getPdf(+id, req.user.tenant_id);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename=venta_${id}.pdf`,
+      'Content-Length': buffer.length,
+    });
+
+    res.send(buffer);
+  }
+
+  @Patch(':id/emitir-factura')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN, RolUsuario.VENDEDOR)
+  emitInvoice(@Request() req, @Param('id') id: string) {
+    return this.ventasService.emitInvoice(+id, req.user.tenant_id);
   }
 }

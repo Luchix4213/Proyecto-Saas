@@ -1,5 +1,8 @@
-import { Controller, Get, Post, Body, UseGuards, Request, Query, Param, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Query, Param, Res, UseInterceptors, UploadedFile } from '@nestjs/common';
 import type { Response } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { editFileName, imageFileFilter } from '../../common/utils/file-upload.utils';
 import { ComprasService } from './compras.service';
 import { CreateCompraDto } from './dto/create-compra.dto';
 import { AuthGuard } from '../../common/guards/auth.guard';
@@ -14,8 +17,28 @@ export class ComprasController {
 
   @Post()
   @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN)
-  create(@Request() req, @Body() createCompraDto: CreateCompraDto) {
-    return this.comprasService.create(req.user.tenant_id, req.user.usuario_id, createCompraDto);
+  @UseInterceptors(FileInterceptor('comprobante', {
+    storage: diskStorage({
+      destination: './uploads/compras',
+      filename: editFileName,
+    }),
+    fileFilter: imageFileFilter,
+  }))
+  create(@Request() req, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
+    let createCompraDto: CreateCompraDto;
+
+    // Handle both JSON (body) and FormData (body.data string)
+    if (body.data && typeof body.data === 'string') {
+        try {
+            createCompraDto = JSON.parse(body.data);
+        } catch (e) {
+            throw new Error('Invalid JSON data');
+        }
+    } else {
+        createCompraDto = body;
+    }
+
+    return this.comprasService.create(req.user.tenant_id, req.user.usuario_id, createCompraDto, file);
   }
 
   @Get()

@@ -5,8 +5,10 @@ import { Plus, X, RefreshCw, Building2, Search, Filter, Store, CheckCircle2, Clo
 import { Link } from 'react-router-dom';
 import TenantForm from '../../components/tenants/TenantForm';
 import type { CreateTenantData } from '../../services/tenantsService';
+import { useToast } from '../../context/ToastContext';
 
 export const AdminTenantsPage = () => {
+    const { addToast } = useToast();
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -43,10 +45,11 @@ export const AdminTenantsPage = () => {
             await tenantsService.create(createData as CreateTenantData, logo);
             setIsModalOpen(false);
             fetchTenants();
+            addToast('Empresa registrada correctamente', 'success');
         } catch (err: any) {
             console.error(err);
             const message = err.response?.data?.message || 'Error al crear la empresa';
-            alert(message);
+            addToast(message, 'error');
         } finally {
             setIsCreating(false);
         }

@@ -13,7 +13,7 @@ export class ComprasService {
     private comprasPdfService: ComprasPdfService,
   ) { }
 
-  async create(tenantId: number, userId: number, createCompraDto: CreateCompraDto) {
+  async create(tenantId: number, userId: number, createCompraDto: CreateCompraDto, file?: Express.Multer.File) {
     const { proveedor_id, productos } = createCompraDto;
 
     const compra = await this.prisma.$transaction(async (prisma) => {
@@ -69,11 +69,14 @@ export class ComprasService {
       return await prisma.compra.create({
         data: {
           tenant_id: tenantId,
-          usuario_id: userId,//vivimos
-          proveedor_id: (proveedor_id || null) as any, // Cast due to Prisma type mismatch
+          usuario_id: userId,
+          proveedor_id: (proveedor_id || null) as any,
           fecha_compra: new Date(),
           total: totalCompra,
-          metodo_pago: createCompraDto.metodo_pago as any, // Cast to enum
+          metodo_pago: createCompraDto.metodo_pago as any,
+          nro_factura: createCompraDto.nro_factura,
+          observaciones: createCompraDto.observaciones,
+          comprobante_url: file ? `/uploads/compras/${file.filename}` : null,
           estado: EstadoCompra.CONFIRMADA,
           detalles: {
             create: detallesParaCrear,
@@ -88,7 +91,6 @@ export class ComprasService {
     });
 
     // 5. Notificar
-    // No esperamos la promesa para no bloquear la respuesta
     if (compra && compra.detalles) {
       this.notificacionesService.notificarCompraRealizada(
         tenantId,
@@ -130,7 +132,7 @@ export class ComprasService {
             producto: true,
           },
         },
-        tenant: true, // Need tenant info for PDF
+        tenant: true,
       },
     });
 

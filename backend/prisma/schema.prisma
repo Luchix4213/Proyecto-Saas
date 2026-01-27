@@ -63,6 +63,12 @@ enum EstadoSuscripcion {
   CANCELADA
 }
 
+enum EstadoFacturacion {
+  PENDIENTE
+  EMITIDA
+  ANULADA
+}
+
 // Enum PlanNombre removed in favor of String for dynamic plans
 
 // ----------------------
@@ -250,17 +256,20 @@ model ProductoImagen {
 }
 
 model Compra {
-  compra_id    Int          @id @default(autoincrement())
-  tenant_id    Int // Para saber de qué tenant es la compra (aunque el usuario lo linkea, es bueno tenerlo directo)
-  tenant       Tenant       @relation(fields: [tenant_id], references: [tenant_id])
-  proveedor_id Int?
-  proveedor    Proveedor?   @relation(fields: [proveedor_id], references: [proveedor_id])
-  usuario_id   Int
-  usuario      Usuario      @relation(fields: [usuario_id], references: [usuario_id])
-  fecha_compra DateTime     @default(now())
-  total        Decimal      @db.Decimal(10, 2)
-  metodo_pago  MetodoPago   @default(EFECTIVO)
-  estado       EstadoCompra @default(PENDIENTE)
+  compra_id       Int          @id @default(autoincrement())
+  tenant_id       Int // Para saber de qué tenant es la compra (aunque el usuario lo linkea, es bueno tenerlo directo)
+  tenant          Tenant       @relation(fields: [tenant_id], references: [tenant_id])
+  proveedor_id    Int?
+  proveedor       Proveedor?   @relation(fields: [proveedor_id], references: [proveedor_id])
+  usuario_id      Int
+  usuario         Usuario      @relation(fields: [usuario_id], references: [usuario_id])
+  fecha_compra    DateTime     @default(now())
+  total           Decimal      @db.Decimal(10, 2)
+  metodo_pago     MetodoPago   @default(EFECTIVO)
+  estado          EstadoCompra @default(PENDIENTE)
+  nro_factura     String? // Optional Invoice Number
+  observaciones   String? // Optional Observations
+  comprobante_url String? // URL of the uploaded proof
 
   detalles DetalleCompra[]
 
@@ -297,6 +306,33 @@ model Venta {
   comprobante_pago String? // URL de la foto subida por el cliente
   comprobante_pdf  String? // URL
   estado           EstadoVenta   @default(REGISTRADA)
+
+  // --- NUEVOS CAMPOS MÓDULO COMERCIAL ---
+
+  // 1. Facturación
+  estado_facturacion EstadoFacturacion @default(PENDIENTE)
+  nro_factura        String?
+  razon_social       String?
+  nit_facturacion    String?
+
+  // 2. Detalle de Pago
+  monto_recibido Decimal?  @db.Decimal(10, 2)
+  cambio         Decimal?  @db.Decimal(10, 2)
+  transaccion_id String? // Para pagos online/tarjeta
+  fecha_pago     DateTime?
+
+  // 3. Logística (E-commerce)
+  direccion_envio    String? // Texto o JSON
+  ubicacion_maps     String? // Link de Google Maps
+  costo_envio        Decimal?  @db.Decimal(10, 2)
+  observaciones      String?
+  codigo_seguimiento String?
+  courier            String?
+  fecha_despacho     DateTime?
+  fecha_entrega      DateTime?
+
+  // 4. Auditoría
+  usuario_venta_id Int? // Usuario que registró la venta (apunta a Usuario)
 
   detalles DetalleVenta[]
 

@@ -4,6 +4,8 @@ export interface CreateCompraData {
     proveedor_id?: number;
     productos: { producto_id: number; cantidad: number; costo_unitario: number; lote?: string; fecha_vencimiento?: string }[];
     metodo_pago: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';
+    nro_factura?: string;
+    observaciones?: string;
 }
 
 export interface Compra {
@@ -14,8 +16,14 @@ export interface Compra {
     fecha_compra: string;
     total: number;
     estado: string;
+    metodo_pago: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';
+    nro_factura?: string;
+    observaciones?: string;
+    comprobante_url?: string;
     proveedor?: {
         nombre: string;
+        contacto?: string;
+        nit?: string;
     };
     usuario?: {
         nombre: string;
@@ -36,8 +44,11 @@ export const purchasesService = {
         return response.data;
     },
 
-    create: async (data: CreateCompraData) => {
-        const response = await api.post<Compra>('/compras', data);
+    create: async (data: CreateCompraData | FormData) => {
+        const isFormData = data instanceof FormData;
+        const response = await api.post<Compra>('/compras', data, {
+            headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : undefined
+        });
         return response.data;
     },
 

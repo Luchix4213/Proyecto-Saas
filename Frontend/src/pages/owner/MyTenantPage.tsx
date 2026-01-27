@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { tenantsService } from '../../services/tenantsService';
 import type { Tenant, UpdateTenantData } from '../../services/tenantsService';
 import { getImageUrl } from '../../utils/imageUtils';
-import { Building2, X, Check, Save, Upload, Mail, Phone, MapPin, DollarSign, Store, Tag, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Save, Building2, Phone, Mail, MapPin, Upload, DollarSign, Store, Tag, AlertTriangle, ChevronDown } from 'lucide-react';
 import { ScheduleEditor } from '../../components/tenants/ScheduleEditor';
 import { useForm, Controller } from 'react-hook-form';
 import { rubrosService, type Rubro } from '../../services/rubrosService';
+import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
+import { AestheticHeader } from '../../components/common/AestheticHeader';
+import { useToast } from '../../context/ToastContext';
 
 interface FormInputs {
     nombre_empresa: string;
@@ -22,9 +25,22 @@ const MyTenantPage = () => {
     const [tenant, setTenant] = useState<Tenant | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [showConfirm, setShowConfirm] = useState(false);
-    const [error, setError] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
+
+    // Global UI State
+    const { addToast } = useToast();
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     // Auxiliary state
     const [availableRubros, setAvailableRubros] = useState<Rubro[]>([]);
@@ -93,7 +109,7 @@ const MyTenantPage = () => {
             }
 
         } catch (err) {
-            setError('Error al cargar la información de la empresa.');
+            addToast('Error al cargar la información de la empresa.', 'error');
             console.error(err);
         } finally {
             setLoading(false);
@@ -128,17 +144,23 @@ const MyTenantPage = () => {
     };
 
     const onPreSubmit = () => {
-        setShowConfirm(true);
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Confirmar Cambios',
+            message: '¿Estás seguro de que deseas actualizar la información de tu empresa? Estos cambios serán visibles inmediatamente.',
+            type: 'warning',
+            onConfirm: executeUpdate
+        });
     };
 
     const executeUpdate = async () => {
         if (!tenant) return;
         const data = getValues();
+
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+
         try {
             setSaving(true);
-            setError('');
-            setSuccessMessage('');
-            setShowConfirm(false);
 
             const updateData: UpdateTenantData = {
                 ...data,
@@ -150,11 +172,11 @@ const MyTenantPage = () => {
 
             const updated = await tenantsService.update(tenant.tenant_id, updateData);
             setTenant(updated);
-            setSuccessMessage('Información actualizada correctamente.');
-            setTimeout(() => setSuccessMessage(''), 5000);
+            addToast('Información actualizada correctamente', 'success');
         } catch (err: any) {
             const message = err.response?.data?.message || 'Error al actualizar la información.';
-            setError(message);
+            addToast(message, 'error');
+            console.error(err);
         } finally {
             setSaving(false);
         }
@@ -176,38 +198,12 @@ const MyTenantPage = () => {
             <div className="absolute bottom-0 right-10 -mb-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
             {/* Header */}
-            <div className="mb-8 relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
-                        <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white shadow-lg shadow-indigo-500/30">
-                            <Store size={28} />
-                        </div>
-                        Mi Empresa
-                    </h1>
-                    <p className="text-slate-500 mt-2 text-lg">
-                        Configuración de identidad y operaciones de tu negocio.
-                    </p>
-                </div>
-
-                 {(successMessage || error) && (
-                    <div className={`w-full md:w-auto px-4 py-3 rounded-xl text-sm font-bold flex items-start sm:items-center gap-2 animate-fade-in shadow-sm ${successMessage ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
-                        <div className="shrink-0 mt-0.5 sm:mt-0">
-                            {successMessage ? <Check size={18} /> : <X size={18} />}
-                        </div>
-                        <div className="flex-1">
-                            {successMessage || error}
-                        </div>
-                         {successMessage && (
-                            <button
-                                onClick={() => setSuccessMessage('')}
-                                className="ml-2 hover:bg-emerald-100 p-1 rounded-full shrink-0"
-                            >
-                                <X size={14}/>
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
+            <AestheticHeader
+                title="Mi Empresa"
+                description="Configuración de identidad y operaciones de tu negocio."
+                icon={Store}
+                iconColor="from-indigo-500 to-purple-600"
+            />
 
             <form onSubmit={handleSubmit(onPreSubmit)} className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
 
@@ -215,11 +211,15 @@ const MyTenantPage = () => {
                 <div className="lg:col-span-4 space-y-6">
                     <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative group">
                         {/* Banner Upload Area */}
-                        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-indigo-500 to-purple-600 group/banner cursor-pointer">
+                        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-indigo-500 to-purple-600 group/banner cursor-pointer overflow-hidden">
                              {previewBanner ? (
-                                <img src={previewBanner} alt="Banner" className="w-full h-full object-cover opacity-80 group-hover/banner:opacity-50 transition-opacity" />
+                                <img
+                                    src={previewBanner}
+                                    alt="Banner"
+                                    className="w-full h-full object-cover opacity-80 group-hover/banner:opacity-50 transition-all duration-700 group-hover/banner:scale-110"
+                                />
                              ) : (
-                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 transition-transform duration-700 group-hover/banner:scale-110"></div>
                              )}
 
                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/banner:opacity-100 transition-opacity z-10">
@@ -243,12 +243,12 @@ const MyTenantPage = () => {
                             <div className="relative inline-block mb-4 group/logo cursor-pointer">
                                 <div className="h-32 w-32 bg-white rounded-2xl flex items-center justify-center text-4xl font-bold text-slate-300 shadow-xl border-4 border-white overflow-hidden relative z-10 mx-auto">
                                     {previewLogo ? (
-                                        <img src={previewLogo} alt="Logo" className="w-full h-full object-cover" />
+                                        <img src={previewLogo} alt="Logo" className="w-full h-full object-cover group-hover/logo:scale-110 transition-transform duration-500" />
                                     ) : (
                                         <Building2 size={48} />
                                     )}
 
-                                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-all duration-300 backdrop-blur-[2px]">
+                                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-all duration-300 backdrop-blur-[2px] z-20">
                                         <Upload className="text-white mb-1" size={24} />
                                         <span className="text-white text-xs font-bold uppercase tracking-wider">Cambiar</span>
                                         <span className="text-white/80 text-[10px] mt-1">Recomendado: 400x400px</span>
@@ -257,7 +257,7 @@ const MyTenantPage = () => {
                                         type="file"
                                         accept="image/*"
                                         onChange={handleLogoChange}
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30"
                                     />
                                 </div>
                             </div>
@@ -501,38 +501,11 @@ const MyTenantPage = () => {
                 </div>
             </form>
 
-            {/* Confirmation Modal Overlay */}
-            {showConfirm && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onClick={() => setShowConfirm(false)}></div>
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden animate-scale-in">
-                        <div className="p-8 text-center">
-                            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-amber-100">
-                                <AlertTriangle className="text-amber-500" size={40} />
-                            </div>
-                            <h3 className="text-2xl font-bold text-slate-800 mb-2">Confirmar Cambios</h3>
-                            <p className="text-slate-500 mb-8 px-4">
-                                ¿Estás seguro de que deseas actualizar la información de tu empresa? Estos cambios serán visibles inmediatamente para tus clientes.
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowConfirm(false)}
-                                    className="flex-1 px-6 py-3.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={executeUpdate}
-                                    disabled={saving}
-                                    className="flex-1 px-6 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5"
-                                >
-                                    {saving ? 'Actualizando...' : 'Sí, Actualizar'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Premium Confirm Dialog */}
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

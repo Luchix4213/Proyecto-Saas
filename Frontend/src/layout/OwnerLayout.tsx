@@ -99,6 +99,7 @@ export const OwnerLayout = () => {
                     <NavLink to="/clientes" icon={Users} label={isSidebarOpen ? 'Clientes' : ''} />
 
                     <NavLink to="/ventas-online" icon={Globe} label={isSidebarOpen ? 'Ventas Online' : ''} />
+                    <NavLink to="/ventas/historial" icon={ShoppingBag} label={isSidebarOpen ? 'Historial de Ventas' : ''} />
 
                     <div className="border-t border-slate-800 my-2 pt-2">
                         <NavLink to="/profile" icon={User} label={isSidebarOpen ? 'Mi Perfil' : ''} />

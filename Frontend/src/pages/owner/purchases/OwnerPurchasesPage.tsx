@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShoppingBag, History } from 'lucide-react';
+import { ShoppingBag, History, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { productsService, type Product } from '../../../services/productsService';
 import { suppliersService, type Proveedor } from '../../../services/suppliersService';
@@ -9,11 +9,12 @@ import { PurchaseCart, type PurchaseItem } from '../../../components/purchases/P
 import { PurchasesPaymentModal } from '../../../components/purchases/PurchasesPaymentModal';
 import { ProductForm } from '../../../components/products/ProductForm';
 import { SupplierForm } from '../../../components/suppliers/SupplierForm';
-
-
+import { AestheticHeader } from '../../../components/common/AestheticHeader';
+import { useToast } from '../../../context/ToastContext';
 import { categoriesService, type Category } from '../../../services/categoriesService';
 
 export const OwnerPurchasesPage = () => {
+    const { addToast } = useToast();
     const [products, setProducts] = useState<Product[]>([]);
     const [suppliers, setSuppliers] = useState<Proveedor[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -42,6 +43,7 @@ export const OwnerPurchasesPage = () => {
             setCategories(categoriesData);
         } catch (error) {
             console.error('Error loading data:', error);
+            addToast('Error al cargar datos del catálogo', 'error');
         } finally {
             setLoading(false);
         }
@@ -49,20 +51,23 @@ export const OwnerPurchasesPage = () => {
 
     // Filter products based on selection
     const availableProducts = selectedSupplierId === ''
-        ? products // Show all if nothing selected (or maybe show none? Let's show all for browsing)
+        ? products
         : selectedSupplierId === 'OWN'
-            ? products // Own purchase -> Show all (internal stock management)
+            ? products
             : products.filter(p => p.proveedor_id === Number(selectedSupplierId));
 
     const addToCart = (product: Product) => {
         setCart(prev => {
             const existing = prev.find(item => item.producto_id === product.producto_id);
-            if (existing) return prev;
-            // Default cost estimation (70% of price)
+            if (existing) {
+                addToast(`${product.nombre} ya está en el carrito`, 'info');
+                return prev;
+            }
+            addToast(`${product.nombre} agregado`, 'success');
             return [...prev, {
                 ...product,
                 purchaseQuantity: 1,
-                purchaseCost: Number(product.precio) * 0.7, // Estimate cost
+                purchaseCost: Number(product.precio) * 0.7,
                 purchaseLote: '',
                 purchaseExpiry: ''
             }];
@@ -82,14 +87,13 @@ export const OwnerPurchasesPage = () => {
         }));
     };
 
-    // Updated handleRegisterPurchase - Just opens modal
     const handleRegisterPurchase = () => {
         if (selectedSupplierId === '') {
-            alert('Selecciona un proveedor o Compra Propia');
+            addToast('Selecciona un proveedor para continuar', 'error');
             return;
         }
         if (cart.length === 0) {
-            alert('Agrega productos a la compra');
+            addToast('El carrito de compras está vacío', 'error');
             return;
         }
         setIsPaymentModalOpen(true);
@@ -97,13 +101,19 @@ export const OwnerPurchasesPage = () => {
 
     const [successCompraId, setSuccessCompraId] = useState<number | null>(null);
 
-    const handleConfirmPayment = async (paymentData: { paymentMethod: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA'; proof: File | null }) => {
+    const handleConfirmPayment = async (paymentData: {
+        paymentMethod: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';
+        proof: File | null;
+        nroFactura?: string;
+        observaciones?: string;
+    }) => {
         setProcessing(true);
         try {
             const purchaseData: CreateCompraData = {
-                // If OWN, don't send proveedor_id (or send undefined if DTO allows)
                 ...(selectedSupplierId !== 'OWN' && { proveedor_id: Number(selectedSupplierId) }),
                 metodo_pago: paymentData.paymentMethod,
+                nro_factura: paymentData.nroFactura,
+                observaciones: paymentData.observaciones,
                 productos: cart.map(item => ({
                     producto_id: item.producto_id,
                     cantidad: Number(item.purchaseQuantity),
@@ -113,28 +123,35 @@ export const OwnerPurchasesPage = () => {
                 }))
             };
 
-            const response = await purchasesService.create(purchaseData);
+            let response;
+            if (paymentData.proof) {
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(purchaseData));
+                formData.append('comprobante', paymentData.proof);
+                response = await purchasesService.create(formData);
+            } else {
+                response = await purchasesService.create(purchaseData);
+            }
 
-            // Reset and show success
             setCart([]);
-
             setIsPaymentModalOpen(false);
             await loadData();
 
-            // Show Success UI or Alert with PDF Link
             if (response && response.compra_id) {
                 setSuccessCompraId(response.compra_id);
+                addToast('Compra registrada exitosamente', 'success');
             } else {
-                alert('Compra registrada con éxito. Stock actualizado.');
+                addToast('Compra registrada y stock actualizado', 'success');
             }
 
         } catch (error: any) {
             console.error('Purchase error:', error);
-            alert('Error al registrar la compra');
+            addToast('Error al registrar la compra', 'error');
         } finally {
             setProcessing(false);
         }
     };
+
     const handleDownloadPdf = async (id: number) => {
         try {
             const blob = await purchasesService.downloadPdf(id);
@@ -142,7 +159,6 @@ export const OwnerPurchasesPage = () => {
             const link = document.createElement('a');
             link.href = url;
 
-            // Get supplier name for filename
             const supplier = suppliers.find(s => s.proveedor_id === Number(selectedSupplierId));
             const empresa = supplier?.nombre.replace(/\s+/g, '_') || 'Empresa';
             const fecha = new Date().toISOString().split('T')[0];
@@ -152,36 +168,36 @@ export const OwnerPurchasesPage = () => {
             link.click();
             link.remove();
             window.URL.revokeObjectURL(url);
+            addToast('Documento descargado', 'success');
         } catch (error) {
             console.error('Download error:', error);
-            alert('Error al descargar el PDF');
+            addToast('Error al descargar el PDF', 'error');
         }
     };
 
-    // --- Render Success Modal or Message ---
     if (successCompraId) {
         return (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-fade-in">
-                <div className="bg-white rounded-[2rem] shadow-2xl p-8 max-w-md w-full text-center border border-slate-100">
-                    <div className="h-20 w-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6 text-teal-600 animate-bounce">
-                        <ShoppingBag size={40} />
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-fade-in">
+                <div className="bg-white rounded-[2.5rem] shadow-2xl p-10 max-w-md w-full text-center border border-slate-100 transform animate-scale-in">
+                    <div className="h-24 w-24 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-8 text-white shadow-xl shadow-teal-500/30 animate-bounce">
+                        <CheckCircle2 size={48} />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-800 mb-2">¡Compra Exitosa!</h2>
-                    <p className="text-slate-500 mb-8">El stock ha sido actualizado correctamente y se ha notificado al equipo.</p>
+                    <h2 className="text-3xl font-black text-slate-900 mb-3">¡Registro Exitoso!</h2>
+                    <p className="text-slate-500 mb-10 leading-relaxed">La compra se ha registrado correctamente y el inventario ha sido actualizado en tiempo real.</p>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                         <button
                             onClick={() => handleDownloadPdf(successCompraId)}
-                            className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20"
+                            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-xl shadow-slate-900/20 active:scale-95"
                         >
-                            <History size={20} /> Descargar Comprobante PDF
+                            <History size={20} /> Descargar PDF
                         </button>
                         <button
                             onClick={() => {
                                 setSuccessCompraId(null);
                                 setSelectedSupplierId('');
                             }}
-                            className="w-full py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-all"
+                            className="w-full py-4 text-slate-400 font-black hover:text-slate-600 hover:bg-slate-50 rounded-2xl transition-all uppercase tracking-widest text-[11px]"
                         >
                             Cerrar y Continuar
                         </button>
@@ -194,57 +210,48 @@ export const OwnerPurchasesPage = () => {
     const cartTotal = cart.reduce((sum, item) => sum + (item.purchaseQuantity * item.purchaseCost), 0);
 
     return (
-        <div className="relative min-h-[80vh] w-full max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8">
-            <div className="animate-fade-in-up">
-                {/* Ambient Background Elements */}
-                <div className="absolute top-0 left-10 -mt-20 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="absolute bottom-0 right-10 -mb-20 w-80 h-80 bg-slate-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="max-w-[1920px] mx-auto p-4 md:p-6 lg:p-8 animate-fade-in-up">
+            {/* Header */}
+            <AestheticHeader
+                title="Gestión de Compras"
+                description="Registra ingresos de mercadería y actualiza automáticamente tu inventario."
+                icon={ShoppingBag}
+                iconColor="from-indigo-600 to-teal-500"
+                action={
+                    <Link
+                        to="/owner/purchases/history"
+                        className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm text-sm font-black text-slate-600 hover:bg-slate-50 transition-all hover:border-indigo-200 active:scale-95"
+                    >
+                        <History size={18} className="text-indigo-500" />
+                        Ver Historial
+                    </Link>
+                }
+            />
 
-                {/* Header */}
-                <div className="relative z-10 mb-8">
-                    <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
-                        <div className="p-2.5 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl text-white shadow-lg shadow-teal-500/30">
-                            <ShoppingBag size={28} />
-                        </div>
-                        Gestión de Compras (Stock)
-                        <Link
-                            to="/owner/purchases/history"
-                            className="ml-auto flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all hover:scale-105"
-                        >
-                            <History size={18} className="text-indigo-500" />
-                            Ver Historial
-                        </Link>
-                    </h1>
-                    <p className="text-slate-500 mt-2 text-lg max-w-2xl">
-                        Registra ingresos de mercadería y actualiza automáticamente tu inventario y costos.
-                    </p>
+            <div className="mt-10 grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+                {/* Left: Product Selector */}
+                <div className="xl:col-span-8">
+                    <ProductSelector
+                        products={availableProducts}
+                        loading={loading}
+                        onSelect={addToCart}
+                        onCreateNew={() => setIsProductModalOpen(true)}
+                    />
                 </div>
 
-                <div className="relative z-10 grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-                    {/* Left: Product Selector (2 cols) */}
-                    <div className="xl:col-span-2 h-full">
-                        <ProductSelector
-                            products={availableProducts}
-                            loading={loading}
-                            onSelect={addToCart}
-                            onCreateNew={() => setIsProductModalOpen(true)}
-                        />
-                    </div>
-
-                    {/* Right: Cart (1 col) */}
-                    <div className="xl:col-span-1">
-                        <PurchaseCart
-                            cart={cart}
-                            suppliers={suppliers}
-                            selectedSupplierId={selectedSupplierId as any} // Temporary cast until Comp update
-                            onSelectSupplier={(val) => setSelectedSupplierId(val as any)}
-                            onUpdateItem={updateItem}
-                            onRemoveItem={removeFromCart}
-                            onSubmit={handleRegisterPurchase}
-                            processing={processing}
-                            onCreateNewSupplier={() => setIsSupplierModalOpen(true)}
-                        />
-                    </div>
+                {/* Right: Cart */}
+                <div className="xl:col-span-4">
+                    <PurchaseCart
+                        cart={cart}
+                        suppliers={suppliers}
+                        selectedSupplierId={selectedSupplierId as any}
+                        onSelectSupplier={(val) => setSelectedSupplierId(val as any)}
+                        onUpdateItem={updateItem}
+                        onRemoveItem={removeFromCart}
+                        onSubmit={handleRegisterPurchase}
+                        processing={processing}
+                        onCreateNewSupplier={() => setIsSupplierModalOpen(true)}
+                    />
                 </div>
             </div>
 
@@ -263,6 +270,7 @@ export const OwnerPurchasesPage = () => {
                 onSuccess={() => {
                     loadData();
                     setIsProductModalOpen(false);
+                    addToast('Producto creado!', 'success');
                 }}
                 productToEdit={null}
                 categories={categories}
@@ -276,8 +284,9 @@ export const OwnerPurchasesPage = () => {
                         await suppliersService.create(data);
                         loadData();
                         setIsSupplierModalOpen(false);
+                        addToast('Proveedor registrado!', 'success');
                     } catch (error) {
-                        alert('Error al crear proveedor');
+                        addToast('Error al crear proveedor', 'error');
                     }
                 }}
                 supplier={null}

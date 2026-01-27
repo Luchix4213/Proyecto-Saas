@@ -1,20 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Plus, Search, Pencil, Trash2, AlertCircle, Phone, Mail, CreditCard, CheckCircle2, TrendingUp, Truck, History, XCircle } from 'lucide-react';
+import { LayoutDashboard, Plus, Search, Pencil, Trash2, AlertCircle, Phone, Mail, CreditCard, CheckCircle2, TrendingUp, Truck, History } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { suppliersService, type Proveedor, type CreateProveedorData } from '../../services/suppliersService';
 import { SupplierForm } from '../../components/suppliers/SupplierForm';
+import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
+import { AestheticHeader } from '../../components/common/AestheticHeader';
+import { EmptyState } from '../../components/common/EmptyState';
+import { useToast } from '../../context/ToastContext';
 
 export const OwnerSuppliersPage = () => {
     const navigate = useNavigate();
+    const { addToast } = useToast();
     const [suppliers, setSuppliers] = useState<Proveedor[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingSupplier, setEditingSupplier] = useState<Proveedor | null>(null);
-    const [error, setError] = useState('');
 
-
-
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     useEffect(() => {
         fetchSuppliers();
@@ -27,6 +43,7 @@ export const OwnerSuppliersPage = () => {
             setSuppliers(data);
         } catch (err) {
             console.error('Error fetching suppliers:', err);
+             addToast('Error al cargar proveedores', 'error');
         } finally {
             setLoading(false);
         }
@@ -39,31 +56,41 @@ export const OwnerSuppliersPage = () => {
 
 
     const handleSubmit = async (data: CreateProveedorData) => {
-        setError('');
-
         try {
             // data already comes correctly formatted from the form component
             if (editingSupplier) {
                 await suppliersService.update(editingSupplier.proveedor_id, data);
+                addToast('Proveedor actualizado correctamente', 'success');
             } else {
                 await suppliersService.create(data);
+                addToast('Proveedor creado correctamente', 'success');
             }
             setIsModalOpen(false);
             fetchSuppliers();
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Error al guardar proveedor');
-            alert(err.response?.data?.message || 'Error al guardar proveedor');
+            const msg = err.response?.data?.message || 'Error al guardar proveedor';
+            addToast(msg, 'error');
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Estás seguro de eliminar este proveedor?')) return;
-        try {
-            await suppliersService.delete(id);
-            fetchSuppliers();
-        } catch (err) {
-            console.error('Error deleting supplier:', err);
-        }
+    const handleDelete = (id: number) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Eliminar Proveedor',
+            message: '¿Estás seguro de eliminar este proveedor? Esta acción no se puede deshacer.',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await suppliersService.delete(id);
+                    fetchSuppliers();
+                    addToast('Proveedor eliminado correctamente', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (err) {
+                     console.error('Error deleting supplier:', err);
+                     addToast('Error al eliminar proveedor', 'error');
+                }
+            }
+        });
     };
 
     const filteredSuppliers = suppliers.filter(s =>
@@ -95,32 +122,21 @@ export const OwnerSuppliersPage = () => {
                 <div className="absolute bottom-0 right-10 -mb-20 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 {/* Header */}
-            {error && (
-                <div className="bg-red-50 text-red-600 p-4 mb-4 rounded-xl border border-red-100 flex items-center justify-between">
-                    <span>{error}</span>
-                    <button onClick={() => setError('')} className="text-red-400 hover:text-red-600"><XCircle size={18} /></button>
-                </div>
-            )}
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-                    <div>
-                        <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
-                            <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl text-white shadow-lg shadow-indigo-500/30">
-                                <LayoutDashboard size={28} />
-                            </div>
-                            Gestión de Proveedores
-                        </h1>
-                        <p className="text-slate-500 mt-2 text-lg">
-                            Administra tu cadena de suministro y contactos clave.
-                        </p>
-                    </div>
-                     <button
-                        onClick={() => handleOpenModal()}
-                        className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 border border-transparent rounded-2xl shadow-xl shadow-slate-900/20 text-sm font-bold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all hover:-translate-y-0.5"
-                    >
-                        <Plus size={20} className="stroke-[3]" />
-                        Nuevo Proveedor
-                    </button>
-                </div>
+                <AestheticHeader
+                    title="Gestión de Proveedores"
+                    description="Administra tu cadena de suministro y contactos clave."
+                    icon={Truck}
+                    iconColor="from-indigo-500 to-purple-600"
+                    action={
+                        <button
+                            onClick={() => handleOpenModal()}
+                            className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 border border-transparent rounded-2xl shadow-xl shadow-slate-900/20 text-sm font-bold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all hover:-translate-y-0.5"
+                        >
+                            <Plus size={20} className="stroke-[3]" />
+                            Nuevo Proveedor
+                        </button>
+                    }
+                />
 
                 {/* Stats */}
                 <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -128,7 +144,7 @@ export const OwnerSuppliersPage = () => {
                         title="Total Proveedores"
                         value={totalSuppliers}
                         icon={Truck}
-                        color="bg-indigo-500 overflow-hidden" // Using bg-opacity in component
+                        color="bg-indigo-500"
                     />
                     <StatCard
                         title="Proveedores Activos"
@@ -152,16 +168,15 @@ export const OwnerSuppliersPage = () => {
                             <input
                                 type="text"
                                 placeholder="Buscar proveedor por nombre o email..."
-                                className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm"
+                                className="w-full pl-12 pr-4 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-teal-500 transition-all shadow-sm"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                         {/* Additional filters can go here */}
                          <div className="flex gap-2">
-                             <span className="px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                             <div className="px-4 py-2 bg-slate-100 rounded-xl text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                                 <AlertCircle size={14} /> Solo Activos
-                             </span>
+                             </div>
                          </div>
                     </div>
 
@@ -178,114 +193,133 @@ export const OwnerSuppliersPage = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {loading ? (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-20 text-center">
-                                             <div className="flex justify-center">
-                                                <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : filteredSuppliers.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-20 text-center text-slate-400">
-                                            <div className="flex flex-col items-center justify-center gap-4">
-                                                <div className="p-4 bg-slate-50 rounded-full">
-                                                    <Truck size={32} className="text-slate-300" />
-                                                </div>
-                                                <p className="font-bold text-slate-600">No se encontraron proveedores</p>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredSuppliers.map((supplier) => (
-                                        <tr key={supplier.proveedor_id} className="hover:bg-slate-50/80 transition-colors group">
-                                            <td className="px-8 py-5 whitespace-nowrap">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-500 font-black shadow-sm border border-white">
-                                                        {supplier.nombre.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-sm font-bold text-slate-800">{supplier.nombre}</div>
-                                                        <div className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded inline-block mt-1">ID: #{supplier.proveedor_id}</div>
-                                                    </div>
+                                <AnimatePresence mode="popLayout">
+                                    {loading ? (
+                                        <motion.tr
+                                            key="loading"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                        >
+                                            <td colSpan={5} className="px-6 py-24 text-center">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+                                                    <p className="text-slate-400 font-bold animate-pulse uppercase tracking-widest text-xs">Cargando proveedores...</p>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-5 whitespace-nowrap">
-                                                <div className="flex flex-col gap-1.5">
-                                                    {supplier.telefono ? (
-                                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                                                            <div className="p-1 bg-emerald-50 rounded text-emerald-600"><Phone size={12} /></div>
-                                                            {supplier.telefono}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-xs text-slate-400 font-medium italic pl-7">Sin teléfono</span>
-                                                    )}
-                                                    {supplier.email ? (
-                                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                                                            <div className="p-1 bg-blue-50 rounded text-blue-600"><Mail size={12} /></div>
-                                                            {supplier.email}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-xs text-slate-400 font-medium italic pl-7">Sin email</span>
-                                                    )}
-                                                </div>
+                                        </motion.tr>
+                                    ) : filteredSuppliers.length === 0 ? (
+                                        <motion.tr
+                                            key="empty"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                        >
+                                            <td colSpan={5}>
+                                                <EmptyState
+                                                    icon={Truck}
+                                                    title="No se encontraron proveedores"
+                                                    description="Intenta ajustar tu búsqueda o crea un nuevo proveedor para comenzar."
+                                                />
                                             </td>
-                                            <td className="px-6 py-5">
-                                                {supplier.datos_pago ? (
-                                                    <div className="flex items-start gap-2 text-xs font-medium text-slate-600 max-w-xs">
-                                                         <div className="p-1 bg-purple-50 rounded text-purple-600 shrink-0 mt-0.5"><CreditCard size={12} /></div>
-                                                        <span className="truncate leading-relaxed">{supplier.datos_pago}</span>
+                                        </motion.tr>
+                                    ) : (
+                                        filteredSuppliers.map((supplier) => (
+                                            <motion.tr
+                                                key={supplier.proveedor_id}
+                                                layout
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
+                                                className="hover:bg-slate-50/80 transition-colors group"
+                                            >
+                                                <td className="px-8 py-5 whitespace-nowrap">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform duration-300">
+                                                            {supplier.nombre.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-base font-bold text-slate-800">{supplier.nombre}</div>
+                                                            <div className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-lg inline-block mt-1 border border-slate-100">ID: #{supplier.proveedor_id}</div>
+                                                        </div>
                                                     </div>
-                                                ) : (
-                                                    <span className="text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2 opacity-50">
-                                                        <AlertCircle size={12} /> No registrado
+                                                </td>
+                                                <td className="px-6 py-5 whitespace-nowrap">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        {supplier.telefono ? (
+                                                            <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                                                                <div className="p-1 bg-emerald-50 rounded text-emerald-600"><Phone size={12} /></div>
+                                                                {supplier.telefono}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-xs text-slate-400 font-medium italic pl-7">Sin teléfono</span>
+                                                        )}
+                                                        {supplier.email ? (
+                                                            <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                                                                <div className="p-1 bg-blue-50 rounded text-blue-600"><Mail size={12} /></div>
+                                                                {supplier.email}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-xs text-slate-400 font-medium italic pl-7">Sin email</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    {supplier.datos_pago ? (
+                                                        <div className="flex items-start gap-2 text-xs font-medium text-slate-600 max-w-xs">
+                                                             <div className="p-1 bg-purple-50 rounded text-purple-600 shrink-0 mt-0.5"><CreditCard size={12} /></div>
+                                                            <span className="truncate leading-relaxed">{supplier.datos_pago}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2 opacity-50">
+                                                            <AlertCircle size={12} /> No registrado
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-5 whitespace-nowrap text-center">
+                                                    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                                                        supplier.estado === 'ACTIVO'
+                                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                            : 'bg-slate-50 text-slate-400 border-slate-200'
+                                                    }`}>
+                                                        {supplier.estado === 'ACTIVO' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>}
+                                                        {supplier.estado}
                                                     </span>
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-5 whitespace-nowrap text-center">
-                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                                    supplier.estado === 'ACTIVO'
-                                                        ? 'bg-emerald-100 text-emerald-700'
-                                                        : 'bg-slate-100 text-slate-500'
-                                                }`}>
-                                                    {supplier.estado === 'ACTIVO' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>}
-                                                    {supplier.estado}
-                                                </span>
-                                            </td>
-                                            <td className="px-8 py-5 whitespace-nowrap text-right">
-                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={() => navigate(`/owner/purchases/history?proveedorId=${supplier.proveedor_id}`)}
-                                                        className="p-2.5 text-slate-500 hover:text-emerald-600 hover:bg-white rounded-xl transition-all shadow-sm hover:shadow-md border border-transparent hover:border-slate-100"
-                                                        title="Historial de Compras"
-                                                    >
-                                                        <History size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleOpenModal(supplier)}
-                                                        className="p-2.5 text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all shadow-sm hover:shadow-md border border-transparent hover:border-slate-100"
-                                                        title="Editar"
-                                                    >
-                                                        <Pencil size={16} />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDelete(supplier.proveedor_id)}
-                                                        className="p-2.5 text-slate-500 hover:text-red-600 hover:bg-white rounded-xl transition-all shadow-sm hover:shadow-md border border-transparent hover:border-slate-100"
-                                                        title="Eliminar"
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
+                                                </td>
+                                                <td className="px-8 py-5 whitespace-nowrap text-right">
+                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                                        <button
+                                                            onClick={() => navigate(`/owner/purchases/history?proveedorId=${supplier.proveedor_id}`)}
+                                                            className="p-2.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all"
+                                                            title="Historial de Compras"
+                                                        >
+                                                            <History size={20} className="stroke-[2.5]" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleOpenModal(supplier)}
+                                                            className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                                            title="Editar"
+                                                        >
+                                                            <Pencil size={20} className="stroke-[2.5]" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(supplier.proveedor_id)}
+                                                            className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                                            title="Eliminar"
+                                                        >
+                                                            <Trash2 size={20} className="stroke-[2.5]" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </motion.tr>
+                                        ))
+                                    )}
+                                </AnimatePresence>
                             </tbody>
                         </table>
                     </div>
-                     <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-center">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">Fin del listado</span>
+                     <div className="p-4 border-t border-slate-50 bg-slate-50/30 flex justify-center">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">Fin del listado de proveedores</span>
                     </div>
                 </div>
             </div>
@@ -297,6 +331,11 @@ export const OwnerSuppliersPage = () => {
                 onSubmit={handleSubmit}
                 supplier={editingSupplier}
                 isLoading={false} // Add loading state logic if needed in future
+            />
+
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
             />
         </div>
     );

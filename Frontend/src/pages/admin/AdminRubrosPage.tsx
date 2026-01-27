@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, Pencil, Trash2, Tag, Loader2 } from 'lucide-react';
 import { rubrosService, type Rubro } from '../../services/rubrosService';
 import { RubroForm } from '../../components/rubros/RubroForm';
+import { useToast } from '../../context/ToastContext';
+import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
 
 export const AdminRubrosPage = () => {
+    const { addToast } = useToast();
     const [rubros, setRubros] = useState<Rubro[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -12,6 +15,20 @@ export const AdminRubrosPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingRubro, setEditingRubro] = useState<Rubro | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
+
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     useEffect(() => {
         fetchRubros();
@@ -23,6 +40,7 @@ export const AdminRubrosPage = () => {
             setRubros(data);
         } catch (error) {
             console.error('Error fetching rubros:', error);
+            addToast('Error al cargar rubros', 'error');
         } finally {
             setLoading(false);
         }
@@ -38,8 +56,10 @@ export const AdminRubrosPage = () => {
             await rubrosService.create(data);
             await fetchRubros();
             setIsModalOpen(false);
+            addToast('Rubro creado correctamente', 'success');
         } catch (error) {
             console.error('Error creating rubro:', error);
+            addToast('Error al crear rubro', 'error');
         } finally {
             setActionLoading(false);
         }
@@ -53,23 +73,33 @@ export const AdminRubrosPage = () => {
             await fetchRubros();
             setIsModalOpen(false);
             setEditingRubro(null);
+            addToast('Rubro actualizado correctamente', 'success');
         } catch (error) {
             console.error('Error updating rubro:', error);
+            addToast('Error al actualizar rubro', 'error');
         } finally {
             setActionLoading(false);
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Estás seguro de eliminar este rubro?')) return;
-
-        try {
-            await rubrosService.delete(id);
-            setRubros(rubros.filter(r => r.rubro_id !== id));
-        } catch (error) {
-            console.error('Error deleting rubro:', error);
-            alert('No se puede eliminar un rubro que está siendo usado por empresas.');
-        }
+    const handleDelete = (id: number) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Eliminar Rubro',
+            message: '¿Estás seguro de eliminar este rubro? Esta acción no se puede deshacer.',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await rubrosService.delete(id);
+                    setRubros(rubros.filter(r => r.rubro_id !== id));
+                    addToast('Rubro eliminado correctamente', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    console.error('Error deleting rubro:', error);
+                    addToast('No se puede eliminar un rubro que está siendo usado por empresas.', 'error');
+                }
+            }
+        });
     };
 
     const openCreateModal = () => {
@@ -191,6 +221,11 @@ export const AdminRubrosPage = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

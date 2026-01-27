@@ -1,4 +1,4 @@
-import { X, Calendar, User, Truck, Package, CreditCard } from 'lucide-react';
+import { X, Calendar, User, Truck, Package, CreditCard, FileText } from 'lucide-react';
 import type { Compra } from '../../services/purchasesService';
 
 interface PurchaseDetailModalProps {
@@ -72,14 +72,46 @@ export const PurchaseDetailModal = ({ isOpen, onClose, purchase }: PurchaseDetai
                                     <CreditCard size={18} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado</p>
-                                    <span className="inline-flex px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pago</p>
+                                    <p className="text-sm font-bold text-slate-700">{purchase.metodo_pago}</p>
+                                    <span className="inline-flex px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-wider mt-1">
                                         {purchase.estado}
                                     </span>
+                                    {purchase.comprobante_url && (
+                                        <div className="mt-2">
+                                            <a
+                                                href={`http://localhost:3000${purchase.comprobante_url}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-[10px] font-bold text-indigo-600 hover:underline flex items-center gap-1"
+                                            >
+                                                <FileText size={10} />
+                                                Ver Comprobante
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
+                            {purchase.nro_factura && (
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-slate-100 rounded-xl text-slate-500">
+                                        <FileText size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Factura</p>
+                                        <p className="text-sm font-bold text-slate-700">#{purchase.nro_factura}</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
+
+                    {purchase.observaciones && (
+                        <div className="mb-6 bg-amber-50 rounded-2xl p-4 border border-amber-100">
+                            <p className="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-1">Observaciones</p>
+                            <p className="text-sm font-medium text-slate-700 italic">"{purchase.observaciones}"</p>
+                        </div>
+                    )}
 
                     {/* Products Table */}
                     <div className="bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden">

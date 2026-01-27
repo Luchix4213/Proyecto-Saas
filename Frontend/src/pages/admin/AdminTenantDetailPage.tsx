@@ -4,13 +4,30 @@ import { getTenantSubscriptions, type Suscripcion } from '../../services/suscrip
 import { tenantsService, type Tenant } from '../../services/tenantsService';
 import { userService } from '../../services/userService'; // Import userService
 import { Building2, Mail, Calendar, CreditCard, Users, ArrowLeft, CheckCircle, XCircle, Ban } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
+import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
 
 export const AdminTenantDetailPage = () => {
     const { id } = useParams<{ id: string }>();
+    const { addToast } = useToast();
     const [tenant, setTenant] = useState<Tenant | null>(null);
     const [subscriptions, setSubscriptions] = useState<Suscripcion[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     useEffect(() => {
         if (id) {
@@ -32,6 +49,7 @@ export const AdminTenantDetailPage = () => {
         } catch (err) {
             console.error(err);
             setError('Error al cargar la información de la empresa.');
+            addToast('Error al cargar la información', 'error');
         } finally {
             setLoading(false);
         }
@@ -43,30 +61,46 @@ export const AdminTenantDetailPage = () => {
 
     const handleStatusChange = async (newStatus: 'ACTIVA' | 'INACTIVA') => {
         if (!tenant) return;
-        try {
-            await tenantsService.updateStatus(tenant.tenant_id, newStatus);
-            // Reload tenant to conform state
-            loadTenant(tenant.tenant_id);
-        } catch (err) {
-            console.error(err);
-            alert('Error al actualizar el estado de la empresa');
-        }
+        setConfirmConfig({
+            isOpen: true,
+            title: newStatus === 'ACTIVA' ? 'Activar Empresa' : 'Desactivar Empresa',
+            message: `¿Estás seguro de que deseas ${newStatus === 'ACTIVA' ? 'activar' : 'desactivar'} a ${tenant.nombre_empresa}?`,
+            type: newStatus === 'ACTIVA' ? 'info' : 'danger',
+            onConfirm: async () => {
+                try {
+                    await tenantsService.updateStatus(tenant.tenant_id, newStatus);
+                    loadTenant(tenant.tenant_id);
+                    addToast(`Empresa ${newStatus === 'ACTIVA' ? 'activada' : 'desactivada'} correctamente`, 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (err) {
+                    console.error(err);
+                    addToast('Error al actualizar el estado de la empresa', 'error');
+                }
+            }
+        });
     };
 
-    const handleToggleUserStatus = async (user: any) => {
+    const handleToggleUserStatus = (user: any) => {
         const nuevoEstado = user.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
         const accion = user.estado === 'ACTIVO' ? 'bloquear' : 'reactivar';
 
-        if (window.confirm(`¿Estás seguro de ${accion} el acceso a ${user.nombre}?`)) {
-            try {
-                // Admin can update any user now
-                await userService.update(user.usuario_id, { estado: nuevoEstado });
-                loadTenant(tenant!.tenant_id); // Reload to see changes
-            } catch (error) {
-                console.error('Error al cambiar estado de usuario:', error);
-                alert('No se pudo cambiar el estado del usuario');
+        setConfirmConfig({
+            isOpen: true,
+            title: user.estado === 'ACTIVO' ? 'Bloquear Usuario' : 'Reactivar Usuario',
+            message: `¿Estás seguro de ${accion} el acceso a ${user.nombre}?`,
+            type: user.estado === 'ACTIVO' ? 'danger' : 'info',
+            onConfirm: async () => {
+                try {
+                    await userService.update(user.usuario_id, { estado: nuevoEstado });
+                    loadTenant(tenant!.tenant_id);
+                    addToast(`Usuario ${nuevoEstado === 'ACTIVO' ? 'activado' : 'bloqueado'} correctamente`, 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    console.error('Error al cambiar estado de usuario:', error);
+                    addToast('No se pudo cambiar el estado del usuario', 'error');
+                }
             }
-        }
+        });
     };
 
     const isActive = tenant.estado === 'ACTIVA';
@@ -266,6 +300,11 @@ export const AdminTenantDetailPage = () => {
                     </tbody>
                 </table>
             </div>
+
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

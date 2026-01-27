@@ -3,6 +3,9 @@ import { getMySubscriptions, cancelSubscription, loadCreateSubscription, type Su
 import { getPlans, type Plan } from '../../services/planesService';
 import { useAuth } from '../../context/AuthContext';
 import { ShieldCheck, ChevronUp, AlertTriangle, Clock } from 'lucide-react';
+import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
+import { AestheticHeader } from '../../components/common/AestheticHeader';
+import { useToast } from '../../context/ToastContext';
 
 import { ActiveSubscriptionCard } from '../../components/subscription/ActiveSubscriptionCard';
 import { PlanCard } from '../../components/subscription/PlanCard';
@@ -11,14 +14,28 @@ import { SubscriptionHistory } from '../../components/subscription/SubscriptionH
 
 export const SubscriptionPage = () => {
     const { user } = useAuth();
+    const { addToast } = useToast();
     const [subscriptions, setSubscriptions] = useState<Suscripcion[]>([]);
     const [plans, setPlans] = useState<Plan[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
 
     const [showPlans, setShowPlans] = useState(false);
     const [billingCycle, setBillingCycle] = useState<'MENSUAL' | 'ANUAL'>('MENSUAL');
     const [selectedPlanForModal, setSelectedPlanForModal] = useState<Plan | null>(null);
+
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     useEffect(() => {
         loadData();
@@ -33,20 +50,29 @@ export const SubscriptionPage = () => {
             setSubscriptions(subsData);
             setPlans(plansData);
         } catch (err) {
-            setError('No se pudo cargar la información');
+            addToast('No se pudo cargar la información', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleCancel = async (id: number) => {
-        if (!window.confirm('¿Estás seguro de cancelar tu suscripción?')) return;
-        try {
-            await cancelSubscription(id);
-            loadData();
-        } catch (err) {
-            alert('Error al cancelar suscripción');
-        }
+    const handleCancel = (id: number) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Cancelar Suscripción',
+            message: '¿Estás seguro de cancelar tu suscripción? Perderás acceso a las funciones premium al finalizar el periodo actual.',
+            type: 'warning',
+            onConfirm: async () => {
+                try {
+                    await cancelSubscription(id);
+                    loadData();
+                    addToast('Suscripción cancelada correctamente', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (err) {
+                    addToast('Error al cancelar suscripción', 'error');
+                }
+            }
+        });
     };
 
     const handleConfirmSubscription = async (data: { paymentMethod: 'QR' | 'TRANSFERENCIA'; proof: File }) => {
@@ -62,14 +88,14 @@ export const SubscriptionPage = () => {
                 referencia: data.paymentMethod === 'QR' ? 'Pago QR' : 'Transferencia',
                 comprobante: data.proof
             });
-            alert('Solicitud enviada con éxito. Tu plan se activará cuando verifiquemos el pago.');
+            addToast('Solicitud enviada con éxito. Tu plan se activará cuando verifiquemos el pago.', 'success');
             setSelectedPlanForModal(null);
             setShowPlans(false);
             loadData();
         } catch (err: any) {
             console.error(err);
             const msg = err.response?.data?.message || err.message || 'Error al procesar la solicitud';
-            alert(`Error: ${msg}`);
+            addToast(`Error: ${msg}`, 'error');
         }
     };
 
@@ -98,19 +124,14 @@ export const SubscriptionPage = () => {
         <div className="space-y-8 animate-fade-in-up pb-12">
 
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                    <ShieldCheck className="text-teal-600" size={32} />
-                    Mi Suscripción
-                </h1>
-                <p className="text-slate-500 font-medium ml-11">Gestiona tu plan, facturación y mejoras.</p>
-            </div>
+            <AestheticHeader
+                title="Mi Suscripción"
+                description="Gestiona tu plan, facturación y mejoras."
+                icon={ShieldCheck}
+                iconColor="from-teal-600 to-emerald-600"
+            />
 
-            {error && (
-                <div className="p-4 bg-red-50 text-red-700 font-bold rounded-2xl border border-red-100 flex items-center gap-3">
-                    <AlertTriangle /> {error}
-                </div>
-            )}
+
 
             {/* Notifications */}
             {queuedSubscription && (
@@ -225,6 +246,10 @@ export const SubscriptionPage = () => {
                 onConfirm={handleConfirmSubscription}
             />
 
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

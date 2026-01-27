@@ -31,6 +31,14 @@ export class CreateCompraDto {
   @IsNotEmpty()
   metodo_pago: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';
 
+  @IsOptional()
+  @IsString()
+  nro_factura?: string;
+
+  @IsOptional()
+  @IsString()
+  observaciones?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => DetalleCompraItemDto)

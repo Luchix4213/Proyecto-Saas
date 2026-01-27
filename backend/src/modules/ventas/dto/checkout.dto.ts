@@ -28,6 +28,27 @@ export class CheckoutDto {
   @IsOptional()
   nit_ci?: string;
 
+  @IsOptional()
+  @IsString()
+  nit_facturacion?: string;
+
+  @IsOptional()
+  @IsString()
+  razon_social?: string;
+
+  @IsOptional()
+  @IsString()
+  direccion_envio?: string;
+
+  @IsOptional()
+  @IsString()
+  ubicacion_maps?: string;
+
+  @IsOptional()
+  @IsNumber()
+  costo_envio?: number;
+
+
   @IsString()
   @IsOptional()
   paterno?: string;

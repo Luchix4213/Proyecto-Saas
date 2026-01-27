@@ -1,12 +1,29 @@
 import { useEffect, useState } from 'react';
 import { getAllSubscriptions, approveSubscription, rejectSubscription, type Suscripcion } from '../../services/suscripcionesService';
 import { Check, X, Eye, CreditCard, CheckCircle2, Ban, AlertCircle } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
+import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
 
 export const AdminSubscriptionsPage = () => {
+    const { addToast } = useToast();
     const [subscriptions, setSubscriptions] = useState<Suscripcion[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [selectedSub, setSelectedSub] = useState<Suscripcion | null>(null);
+
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     useEffect(() => {
         loadSubscriptions();
@@ -18,29 +35,48 @@ export const AdminSubscriptionsPage = () => {
             setSubscriptions(data);
         } catch (err) {
             setError('Error al cargar suscripciones');
+            addToast('Error al cargar suscripciones', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleApprove = async (id: number) => {
-        if (!window.confirm('¿Aprobar esta suscripción? Esto activará el plan del Tenant.')) return;
-        try {
-            await approveSubscription(id);
-            loadSubscriptions();
-        } catch (err) {
-            alert('Error al aprobar');
-        }
+    const handleApprove = (id: number) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Aprobar Suscripción',
+            message: '¿Estás seguro de aprobar esta suscripción? Esto activará el plan para la empresa.',
+            type: 'success',
+            onConfirm: async () => {
+                try {
+                    await approveSubscription(id);
+                    loadSubscriptions();
+                    addToast('Suscripción aprobada correctamente', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (err) {
+                    addToast('Error al aprobar suscripción', 'error');
+                }
+            }
+        });
     };
 
-    const handleReject = async (id: number) => {
-        if (!window.confirm('¿Rechazar esta suscripción?')) return;
-        try {
-            await rejectSubscription(id);
-            loadSubscriptions();
-        } catch (err) {
-            alert('Error al rechazar');
-        }
+    const handleReject = (id: number) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Rechazar Suscripción',
+            message: '¿Estás seguro de rechazar esta suscripción? El pago no será validado.',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await rejectSubscription(id);
+                    loadSubscriptions();
+                    addToast('Suscripción rechazada', 'info');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (err) {
+                    addToast('Error al rechazar suscripción', 'error');
+                }
+            }
+        });
     };
 
     const stats = {
@@ -169,7 +205,7 @@ export const AdminSubscriptionsPage = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             {sub.estado === 'PENDIENTE' ? (
-                                                <div className="flex justify-end gap-2">
+                                                <div className="flex justify-end gap-2 text-slate-300 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                                                     <button
                                                         onClick={() => handleApprove(sub.suscripcion_id)}
                                                         className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
@@ -244,7 +280,7 @@ export const AdminSubscriptionsPage = () => {
                                             onClick={() => { handleApprove(selectedSub.suscripcion_id); setSelectedSub(null); }}
                                             className="px-4 py-2 bg-emerald-600 text-white shadow-lg shadow-emerald-200 border border-transparent rounded-xl hover:bg-emerald-700 font-bold text-sm transition-colors"
                                         >
-                                            Aprobar Pagp
+                                            Aprobar Pago
                                         </button>
                                     </>
                                 )}
@@ -259,6 +295,11 @@ export const AdminSubscriptionsPage = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

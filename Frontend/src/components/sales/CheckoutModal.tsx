@@ -17,6 +17,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
     const [clientSearch, setClientSearch] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
 
+    // New Commercial Fields
+    const [montoRecibido, setMontoRecibido] = useState<string>('');
+    const [nitFacturacion, setNitFacturacion] = useState('');
+    const [razonSocial, setRazonSocial] = useState('');
+
+    // Update fiscal fields when client changes
+    React.useEffect(() => {
+        if (selectedClient) {
+            setNitFacturacion(selectedClient.nit_ci || '');
+            setRazonSocial(selectedClient.nombre + (selectedClient.paterno ? ' ' + selectedClient.paterno : ''));
+        } else {
+            setNitFacturacion('');
+            setRazonSocial('');
+        }
+    }, [selectedClient]);
+
+    const cambio = montoRecibido ? Number(montoRecibido) - total : 0;
+
     if (!isOpen) return null;
 
     const handleSubmit = async () => {
@@ -24,7 +42,10 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
         try {
             await onSubmit({
                 client: selectedClient,
-                paymentMethod
+                paymentMethod,
+                montoRecibido: montoRecibido ? Number(montoRecibido) : undefined,
+                nitFacturacion,
+                razonSocial
             });
         } finally {
             setIsProcessing(false);
@@ -135,6 +156,58 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
                                 <CreditCard size={24} strokeWidth={2} />
                                 <span className="font-bold text-sm">Banco</span>
                             </button>
+                        </div>
+                    </div>
+                    {/* Payment Details (Cash) */}
+                    {paymentMethod === 'EFECTIVO' && (
+                        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                             <label className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2 mb-3">
+                                <Banknote size={16} /> Detalle de Pago
+                            </label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 mb-1 block">Monto Recibido</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">Bs</span>
+                                        <input
+                                            type="number"
+                                            className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none font-bold text-slate-800"
+                                            value={montoRecibido}
+                                            onChange={(e) => setMontoRecibido(e.target.value)}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 mb-1 block">Cambio</label>
+                                    <div className={`text-xl font-black ${cambio < 0 ? 'text-red-500' : 'text-emerald-600'}`}>
+                                        Bs {cambio.toFixed(2)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Invoice Data */}
+                    <div className="space-y-3 pt-4 border-t border-slate-100">
+                        <label className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <CreditCard size={16} /> Datos de Facturación (Opcional)
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <input
+                                type="text"
+                                placeholder="NIT / CI"
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                                value={nitFacturacion}
+                                onChange={(e) => setNitFacturacion(e.target.value)}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Razón Social"
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
+                                value={razonSocial}
+                                onChange={(e) => setRazonSocial(e.target.value)}
+                            />
                         </div>
                     </div>
                 </div>

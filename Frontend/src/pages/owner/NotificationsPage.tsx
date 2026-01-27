@@ -8,14 +8,33 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
+import { AestheticHeader } from '../../components/common/AestheticHeader';
+import { EmptyState } from '../../components/common/EmptyState';
+import { useToast } from '../../context/ToastContext';
 
 export const NotificationsPage = () => {
     const navigate = useNavigate();
+    const { addToast } = useToast();
     const [notifications, setNotifications] = useState<Notificacion[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'unread' | 'history'>('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState<string>('all');
+
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     useEffect(() => {
         fetchNotifications();
@@ -28,6 +47,7 @@ export const NotificationsPage = () => {
             setNotifications(data);
         } catch (error) {
             console.error('Error loading notifications:', error);
+            addToast('Error al cargar notificaciones', 'error');
         } finally {
             setLoading(false);
         }
@@ -41,6 +61,7 @@ export const NotificationsPage = () => {
             ));
         } catch (error) {
             console.error('Error marking as read:', error);
+            addToast('Error al marcar como leído', 'error');
         }
     };
 
@@ -48,27 +69,51 @@ export const NotificationsPage = () => {
         try {
             await notificationsService.markAllAsRead();
             setNotifications(prev => prev.map(n => ({ ...n, leida: true })));
+            addToast('Todas las notificaciones marcadas como leídas', 'success');
         } catch (error) {
             console.error('Error marking all as read:', error);
+            addToast('Error al marcar todo como leído', 'error');
         }
     };
 
-    const handleDelete = async (id: number) => {
-        try {
-            await notificationsService.delete(id);
-            setNotifications(prev => prev.filter(n => n.notificacion_id !== id));
-        } catch (error) {
-            console.error('Error deleting notification:', error);
-        }
+    const handleDelete = (id: number) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Eliminar Notificación',
+            message: '¿Estás seguro de eliminar esta notificación?',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await notificationsService.delete(id);
+                    setNotifications(prev => prev.filter(n => n.notificacion_id !== id));
+                    addToast('Notificación eliminada', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    console.error('Error deleting notification:', error);
+                    addToast('Error al eliminar notificación', 'error');
+                }
+            }
+        });
     };
 
-    const handleClearRead = async () => {
-        try {
-            await notificationsService.deleteAllRead();
-            setNotifications(prev => prev.filter(n => !n.leida));
-        } catch (error) {
-            console.error('Error clearing read notifications:', error);
-        }
+    const handleClearRead = () => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Limpiar Historial',
+            message: '¿Estás seguro de eliminar todas las notificaciones leídas?',
+            type: 'warning',
+            onConfirm: async () => {
+                try {
+                    await notificationsService.deleteAllRead();
+                    setNotifications(prev => prev.filter(n => !n.leida));
+                    addToast('Historial limpiado correctamente', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    console.error('Error clearing read notifications:', error);
+                    addToast('Error al limpiar notificaciones', 'error');
+                }
+            }
+        });
     };
 
     const filteredNotifications = useMemo(() => {
@@ -162,43 +207,32 @@ export const NotificationsPage = () => {
     }
 
     return (
-        <div className="container mx-auto max-w-5xl p-6 lg:p-8">
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                >
-                    <h1 className="text-4xl font-extrabold text-slate-900 flex items-center gap-4">
-                        <div className="bg-teal-500 p-3 rounded-2xl text-white shadow-lg shadow-teal-200">
-                            <Bell size={32} />
-                        </div>
-                        Notificaciones
-                    </h1>
-                    <p className="text-slate-500 mt-2 text-lg">Central de actividad y alertas de tu negocio.</p>
-                </motion.div>
-
-                <motion.div
-                    className="flex flex-wrap gap-3"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                >
-                    <button
-                        onClick={handleMarkAllAsRead}
-                        className="px-6 py-3 text-sm font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all flex items-center gap-2 border border-teal-100 disabled:opacity-50"
-                        disabled={unreadCount === 0}
-                    >
-                        <CheckCheck size={18} />
-                        Marcar todo leído
-                    </button>
-                    <button
-                        onClick={handleClearRead}
-                        className="px-6 py-3 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all flex items-center gap-2 border border-slate-200"
-                    >
-                        <Trash2 size={18} />
-                        Limpiar leídas
-                    </button>
-                </motion.div>
-            </header>
+        <div className="container mx-auto max-w-5xl p-6 lg:p-8 animate-fade-in-up">
+            <AestheticHeader
+                title="Notificaciones"
+                description="Central de actividad y alertas de tu negocio."
+                icon={Bell}
+                iconColor="from-teal-500 to-emerald-600"
+                action={
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            onClick={handleMarkAllAsRead}
+                            className="w-full md:w-auto px-6 py-3 text-sm font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-xl transition-all flex items-center justify-center gap-2 border border-teal-100 disabled:opacity-50"
+                            disabled={unreadCount === 0}
+                        >
+                            <CheckCheck size={18} />
+                            Marcar todo leído
+                        </button>
+                        <button
+                            onClick={handleClearRead}
+                            className="w-full md:w-auto px-6 py-3 text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all flex items-center justify-center gap-2 border border-slate-200"
+                        >
+                            <Trash2 size={18} />
+                            Limpiar leídas
+                        </button>
+                    </div>
+                }
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Fixed Sidebar for Filters */}
@@ -292,16 +326,16 @@ export const NotificationsPage = () => {
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-white rounded-3xl border border-slate-100 p-16 text-center shadow-sm"
+                                className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm flex flex-col items-center"
                             >
-                                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-200">
-                                    <Bell size={48} />
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-800 mb-2">Nada por aquí</h3>
-                                <p className="text-slate-500 max-w-xs mx-auto">No encontramos notificaciones que coincidan con tus filtros actuales.</p>
+                                <EmptyState
+                                    icon={Bell}
+                                    title="Nada por aquí"
+                                    description="No encontramos notificaciones que coincidan con tus filtros actuales."
+                                />
                                 <button
                                     onClick={() => {setFilter('all'); setTypeFilter('all'); setSearchTerm('')}}
-                                    className="mt-6 text-teal-600 font-bold hover:underline"
+                                    className="mt-6 text-teal-600 font-bold hover:underline mb-8"
                                 >
                                     Limpiar todos los filtros
                                 </button>
@@ -406,6 +440,10 @@ export const NotificationsPage = () => {
                     </AnimatePresence>
                 </main>
             </div>
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

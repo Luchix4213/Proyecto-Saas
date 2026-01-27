@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
-import { X, CheckCircle, CreditCard, FileText, Upload, Banknote } from 'lucide-react';
+import { X, CheckCircle, CreditCard, FileText, Upload, Banknote, MessageSquare } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 interface PurchasesPaymentModalProps {
     isOpen: boolean;
     total: number;
     onClose: () => void;
-    onConfirm: (data: { paymentMethod: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA'; proof: File | null }) => Promise<void>;
+    onConfirm: (data: {
+        paymentMethod: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';
+        proof: File | null;
+        nroFactura?: string;
+        observaciones?: string;
+    }) => Promise<void>;
 }
 
 export const PurchasesPaymentModal: React.FC<PurchasesPaymentModalProps> = ({ isOpen, total, onClose, onConfirm }) => {
+    const { addToast } = useToast();
     const [paymentMethod, setPaymentMethod] = useState<'EFECTIVO' | 'QR' | 'TRANSFERENCIA'>('QR');
     const [paymentProof, setPaymentProof] = useState<File | null>(null);
     const [previewProof, setPreviewProof] = useState<string | null>(null);
+    const [nroFactura, setNroFactura] = useState('');
+    const [observaciones, setObservaciones] = useState('');
     const [isQrZoomed, setIsQrZoomed] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -26,17 +35,19 @@ export const PurchasesPaymentModal: React.FC<PurchasesPaymentModalProps> = ({ is
     };
 
     const handleConfirm = async () => {
-        // Validation: Proof required only for QR/Transfer? User didn't specify, but Modal logic usually implies it.
-        // However, for "Efectivo", proof is redundant.
-        // Let's make proof mandatory for QR/Transfer, optional for Efectivo.
         if ((paymentMethod === 'QR' || paymentMethod === 'TRANSFERENCIA') && !paymentProof) {
-             alert('Por favor sube el comprobante de pago');
+             addToast('Por favor sube el comprobante de pago', 'error');
              return;
         }
 
         setIsProcessing(true);
         try {
-            await onConfirm({ paymentMethod, proof: paymentProof });
+            await onConfirm({
+                paymentMethod,
+                proof: paymentProof,
+                nroFactura: nroFactura || undefined,
+                observaciones: observaciones || undefined
+            });
         } finally {
             setIsProcessing(false);
         }
@@ -64,7 +75,7 @@ export const PurchasesPaymentModal: React.FC<PurchasesPaymentModalProps> = ({ is
                 <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
                     <div>
                         <h3 className="text-2xl font-black text-slate-800">Confirmar Compra</h3>
-                        <p className="text-slate-500 font-medium text-sm">Selecciona cómo deseas pagar</p>
+                        <p className="text-slate-500 font-medium text-sm">Detalles finale de la compra</p>
                     </div>
                     <button onClick={onClose} className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors">
                         <X size={20} className="text-slate-600" />
@@ -119,11 +130,46 @@ export const PurchasesPaymentModal: React.FC<PurchasesPaymentModalProps> = ({ is
                             </div>
                         </div>
 
-                        {/* 2. Make Payment (Only for QR/Transfer) */}
+                         {/* 2. Additional Info (New) */}
+                         <div>
+                            <h4 className="font-black text-slate-800 mb-4 flex items-center gap-3">
+                                <span className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold">2</span>
+                                Información Adicional
+                            </h4>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700 ml-1">No. Factura / Recibo (Opcional)</label>
+                                    <div className="relative">
+                                        <FileText className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <input
+                                            type="text"
+                                            placeholder="Ej: FAC-00123"
+                                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-slate-700"
+                                            value={nroFactura}
+                                            onChange={(e) => setNroFactura(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700 ml-1">Observaciones (Opcional)</label>
+                                    <div className="relative">
+                                        <MessageSquare className="absolute left-4 top-4 text-slate-400" size={18} />
+                                        <textarea
+                                            placeholder="Notas adicionales sobre la compra..."
+                                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all font-medium text-slate-700 min-h-[80px]"
+                                            value={observaciones}
+                                            onChange={(e) => setObservaciones(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 3. Make Payment (Only for QR/Transfer) */}
                         {(paymentMethod === 'QR' || paymentMethod === 'TRANSFERENCIA') && (
                             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200/60 dashed-border animate-fade-in">
                                 <h4 className="font-black text-slate-800 mb-4 flex items-center gap-3">
-                                    <span className="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-sm font-bold">2</span>
+                                    <span className="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-sm font-bold">3</span>
                                     {paymentMethod === 'QR' ? 'Escanea y paga' : 'Realiza la transferencia'}
                                 </h4>
 
@@ -153,11 +199,11 @@ export const PurchasesPaymentModal: React.FC<PurchasesPaymentModalProps> = ({ is
                             </div>
                         )}
 
-                        {/* 3. Upload Proof (Only for QR/Transfer) */}
+                        {/* 4. Upload Proof (Only for QR/Transfer) */}
                         {(paymentMethod === 'QR' || paymentMethod === 'TRANSFERENCIA') && (
                             <div className="animate-fade-in">
                                 <h4 className="font-black text-slate-800 mb-4 flex items-center gap-3">
-                                    <span className="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-sm font-bold">3</span>
+                                    <span className="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center text-sm font-bold">4</span>
                                     Sube el comprobante
                                 </h4>
 
@@ -174,7 +220,7 @@ export const PurchasesPaymentModal: React.FC<PurchasesPaymentModalProps> = ({ is
                                     ) : (
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6 text-slate-400 group-hover:text-teal-600 transition-colors">
                                             <div className="p-4 bg-slate-100 rounded-full mb-3 group-hover:bg-teal-100 transition-colors">
-                                               <Upload className="w-8 h-8" strokeWidth={2.5} />
+                                                <Upload className="w-8 h-8" strokeWidth={2.5} />
                                             </div>
                                             <p className="text-sm font-bold">Click para subir imagen</p>
                                             <p className="text-xs font-medium opacity-70">PNG, JPG (Max 5MB)</p>

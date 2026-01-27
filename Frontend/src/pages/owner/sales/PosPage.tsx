@@ -5,12 +5,16 @@ import { clientsService, type Cliente } from '../../../services/clientsService';
 import { POSProductGrid } from '../../../components/sales/POSProductGrid';
 import { POSCart, type CartItem } from '../../../components/sales/POSCart';
 import { CheckoutModal } from '../../../components/sales/CheckoutModal';
+import { PostSaleModal } from '../../../components/sales/PostSaleModal';
+import { useToast } from '../../../context/ToastContext';
 
 export const PosPage = () => {
+    const { addToast } = useToast();
     const [products, setProducts] = useState<Product[]>([]);
     const [cart, setCart] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+    const [lastSale, setLastSale] = useState<any | null>(null);
 
     // Checkout State
     const [clients, setClients] = useState<Cliente[]>([]);
@@ -29,6 +33,7 @@ export const PosPage = () => {
             setClients(clientsData.filter(c => c.estado === 'ACTIVO'));
         } catch (error) {
             console.error('Error loading POS data:', error);
+            addToast('No se pudieron cargar los datos del POS', 'error');
         } finally {
             setLoading(false);
         }
@@ -38,26 +43,35 @@ export const PosPage = () => {
         setCart(prev => {
             const existing = prev.find(item => item.producto_id === product.producto_id);
             if (existing) {
-                if (existing.cartQuantity >= product.stock_actual) return prev; // Stock limit
+                if (existing.cartQuantity >= product.stock_actual) {
+                    addToast('Stock máximo alcanzado', 'warning');
+                    return prev;
+                }
+                addToast(`+1 ${product.nombre}`, 'info');
                 return prev.map(item =>
                     item.producto_id === product.producto_id
                         ? { ...item, cartQuantity: item.cartQuantity + 1 }
                         : item
                 );
             }
+            addToast('Agregado al carrito', 'success');
             return [...prev, { ...product, cartQuantity: 1 }];
         });
     };
 
     const removeFromCart = (productId: number) => {
         setCart(prev => prev.filter(item => item.producto_id !== productId));
+        addToast('Producto eliminado', 'info');
     };
 
     const updateQuantity = (productId: number, delta: number) => {
         setCart(prev => prev.map(item => {
             if (item.producto_id === productId) {
                 const newQty = item.cartQuantity + delta;
-                if (newQty > item.stock_actual) return item;
+                if (newQty > item.stock_actual) {
+                    addToast('Sin stock suficiente', 'warning');
+                    return item;
+                }
                 if (newQty < 1) return item;
                 return { ...item, cartQuantity: newQty };
             }
@@ -67,52 +81,70 @@ export const PosPage = () => {
 
     const cartTotal = cart.reduce((sum, item) => sum + (Number(item.precio) * item.cartQuantity), 0);
 
-    const handleCheckout = async (data: { client: Cliente | null, paymentMethod: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA' }) => {
+    const handleCheckout = async (data: {
+        client: Cliente | null,
+        paymentMethod: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA',
+        montoRecibido?: number,
+        nitFacturacion?: string,
+        razonSocial?: string
+    }) => {
         try {
             const saleData: CreateVentaData = {
                 tipo_venta: 'FISICA',
                 metodo_pago: data.paymentMethod,
                 cliente_id: data.client?.cliente_id,
+                // New Commercial Fields
+                monto_recibido: data.montoRecibido,
+                nit_facturacion: data.nitFacturacion,
+                razon_social: data.razonSocial,
                 productos: cart.map(item => ({
                     producto_id: item.producto_id,
                     cantidad: item.cartQuantity
                 }))
             };
 
-            await salesService.create(saleData);
+            const newSale = await salesService.create(saleData);
 
-            // Reset
             setCart([]);
             setIsCheckoutOpen(false);
+            setLastSale(newSale);
             await loadData(); // Refresh stock
-            alert('Venta realizada con éxito');
+            addToast('Venta procesada con éxito', 'success');
+
         } catch (error: any) {
             console.error('Sale error:', error);
-            alert(error.response?.data?.message || 'Error al procesar la venta');
+            addToast(error.response?.data?.message || 'Error al procesar la venta', 'error');
         }
     };
 
-    return (
-        <div className="flex bg-slate-100 h-[calc(100vh-6rem)] -m-6 md:-m-8 overflow-hidden relative">
+    const handleNewSale = () => {
+        setLastSale(null);
+        setCart([]);
+    };
 
-             {/* Left: Product Grid */}
-            <div className="flex-1 flex flex-col min-w-0">
+    return (
+        <div className="flex h-[calc(100vh-5rem)] -m-4 md:-m-6 lg:-m-8 overflow-hidden relative bg-slate-50">
+            {/* Left: Product Grid */}
+            <div className="flex-1 flex flex-col min-w-0 h-full relative z-10">
                 <POSProductGrid
                     products={products}
-                    loading={loading} // Add prop to component if not already there, wait, I removed loading prop from component def in my thought but put it in file write? No, I put it in write.
+                    loading={loading}
                     onAddToCart={addToCart}
                 />
             </div>
 
             {/* Right: Cart Panel */}
-            <div className="h-full shrink-0 z-30 shadow-2xl">
-                 <POSCart
+            <div className="h-full shrink-0 z-20 shadow-[0_0_50px_-15px_rgba(0,0,0,0.15)] relative">
+                <POSCart
                     cart={cart}
                     onUpdateQuantity={updateQuantity}
                     onRemoveItem={removeFromCart}
                     onCheckout={() => setIsCheckoutOpen(true)}
-                    onClearCart={() => setCart([])}
-                 />
+                    onClearCart={() => {
+                        setCart([]);
+                        addToast('Carrito vaciado', 'info');
+                    }}
+                />
             </div>
 
             {/* Checkout Modal */}
@@ -123,7 +155,13 @@ export const PosPage = () => {
                 clients={clients}
                 onSubmit={handleCheckout}
             />
+
+            {/* Post Sale Modal */}
+            <PostSaleModal
+                sale={lastSale}
+                onClose={() => setLastSale(null)}
+                onNewSale={handleNewSale}
+            />
         </div>
     );
 };
-

@@ -3,8 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { rubrosService, type Rubro } from '../../services/rubrosService';
 import { Building2, User, Mail, Lock, ArrowRight, CheckCircle2, Eye, EyeOff, MapPin, Phone, ChevronDown } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 export const RegisterPage = () => {
+    const { addToast } = useToast();
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -200,7 +202,7 @@ export const RegisterPage = () => {
             };
 
             await authService.register(registerPayload);
-            alert('Registro exitoso. Tu cuenta ha sido creada y está pendiente de aprobación por el administrador.');
+            addToast('Registro exitoso. Tu cuenta ha sido creada y está pendiente de aprobación por el administrador.', 'success');
             navigate('/login');
         } catch (err: any) {
             setGlobalError(err.response?.data?.message || err.response?.data?.error || 'Error al registrar la empresa');

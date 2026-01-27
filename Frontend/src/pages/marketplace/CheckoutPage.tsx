@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../store/useCartStore';
-import { ShoppingBag, ArrowLeft, CreditCard, QrCode, User, Mail, CreditCard as IdCard, CheckCircle2, Package } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, CreditCard, QrCode, User, Mail, CreditCard as IdCard, CheckCircle2, Package, MapPin, Navigation } from 'lucide-react';
 import api from '../../api/axios';
 import { getImageUrl } from '../../utils/imageUtils';
+import { useToast } from '../../context/ToastContext';
 
 export const CheckoutPage = () => {
+  const { addToast } = useToast();
   const { slug } = useParams<{ slug: string }>();
   const { items, removeItems } = useCartStore();
   const navigate = useNavigate();
@@ -27,6 +29,8 @@ export const CheckoutPage = () => {
     telefono: '',
     nit_ci: '',
     metodo_pago: 'QR',
+    direccion_envio: '',
+    ubi_maps_envio: '',
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -45,7 +49,6 @@ export const CheckoutPage = () => {
         if (parsed.nit_ci) {
           setFormData(prev => ({ ...prev, ...parsed }));
           setStep('details');
-
         }
       } catch (e) {
         console.error('Error parsing saved client data', e);
@@ -61,7 +64,7 @@ export const CheckoutPage = () => {
   // Calculate total for current store
   const total = currentStoreItems.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -120,14 +123,37 @@ export const CheckoutPage = () => {
     }
   };
 
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      addToast('Tu navegador no soporta geolocalización.', 'error');
+      return;
+    }
+
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+        setFormData(prev => ({ ...prev, ubi_maps_envio: mapsLink }));
+        setLoading(false);
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        addToast('No pudimos obtener tu ubicación. Por favor asegúrate de dar permisos en tu navegador.', 'error');
+        setLoading(false);
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (currentStoreItems.length === 0) {
-      alert('No hay productos para esta tienda en el carrito.');
+      addToast('No hay productos para esta tienda en el carrito.', 'error');
       return;
     }
     if (!file && formData.metodo_pago !== 'EFECTIVO') {
-      alert('Por favor sube el comprobante de pago');
+      addToast('Por favor sube el comprobante de pago', 'error');
       return;
     }
 
@@ -141,6 +167,8 @@ export const CheckoutPage = () => {
       formPayload.append('telefono', formData.telefono);
       formPayload.append('nit_ci', formData.nit_ci);
       formPayload.append('metodo_pago', formData.metodo_pago);
+      formPayload.append('direccion_envio', formData.direccion_envio);
+      formPayload.append('ubi_maps_envio', formData.ubi_maps_envio);
       formPayload.append('productos', JSON.stringify(currentStoreItems.map(i => ({
         producto_id: i.producto_id,
         cantidad: i.cantidad,
@@ -173,7 +201,7 @@ export const CheckoutPage = () => {
 
     } catch (err: any) {
       console.error('Checkout error:', err);
-      alert(`Error al procesar el pedido: ${err.response?.data?.message || err.message}`);
+      addToast(`Error al procesar el pedido: ${err.response?.data?.message || err.message}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -468,23 +496,84 @@ export const CheckoutPage = () => {
                     </div>
                   </div>
 
-                  <div className="pt-8">
-                    <label className="block text-sm font-bold text-slate-700 mb-2">Comprobante de Pago (Requerido)</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      required
-                      onChange={(e) => setFile(e.target.files?.[0] || null)}
-                      className="block w-full text-sm text-slate-500
-                          file:mr-4 file:py-3 file:px-6
-                          file:rounded-xl file:border-0
-                          file:text-sm file:font-semibold
-                          file:bg-slate-900 file:text-white
-                          hover:file:bg-slate-800
-                          cursor-pointer
-                        "
-                    />
-                    <p className="text-xs text-slate-400 mt-2">Sube una captura de tu transferencia o pago QR para procesar el pedido.</p>
+                  <div className="space-y-6 pt-2">
+                    <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3 border-b border-slate-100 pb-4">
+                      <MapPin size={20} className="text-teal-500" /> Detalles de Entrega
+                    </h3>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Dirección de Envío</label>
+                      <div className="relative group">
+                         <div className="absolute top-4 left-4 text-slate-400 group-focus-within:text-teal-500 transition-colors pointer-events-none">
+                            <MapPin size={20} />
+                         </div>
+                        <textarea
+                          name="direccion_envio"
+                          required
+                          value={formData.direccion_envio}
+                          onChange={handleInputChange}
+                          rows={3}
+                          className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium resize-none shadow-sm"
+                          placeholder="Ej: Av. Principal #123, Edificio Azul, Piso 2, Apto 2B (Referencia: Frente al parque)"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Ubicación GPS (Opcional)</label>
+                      <div className="flex gap-2">
+                        <div className="relative group flex-1">
+                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors pointer-events-none">
+                            <MapPin size={20} />
+                          </div>
+                          <input
+                            type="url"
+                            name="ubi_maps_envio"
+                            value={formData.ubi_maps_envio}
+                            onChange={handleInputChange}
+                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium shadow-sm text-sm"
+                            placeholder="Enlace de Maps o Ubicación"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleGetLocation}
+                          disabled={loading}
+                          className="px-6 bg-teal-500 text-white rounded-2xl font-bold hover:bg-teal-600 transition-all shadow-lg shadow-teal-500/20 active:scale-95 flex items-center gap-2 whitespace-nowrap"
+                        >
+                          <Navigation size={18} className={loading ? 'animate-pulse' : ''} />
+                          <span className="hidden sm:inline">Usar mi GPS</span>
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-slate-400 pl-4">Ayuda al repartidor a llegar más rápido enviando tu ubicación exacta.</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-8 relative">
+                    <div className="absolute left-0 right-0 top-0 h-px bg-slate-100"></div>
+                    <label className="block text-sm font-bold text-slate-700 mb-3 mt-4">Comprobante de Pago (Requerido)</label>
+                    <div className={`relative border-2 border-dashed rounded-[1.5rem] p-8 text-center transition-all group cursor-pointer ${file ? 'border-teal-500 bg-teal-50/20' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        required
+                        onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                      <div className="flex flex-col items-center gap-3">
+                         <div className={`p-4 rounded-full transition-colors ${file ? 'bg-teal-100 text-teal-600' : 'bg-slate-100 text-slate-400 group-hover:bg-white group-hover:shadow-md'}`}>
+                             {file ? <CheckCircle2 size={32} /> : <Package size={32} />}
+                         </div>
+                         <div className="space-y-1">
+                             <p className={`font-bold text-lg ${file ? 'text-teal-700' : 'text-slate-600'}`}>
+                                {file ? '¡Comprobante cargado!' : 'Sube tu comprobante'}
+                             </p>
+                             <p className="text-sm text-slate-400">
+                                {file ? file.name : 'Arrastra o haz clic para seleccionar'}
+                             </p>
+                         </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="pt-8">

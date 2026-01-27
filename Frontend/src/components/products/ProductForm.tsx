@@ -5,6 +5,8 @@ import { productsService, type Product, type CreateProductData } from '../../ser
 import { type Category } from '../../services/categoriesService';
 import { suppliersService, type Proveedor } from '../../services/suppliersService';
 import { getImageUrl } from '../../utils/imageUtils';
+import { useToast } from '../../context/ToastContext';
+import { ConfirmDialog, type DialogType } from '../common/ConfirmDialog';
 
 interface ProductFormProps {
     isOpen: boolean;
@@ -15,12 +17,27 @@ interface ProductFormProps {
 }
 
 export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categories }: ProductFormProps) => {
+    const { addToast } = useToast();
     const [activeTab, setActiveTab] = useState<'general' | 'images'>('general');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentProduct, setCurrentProduct] = useState<Product | null>(productToEdit);
     const [uploadedImages, setUploadedImages] = useState<File[]>([]);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
     const [suppliers, setSuppliers] = useState<Proveedor[]>([]);
+
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     // Derived state for existing images from backend
     const [existingImages, setExistingImages] = useState(productToEdit?.imagenes || []);
@@ -76,17 +93,18 @@ export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categor
                 // Update
                 const updated = await productsService.update(currentProduct.producto_id, data);
                 setCurrentProduct(updated);
-                alert('Producto actualizado correctamente');
+                addToast('Producto actualizado correctamente', 'success');
             } else {
                 // Create
                 const created = await productsService.create(data);
                 setCurrentProduct(created);
                 setActiveTab('images'); // Auto switch to images
+                addToast('Producto creado. Ahora puedes subir imágenes.', 'success');
             }
             onSuccess(); // Refresh parent list
         } catch (error) {
             console.error(error);
-            alert('Error al guardar el producto');
+            addToast('Error al guardar el producto', 'error');
         } finally {
             setIsSubmitting(false);
         }
@@ -115,25 +133,34 @@ export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categor
             setExistingImages(updatedProduct.imagenes || []);
             setUploadedImages([]);
             setPreviewUrls([]);
-            alert('Imágenes subidas con éxito');
+            addToast('Imágenes subidas con éxito', 'success');
             onSuccess();
         } catch (error) {
             console.error(error);
-            alert('Error al subir imágenes');
+            addToast('Error al subir imágenes', 'error');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const handleDeleteImage = async (imageId: number) => {
-        if (!confirm('¿Eliminar imagen?')) return;
-        try {
-            await productsService.deleteImage(imageId);
-            setExistingImages(prev => prev.filter(img => img.imagen_id !== imageId));
-            onSuccess();
-        } catch (error) {
-            alert('Error al eliminar imagen');
-        }
+    const handleDeleteImage = (imageId: number) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Eliminar Imagen',
+            message: '¿Estás seguro de eliminar esta imagen del producto?',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await productsService.deleteImage(imageId);
+                    setExistingImages(prev => prev.filter(img => img.imagen_id !== imageId));
+                    addToast('Imagen eliminada', 'success');
+                    onSuccess();
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    addToast('Error al eliminar imagen', 'error');
+                }
+            }
+        });
     };
 
     const handleSetPrincipal = async (imageId: number) => {
@@ -145,9 +172,10 @@ export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categor
                 es_principal: img.imagen_id === imageId
             }));
             setExistingImages(updated);
+            addToast('Imagen principal actualizada', 'success');
             onSuccess();
         } catch (error) {
-            alert('Error al cambiar imagen principal');
+            addToast('Error al cambiar imagen principal', 'error');
         }
     };
 
@@ -445,6 +473,11 @@ export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categor
                     )}
                 </div>
             </div>
+
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

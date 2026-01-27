@@ -1,13 +1,30 @@
 import { useState, useEffect } from 'react';
 import { planesService, type Plan, type CreatePlanData } from '../../services/planesService';
 import { Plus, Edit2, Trash2, Check, X, Shield } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
+import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
 
 export const AdminPlansPage = () => {
+    const { addToast } = useToast();
     const [plans, setPlans] = useState<Plan[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     // Form Initial State
     const [formData, setFormData] = useState<CreatePlanData>({
@@ -34,6 +51,7 @@ export const AdminPlansPage = () => {
             setPlans(data);
         } catch (err) {
             setError('Error al cargar planes');
+            addToast('Error al cargar planes', 'error');
             console.error(err);
         } finally {
             setLoading(false);
@@ -56,14 +74,23 @@ export const AdminPlansPage = () => {
         setShowModal(true);
     };
 
-    const handleDelete = async (id: number) => {
-        if (!window.confirm('¿Estás seguro de eliminar este plan?')) return;
-        try {
-            await planesService.delete(id);
-            loadPlans();
-        } catch (err) {
-            alert('Error al eliminar el plan');
-        }
+    const handleDelete = (id: number) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Eliminar Plan',
+            message: '¿Estás seguro de eliminar este plan? Las empresas que lo usen podrían verse afectadas.',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await planesService.delete(id);
+                    loadPlans();
+                    addToast('Plan eliminado correctamente', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (err) {
+                    addToast('Error al eliminar el plan', 'error');
+                }
+            }
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -71,8 +98,10 @@ export const AdminPlansPage = () => {
         try {
             if (editingPlan) {
                 await planesService.update(editingPlan.plan_id, formData);
+                addToast('Plan actualizado correctamente', 'success');
             } else {
                 await planesService.create(formData);
+                addToast('Plan creado correctamente', 'success');
             }
             setShowModal(false);
             setEditingPlan(null);
@@ -89,7 +118,7 @@ export const AdminPlansPage = () => {
             });
             loadPlans();
         } catch (err) {
-            alert('Error al guardar el plan');
+            addToast('Error al guardar el plan', 'error');
             console.error(err);
         }
     };
@@ -367,6 +396,11 @@ export const AdminPlansPage = () => {
                     </div>
                 </div>
             )}
+
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };
@@ -379,4 +413,3 @@ const FeatureItem = ({ label, included = true, highlight = false }: { label: str
         <span className={`${highlight ? 'font-medium text-slate-900' : 'text-slate-600'}`}>{label}</span>
     </div>
 );
-

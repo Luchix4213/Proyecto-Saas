@@ -4,13 +4,30 @@ import type { Usuario } from '../../services/userService';
 import { Plus, Pencil, Trash2, KeyRound, Ban, ShieldCheck, CheckCircle2, UserCog } from 'lucide-react';
 import { UserForm } from '../../components/usuarios/UserForm';
 import { ChangePasswordModal } from '../../components/usuarios/ChangePasswordModal';
+import { useToast } from '../../context/ToastContext';
+import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
 
 export const AdminSystemUsersPage = () => {
+    const { addToast } = useToast();
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isPasswordOpen, setIsPasswordOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<Usuario | null>(null);
+
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     useEffect(() => {
         loadUsers();
@@ -23,6 +40,7 @@ export const AdminSystemUsersPage = () => {
             setUsuarios(data);
         } catch (error) {
             console.error('Error al cargar usuarios:', error);
+            addToast('Error al cargar administradores', 'error');
         } finally {
             setLoading(false);
         }
@@ -43,31 +61,47 @@ export const AdminSystemUsersPage = () => {
         setIsPasswordOpen(true);
     };
 
-    const handleToggleStatus = async (user: Usuario) => {
+    const handleToggleStatus = (user: Usuario) => {
         const nuevoEstado = user.estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
         const accion = user.estado === 'ACTIVO' ? 'dar de baja' : 'reactivar';
 
-        if (window.confirm(`¿Estás seguro de ${accion} a ${user.nombre}?`)) {
-            try {
-                await userService.update(user.usuario_id, { estado: nuevoEstado });
-                loadUsers();
-            } catch (error) {
-                console.error('Error al cambiar estado:', error);
-                alert('No se pudo cambiar el estado');
+        setConfirmConfig({
+            isOpen: true,
+            title: user.estado === 'ACTIVO' ? 'Desactivar Administrador' : 'Reactivar Administrador',
+            message: `¿Estás seguro de ${accion} a ${user.nombre}?`,
+            type: user.estado === 'ACTIVO' ? 'danger' : 'info',
+            onConfirm: async () => {
+                try {
+                    await userService.update(user.usuario_id, { estado: nuevoEstado });
+                    loadUsers();
+                    addToast(`Usuario ${nuevoEstado === 'ACTIVO' ? 'reactivado' : 'desactivado'} correctamente`, 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    console.error('Error al cambiar estado:', error);
+                    addToast('No se pudo cambiar el estado', 'error');
+                }
             }
-        }
+        });
     };
 
-    const handleDelete = async (user: Usuario) => {
-        if (window.confirm(`¿Estás seguro de eliminar a ${user.nombre}? Esta acción no se puede deshacer.`)) {
-            try {
-                await userService.delete(user.usuario_id);
-                loadUsers();
-            } catch (error) {
-                console.error('Error al eliminar:', error);
-                alert('No se pudo eliminar el usuario');
+    const handleDelete = (user: Usuario) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Eliminar Administrador',
+            message: `¿Estás seguro de eliminar a ${user.nombre}? Esta acción no se puede deshacer.`,
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await userService.delete(user.usuario_id);
+                    loadUsers();
+                    addToast('Usuario eliminado correctamente', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    console.error('Error al eliminar:', error);
+                    addToast('No se pudo eliminar el usuario', 'error');
+                }
             }
-        }
+        });
     };
 
     const stats = {
@@ -237,6 +271,11 @@ export const AdminSystemUsersPage = () => {
                     userId={selectedUser.usuario_id}
                 />
             )}
+
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 };

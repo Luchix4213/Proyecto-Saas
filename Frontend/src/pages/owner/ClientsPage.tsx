@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, Pencil, Trash2, Users, Phone, FileText, History, Filter, UserCheck, UserX } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, Users, Phone, FileText, History, Filter, UserCheck, UserX, MessageCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { clientsService } from '../../services/clientsService';
 import type { Cliente } from '../../services/clientsService';
 import { ClientForm } from '../../components/clientes/ClientForm';
+import { ClientHistoryModal } from '../../components/clientes/ClientHistoryModal';
+import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
+import { AestheticHeader } from '../../components/common/AestheticHeader';
+import { EmptyState } from '../../components/common/EmptyState';
+import { useToast } from '../../context/ToastContext';
 
 export const ClientsPage = () => {
     const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -11,6 +17,25 @@ export const ClientsPage = () => {
     const [statusFilter, setStatusFilter] = useState<'TODOS' | 'ACTIVO' | 'INACTIVO'>('TODOS');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
+
+    // History Modal State
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [historyClient, setHistoryClient] = useState<Cliente | null>(null);
+
+    const { addToast } = useToast();
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: DialogType;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'info',
+        onConfirm: () => {},
+    });
 
     useEffect(() => {
         loadClients();
@@ -38,30 +63,47 @@ export const ClientsPage = () => {
         setIsFormOpen(true);
     };
 
-    const handleDelete = async (client: Cliente) => {
-        if (!window.confirm(`¿Estás seguro de dar de baja a ${client.nombre}?`)) return;
-
-        try {
-            await clientsService.delete(client.cliente_id);
-            loadClients();
-        } catch (error) {
-            alert('Error al eliminar cliente');
-        }
+    const handleDelete = (client: Cliente) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Dar de baja',
+            message: `¿Estás seguro de dar de baja a ${client.nombre}? El cliente no podrá realizar nuevas compras.`,
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    await clientsService.delete(client.cliente_id);
+                    loadClients();
+                    addToast('Cliente dado de baja correctamente', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    addToast('Error al eliminar cliente', 'error');
+                }
+            }
+        });
     };
 
     const handleHistory = (client: Cliente) => {
-        alert(`Historial de compras de ${client.nombre}: Esta función estará disponible con el módulo de Ventas.`);
+        setHistoryClient(client);
+        setIsHistoryOpen(true);
     };
 
-    const handleReactivate = async (client: Cliente) => {
-        if (!window.confirm(`¿Quieres reactivar al cliente ${client.nombre}?`)) return;
-
-        try {
-            await clientsService.update(client.cliente_id, { estado: 'ACTIVO' });
-            loadClients();
-        } catch (error) {
-            alert('Error al reactivar cliente');
-        }
+    const handleReactivate = (client: Cliente) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Reactivar Cliente',
+            message: `¿Quieres reactivar a ${client.nombre}? Podrá volver a operar normalmente.`,
+            type: 'success',
+            onConfirm: async () => {
+                try {
+                    await clientsService.update(client.cliente_id, { estado: 'ACTIVO' });
+                    loadClients();
+                    addToast('Cliente reactivado', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    addToast('Error al reactivar cliente', 'error');
+                }
+            }
+        });
     };
 
     const filteredClients = clientes.filter(c => {
@@ -84,27 +126,22 @@ export const ClientsPage = () => {
                 <div className="absolute bottom-0 right-10 -mb-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div className="relative z-10 space-y-8">
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                        <div>
-                            <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight flex items-center gap-3">
-                                <div className="p-2.5 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl text-white shadow-lg shadow-teal-500/30">
-                                    <Users size={28} />
-                                </div>
-                                Cartera de Clientes
-                            </h1>
-                            <p className="text-slate-500 mt-2 text-lg">Gestiona y fideliza a tus compradores.</p>
-                        </div>
+                    {/* Header Section */}
+                <AestheticHeader
+                    title="Gestión de Clientes"
+                    description="Administra la base de datos de tus clientes y su historial de compras."
+                    icon={Users}
+                    iconColor="from-teal-500 to-emerald-600"
+                    action={
                         <button
                             onClick={handleCreate}
-                            className="group relative overflow-hidden bg-slate-900 text-white px-6 py-3.5 rounded-2xl font-bold shadow-xl shadow-slate-900/20 hover:shadow-2xl hover:bg-slate-800 transition-all hover:-translate-y-0.5"
+                            className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 border border-transparent rounded-2xl shadow-xl shadow-slate-900/20 text-sm font-bold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all hover:-translate-y-0.5"
                         >
-                            <span className="relative z-10 flex items-center gap-2">
-                                <Plus size={20} className="stroke-[3] group-hover:rotate-90 transition-transform duration-300" />
-                                Nuevo Cliente
-                            </span>
+                            <Plus size={20} className="stroke-[3]" />
+                            Nuevo Cliente
                         </button>
-                    </div>
+                    }
+                />
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -188,111 +225,140 @@ export const ClientsPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 text-sm text-slate-600">
-                                    {loading ? (
-                                        <tr>
-                                            <td colSpan={5} className="px-6 py-24 text-center">
-                                                <div className="flex flex-col items-center gap-4">
-                                                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-teal-500 border-t-transparent"></div>
-                                                    <p className="text-slate-400 font-bold animate-pulse">Cargando lista de clientes...</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : filteredClients.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={5} className="px-6 py-24 text-center">
-                                                <div className="flex flex-col items-center justify-center text-slate-400">
-                                                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                                                        <Users size={40} className="text-slate-300" />
-                                                    </div>
-                                                    <p className="text-xl font-bold text-slate-600">No se encontraron clientes</p>
-                                                    <p className="text-slate-400 mt-2">Intenta ajustar tu búsqueda o crea un nuevo cliente.</p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        filteredClients.map((client) => (
-                                            <tr key={client.cliente_id} className="hover:bg-slate-50/80 transition-all group">
-                                                <td className="px-8 py-5">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-                                                            {client.nombre.charAt(0).toUpperCase()}{client.paterno?.charAt(0).toUpperCase()}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-bold text-slate-800 text-base">{client.nombre} {client.paterno}</p>
-                                                            <p className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-lg inline-block mt-1">ID: {client.cliente_id}</p>
-                                                        </div>
+                                    <AnimatePresence mode="popLayout">
+                                        {loading ? (
+                                            <motion.tr
+                                                key="loading"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                            >
+                                                <td colSpan={5} className="px-6 py-24 text-center">
+                                                    <div className="flex flex-col items-center gap-4">
+                                                        <div className="h-10 w-10 animate-spin rounded-full border-4 border-teal-500 border-t-transparent"></div>
+                                                        <p className="text-slate-400 font-bold animate-pulse">Cargando lista de clientes...</p>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-5">
-                                                    {client.nit_ci ? (
-                                                        <div className="flex items-center gap-2 font-bold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl w-fit">
-                                                            <FileText size={16} className="text-slate-400" />
-                                                            {client.nit_ci}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-slate-400 font-medium italic pl-3">No registrado</span>
-                                                    )}
+                                            </motion.tr>
+                                        ) : filteredClients.length === 0 ? (
+                                            <motion.tr
+                                                key="empty"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                            >
+                                                <td colSpan={5}>
+                                                    <EmptyState
+                                                        icon={Users}
+                                                        title="No se encontraron clientes"
+                                                        description="Intenta ajustar tu búsqueda o crea un nuevo cliente para comenzar."
+                                                    />
                                                 </td>
-                                                <td className="px-8 py-5">
-                                                    <div className="flex flex-col gap-1">
-                                                        {client.telefono ? (
-                                                            <div className="flex items-center gap-2 font-medium text-slate-700">
-                                                                <Phone size={14} className="text-slate-400" />
-                                                                {client.telefono}
+                                            </motion.tr>
+                                        ) : (
+                                            filteredClients.map((client) => (
+                                                <motion.tr
+                                                    key={client.cliente_id}
+                                                    layout
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, scale: 0.95 }}
+                                                    className="hover:bg-slate-50/80 transition-all group"
+                                                >
+                                                    <td className="px-8 py-5">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                                                                {client.nombre.charAt(0).toUpperCase()}{client.paterno?.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-bold text-slate-800 text-base">{client.nombre} {client.paterno}</p>
+                                                                <p className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-lg inline-block mt-1">ID: {client.cliente_id}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-5">
+                                                        {client.nit_ci ? (
+                                                            <div className="flex items-center gap-2 font-bold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl w-fit">
+                                                                <FileText size={16} className="text-slate-400" />
+                                                                {client.nit_ci}
                                                             </div>
                                                         ) : (
-                                                            <span className="text-slate-400 text-xs italic">Sin teléfono</span>
+                                                            <span className="text-slate-400 font-medium italic pl-3">No registrado</span>
                                                         )}
-                                                        {client.email && <div className="text-xs font-medium text-slate-500">{client.email}</div>}
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-5 text-center">
-                                                    <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wide border
-                                                        ${client.estado === 'ACTIVO'
-                                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
-                                                            : 'bg-red-50 text-red-600 border-red-100'}`}>
-                                                        {client.estado}
-                                                    </span>
-                                                </td>
-                                                <td className="px-8 py-5 text-right">
-                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                                                        <button
-                                                            onClick={() => handleHistory(client)}
-                                                            className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
-                                                            title="Historial de Compras"
-                                                        >
-                                                            <History size={20} className="stroke-[2.5]" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleEdit(client)}
-                                                            className="p-2.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-colors"
-                                                            title="Editar Cliente"
-                                                        >
-                                                            <Pencil size={20} className="stroke-[2.5]" />
-                                                        </button>
+                                                    </td>
+                                                    <td className="px-8 py-5">
+                                                        <div className="flex flex-col gap-1">
+                                                            {client.telefono ? (
+                                                                <div className="flex items-center gap-2 font-medium text-slate-700">
+                                                                    <Phone size={14} className="text-slate-400" />
+                                                                    {client.telefono}
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-slate-400 text-xs italic">Sin teléfono</span>
+                                                            )}
+                                                            {client.email && <div className="text-xs font-medium text-slate-500">{client.email}</div>}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-5 text-center">
+                                                        <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wide border
+                                                            ${client.estado === 'ACTIVO'
+                                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                                : 'bg-red-50 text-red-600 border-red-100'}`}>
+                                                            {client.estado}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-8 py-5 text-right">
+                                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                                                            {client.telefono && (
+                                                                <a
+                                                                    href={`https://wa.me/${client.telefono.replace(/\D/g, '')}`}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="p-2.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-colors"
+                                                                    title="Enviar WhatsApp"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <MessageCircle size={20} className="stroke-[2.5]" />
+                                                                </a>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleHistory(client)}
+                                                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                                                                title="Historial de Compras"
+                                                            >
+                                                                <History size={20} className="stroke-[2.5]" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleEdit(client)}
+                                                                className="p-2.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-colors"
+                                                                title="Editar Cliente"
+                                                            >
+                                                                <Pencil size={20} className="stroke-[2.5]" />
+                                                            </button>
 
-                                                        {client.estado === 'INACTIVO' ? (
-                                                            <button
-                                                                onClick={() => handleReactivate(client)}
-                                                                className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
-                                                                title="Reactivar Cliente"
-                                                            >
-                                                                <UserCheck size={20} className="stroke-[2.5]" />
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handleDelete(client)}
-                                                                className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                                                                title="Dar de baja"
-                                                            >
-                                                                <Trash2 size={20} className="stroke-[2.5]" />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
+                                                            {client.estado === 'INACTIVO' ? (
+                                                                <button
+                                                                    onClick={() => handleReactivate(client)}
+                                                                    className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
+                                                                    title="Reactivar Cliente"
+                                                                >
+                                                                    <UserCheck size={20} className="stroke-[2.5]" />
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleDelete(client)}
+                                                                    className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                                                                    title="Dar de baja"
+                                                                >
+                                                                    <Trash2 size={20} className="stroke-[2.5]" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </motion.tr>
+                                            ))
+                                        )}
+                                    </AnimatePresence>
                                 </tbody>
                             </table>
                         </div>
@@ -305,6 +371,20 @@ export const ClientsPage = () => {
                 onClose={() => setIsFormOpen(false)}
                 onSuccess={loadClients}
                 clientToEdit={selectedClient}
+            />
+
+            {historyClient && (
+                <ClientHistoryModal
+                    isOpen={isHistoryOpen}
+                    onClose={() => setIsHistoryOpen(false)}
+                    clientId={historyClient.cliente_id}
+                    clientName={`${historyClient.nombre} ${historyClient.paterno || ''}`}
+                />
+            )}
+            {/* Premium Confirm Dialog */}
+            <ConfirmDialog
+                {...confirmConfig}
+                onClose={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
             />
         </>
     );
