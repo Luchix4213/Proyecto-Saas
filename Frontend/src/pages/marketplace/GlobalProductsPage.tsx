@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { productsService, type Product } from '../../services/productsService';
-import { ShoppingBag, ArrowRight, Store, Search, Filter } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Store, Search, Filter, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getImageUrl } from '../../utils/imageUtils';
 import { useCartStore } from '../../store/useCartStore';
 
@@ -9,8 +10,13 @@ export const GlobalProductsPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
+    const [sortBy, setSortBy] = useState<'newest' | 'price-asc' | 'price-desc'>('newest');
+    const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 10000 });
+    const [showFilters, setShowFilters] = useState(false);
     const { addItem } = useCartStore();
     const [addedId, setAddedId] = useState<number | null>(null);
+    const [categories, setCategories] = useState<{id: number, nombre: string}[]>([]);
 
     useEffect(() => {
         fetchProducts();
@@ -21,6 +27,21 @@ export const GlobalProductsPage = () => {
         try {
             const data = await productsService.getGlobalProducts();
             setProducts(data);
+
+            // Extract unique categories
+            const uniqueCats = data.reduce((acc: {id: number, nombre: string}[], p) => {
+                if (p.categoria && !acc.find(c => c.id === p.categoria_id)) {
+                    acc.push({ id: p.categoria_id, nombre: p.categoria.nombre });
+                }
+                return acc;
+            }, []);
+            setCategories(uniqueCats);
+
+            // Set max price
+            if (data.length > 0) {
+                const max = Math.max(...data.map(p => Number(p.precio)));
+                setPriceRange(prev => ({ ...prev, max: Math.ceil(max) }));
+            }
         } catch (error) {
             console.error('Error fetching global products:', error);
         } finally {
@@ -48,11 +69,23 @@ export const GlobalProductsPage = () => {
         setTimeout(() => setAddedId(null), 1500);
     };
 
-    const filteredProducts = products.filter(p =>
-        p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.tenant?.nombre_empresa.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredProducts = products
+        .filter(p => {
+            const matchesSearch =
+                p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.tenant?.nombre_empresa.toLowerCase().includes(searchTerm.toLowerCase());
+
+            const matchesCategory = selectedCategory === 'all' || p.categoria_id === selectedCategory;
+            const matchesPrice = Number(p.precio) >= priceRange.min && Number(p.precio) <= priceRange.max;
+
+            return matchesSearch && matchesCategory && matchesPrice;
+        })
+        .sort((a, b) => {
+            if (sortBy === 'price-asc') return Number(a.precio) - Number(b.precio);
+            if (sortBy === 'price-desc') return Number(b.precio) - Number(a.precio);
+            return b.producto_id - a.producto_id; // newest
+        });
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -65,23 +98,128 @@ export const GlobalProductsPage = () => {
                     </h1>
 
                     {/* Search & Filter Bar */}
-                    <div className="flex flex-col md:flex-row gap-4">
-                        <div className="relative flex-1 group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={20} />
-                            <input
-                                type="text"
-                                placeholder="Buscar productos, tiendas o descripciones..."
-                                className="w-full pl-12 pr-4 py-3 bg-slate-100 border-transparent focus:bg-white border-2 focus:border-teal-500 rounded-xl outline-none transition-all font-medium text-slate-700"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+                    <div className="flex flex-col gap-6">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <div className="relative flex-1 group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors" size={20} />
+                                <input
+                                    type="text"
+                                    placeholder="Buscar productos, tiendas o descripciones..."
+                                    className="w-full pl-12 pr-4 py-4 bg-slate-100 border-transparent focus:bg-white border-2 focus:border-teal-500 rounded-[1.25rem] outline-none transition-all font-medium text-slate-700 shadow-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    className={`px-6 py-4 rounded-[1.25rem] font-bold flex items-center gap-2 transition-all border-2 ${
+                                        showFilters
+                                        ? 'bg-teal-500 text-white border-teal-500 shadow-lg shadow-teal-200'
+                                        : 'bg-white text-slate-600 border-slate-100 hover:border-slate-200 shadow-sm'
+                                    }`}
+                                >
+                                    <Filter size={20} />
+                                    <span>Filtros</span>
+                                </button>
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value as any)}
+                                    className="px-4 py-4 bg-white border-2 border-slate-100 text-slate-600 font-bold rounded-[1.25rem] outline-none focus:border-teal-500 transition-all shadow-sm cursor-pointer"
+                                >
+                                    <option value="newest">Más Recientes</option>
+                                    <option value="price-asc">Precio: Menor a Mayor</option>
+                                    <option value="price-desc">Precio: Mayor a Menor</option>
+                                </select>
+                            </div>
                         </div>
-                        <div className="flex gap-2">
-                             <button className="px-5 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 flex items-center gap-2 transition-colors">
-                                <Filter size={18} />
-                                <span className="hidden sm:inline">Filtros</span>
-                             </button>
-                        </div>
+
+                        {/* Expandable Filters */}
+                        <AnimatePresence>
+                            {showFilters && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+                                        {/* Categories */}
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Categorías</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                <button
+                                                    onClick={() => setSelectedCategory('all')}
+                                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                                                        selectedCategory === 'all'
+                                                        ? 'bg-teal-500 text-white border-teal-500 shadow-md'
+                                                        : 'bg-white text-slate-600 border-slate-200 hover:border-teal-200'
+                                                    }`}
+                                                >
+                                                    Todos
+                                                </button>
+                                                {categories.map(cat => (
+                                                    <button
+                                                        key={cat.id}
+                                                        onClick={() => setSelectedCategory(cat.id)}
+                                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
+                                                            selectedCategory === cat.id
+                                                            ? 'bg-teal-500 text-white border-teal-500 shadow-md'
+                                                            : 'bg-white text-slate-600 border-slate-200 hover:border-teal-200'
+                                                        }`}
+                                                    >
+                                                        {cat.nombre}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Price Range */}
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Rango de Precio (Bs)</label>
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex-1">
+                                                    <span className="text-[10px] text-slate-400 font-bold block mb-1">Mín</span>
+                                                    <input
+                                                        type="number"
+                                                        value={priceRange.min}
+                                                        onChange={(e) => setPriceRange(prev => ({ ...prev, min: Number(e.target.value) }))}
+                                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-teal-500"
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <span className="text-[10px] text-slate-400 font-bold block mb-1">Máx</span>
+                                                    <input
+                                                        type="number"
+                                                        value={priceRange.max}
+                                                        onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
+                                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-teal-500"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Active Filters Summary */}
+                                        <div className="flex flex-col justify-center">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedCategory('all');
+                                                    setPriceRange({ min: 0, max: 10000 });
+                                                    setSearchTerm('');
+                                                    setSortBy('newest');
+                                                }}
+                                                className="text-xs font-bold text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-2 w-fit mb-2"
+                                            >
+                                                <X size={14} /> Limpiar todos los filtros
+                                            </button>
+                                            <p className="text-xs font-bold text-slate-500 bg-white p-4 rounded-2xl border border-slate-100">
+                                                Mostrando <span className="text-teal-600">{filteredProducts.length}</span> de {products.length} productos
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
             </div>
