@@ -44,7 +44,7 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
   - [x] Registro y edición de datos de la empresa
   - [x] Configuración de moneda e impuestos
   - [x] Carga de logotipo y Banner
-  - [x] Definición de horarios de atención (Campo en BD listo)
+  - [x] Definición de horarios de atención (UI funcional)
   - [x] Estado de la empresa (activa/inactiva)
 
 ### 4. Módulo de Gestión de Catálogo y Marketplace
@@ -55,9 +55,9 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
   - [x] **Gestión Interna (Dashboard):** Registro, categorización, control de precios y (des)activación de productos por parte de la microempresa.
   - [x] **Portal de Productos (Storefront):** Cada empresa cuenta con su propia URL pública/catálogo para clientes finales.
   - [x] **Landing Page & Marketplace (SaaS Home):** Portal principal tipo Amazon que permite buscar productos de todas las microempresas registradas.
-  - [ ] **Notificaciones y Alertas:**
-    - [ ] Envío de correos automáticos ante eventos clave (compras, stock bajo).
-    - [ ] Notificaciones en tiempo real para el administrador y el cliente.
+  - [x] **Notificaciones y Alertas:**
+    - [x] Centro de notificaciones interno para eventos clave (Stock bajo, nuevas ventas).
+    - [ ] Envío de correos automáticos (Pendiente integración SMTP).
 
 ### 5. Módulo de Gestión de Clientes
 
@@ -75,7 +75,7 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
 **Funciones:**
 
 - [x] Registro de proveedores (Modelo en BD)
-- [ ] Historial de compras
+- [x] Historial de compras (Vinculado a ingresos de mercadería)
 - [x] Datos de pago
 - [x] Productos que suministran
 - [x] Activación / desactivación de proveedores
@@ -100,12 +100,12 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
   - [x] Selección de productos y cantidades
   - [x] Cálculo automático del total
   - [x] Descuento de stock automático
-  - [ ] Historial de ventas (Vista pendiente, datos en BD)
+  - [x] Historial de ventas (Vista de Ventas Online completa)
   - [x] Cliente elige sus productos e incluye en su carrito (Persistencia local)
   - [x] Checkout Híbrido (Invitado / Registrado)
   - [x] Pagar mediante un QR (Simulación / Instrucciones)
-  - [ ] Enviar un comprobante (documento PDF)
-  - [ ] El administrador valida entrega de producto al cliente
+  - [ ] Enviar un comprobante (documento PDF de venta)
+  - [x] El administrador valida entrega de producto al cliente (Gestión de estados)
 
 ### 9. Módulo de Reportes
 
@@ -125,7 +125,7 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
   - [x] Asociación a proveedores
   - [x] Actualización automática del inventario
   - [x] Control de gastos (Registro de costo unitario)
-  - [ ] Historial de compras (Vista pendiente, datos en BD)
+  - [x] Historial de compras (Vista completa con descarga de PDF)
 
 ---
 
@@ -157,3 +157,23 @@ Desarrollar un sistema SaaS de ventas e inventarios, accesible desde web y aplic
 ### Infraestructura
 
 - **Contenerización:** Docker
+
+---
+
+## PRÓXIMAS MEJORAS Y ROADMAP
+
+### A corto plazo (Refinamiento)
+
+- **Logística de Entrega**: Integración de link de Google Maps o coordenadas en pedidos online.
+- **Historial Unificado de Ventas**: Creación de una vista consolidada para que el propietario pueda filtrar y buscar tanto ventas físicas (POS) como online en un solo lugar.
+- **Inteligencia de Precios**: Visualización clara del costo vs precio de venta para calcular márgenes de ganancia.
+- **Validaciones Robustas**: Validación de NIT/CI por país y restricción de stock negativo a nivel de Base de Datos.
+- **Seguridad y Auditoría**:
+  - Implementación de Autenticación en Dos Pasos (2FA) para acceso administrativo.
+  - Sistema de Logs/Auditoría: Registro detallado de "Quién hizo qué" (creación, edición, eliminación de productos, descuentos manuales, etc.).
+
+### A mediano plazo (Escalabilidad)
+
+- **Historial de Movimientos**: Registro de auditoría para cada entrada/salida de stock.
+- **PWA (Progressive Web App)**: Permitir la instalación del dashboard como aplicación en móviles.
+- **Soporte de Impresión**: Integración con impresoras térmicas para emisión de recibos físicos.
