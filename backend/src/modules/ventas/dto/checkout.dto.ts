@@ -10,6 +10,10 @@ class CheckoutItemDto {
   @IsNumber()
   @IsNotEmpty()
   cantidad: number;
+
+  @IsNumber()
+  @IsOptional()
+  descuento?: number;
 }
 
 export class CheckoutDto {
