@@ -8,6 +8,7 @@ import type { CreateTenantData } from '../../services/tenantsService';
 import { useToast } from '../../context/ToastContext';
 import { AestheticHeader } from '../../components/common/AestheticHeader';
 import { StatusBadge } from '../../components/common/StatusBadge';
+import { StatCard } from '../../components/common/StatCard';
 
 export const AdminTenantsPage = () => {
     const { addToast } = useToast();
@@ -95,55 +96,35 @@ export const AdminTenantsPage = () => {
                 }
             />
 
-            {/* Stats Overview */}
+            {/* Premium Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 {/* Total Companies */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Store size={80} className="text-indigo-600" />
-                    </div>
-                    <div className="flex justify-between items-start relative z-10">
-                        <div>
-                            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Empresas</p>
-                            <p className="text-3xl font-bold text-slate-800 mt-2">{stats.total}</p>
-                        </div>
-                        <div className="p-3 rounded-xl shadow-lg bg-gradient-to-br from-indigo-500 to-blue-500 text-white">
-                            <Store size={24} />
-                        </div>
-                    </div>
-                </div>
+                <StatCard
+                    title="Total Empresas"
+                    value={stats.total.toString()}
+                    subtitle="Registradas en la plataforma"
+                    icon={Store}
+                    gradientFrom="from-indigo-500"
+                    gradientTo="to-purple-600"
+                />
 
-                {/* Active Companies */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <CheckCircle2 size={80} className="text-emerald-600" />
-                    </div>
-                    <div className="flex justify-between items-start relative z-10">
-                        <div>
-                            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Activas</p>
-                            <p className="text-3xl font-bold text-slate-800 mt-2">{stats.active}</p>
-                        </div>
-                        <div className="p-3 rounded-xl shadow-lg bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
-                            <CheckCircle2 size={24} />
-                        </div>
-                    </div>
-                </div>
+                <StatCard
+                    title="Empresas Activas"
+                    value={stats.active.toString()}
+                    subtitle={`${((stats.active / stats.total) * 100 || 0).toFixed(1)}% del total`}
+                    icon={CheckCircle2}
+                    trend={{ value: stats.active, isPositive: true }}
+                    gradientFrom="from-emerald-500"
+                    gradientTo="to-teal-600"
+                />
 
-                {/* Pending Companies */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <Clock size={80} className="text-amber-600" />
-                    </div>
-                    <div className="flex justify-between items-start relative z-10">
-                         <div>
-                            <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Pendientes</p>
-                            <p className="text-3xl font-bold text-slate-800 mt-2">{stats.pending}</p>
-                        </div>
-                        <div className="p-3 rounded-xl shadow-lg bg-gradient-to-br from-amber-500 to-orange-500 text-white">
-                            <Clock size={24} />
-                        </div>
-                    </div>
-                </div>
+                <StatCard
+                    title="Pendientes"
+                    value={stats.pending.toString()}
+                    subtitle="Esperando activación"
+                    icon={Clock}
+                    gradientFrom="from-amber-500"
+                    gradientTo="to-orange-600"
+                />
             </div>
 
             {error && (

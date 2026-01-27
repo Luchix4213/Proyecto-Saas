@@ -103,7 +103,7 @@ export const ResetPasswordPage = () => {
                                 <input
                                     type="text"
                                     required
-                                    className="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 hover:bg-white transition-all placeholder-slate-400 text-center tracking-widest text-lg font-mono"
+                                    className="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 hover:bg-white transition-all placeholder-slate-400 text-center tracking-widest font-mono"
                                     value={manualToken}
                                     onChange={(e) => setManualToken(e.target.value)}
                                     placeholder="XXXXXX"

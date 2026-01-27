@@ -10,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 import { EstadoEmpresa, RolUsuario } from '@prisma/client';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 
 @Injectable()
 export class AutenticacionService {
@@ -18,6 +19,7 @@ export class AutenticacionService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private notificacionesService: NotificacionesService,
   ) {
     // Inicializar transporter si existen las credenciales
     if (process.env.SMTP_USER && process.env.SMTP_PASS) {
@@ -157,6 +159,9 @@ export class AutenticacionService {
           referencia: 'Registro Inicial'
         }
       });
+
+      // 5. Notificar al Admin
+      await this.notificacionesService.notificarNuevaEmpresa(newTenant.tenant_id, newTenant.nombre_empresa);
 
       const { password_hash, ...userResult } = newUser;
       return {

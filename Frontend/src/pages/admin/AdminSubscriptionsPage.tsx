@@ -202,7 +202,7 @@ export const AdminSubscriptionsPage = () => {
                                                     </button>
                                                 )}
                                                 {sub.estado === 'PENDIENTE' && (
-                                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="flex justify-end gap-2 transition-opacity">
                                                         <button
                                                             onClick={() => handleApprove(sub.suscripcion_id)}
                                                             className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"

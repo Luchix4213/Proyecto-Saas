@@ -204,65 +204,78 @@ export const AdminPlansPage: React.FC = () => {
                 />
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-                    {filteredPlans.map((plan) => (
-                        <div key={plan.plan_id} className={`bg-white rounded-2xl shadow-sm border hover:shadow-xl transition-all duration-300 relative group flex flex-col ${plan.estado === 'INACTIVO' ? 'border-slate-200 opacity-75' : 'border-slate-100'}`}>
-                            <div className="p-6 pb-4 border-b border-slate-50">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className={`p-3 rounded-2xl bg-slate-50 text-slate-600`}>
-                                        <Shield size={24} />
+                    {filteredPlans.map((plan, index) => {
+                        const gradients = [
+                            { from: 'from-teal-500', to: 'to-emerald-600', badge: 'bg-teal-50 text-teal-700' },
+                            { from: 'from-indigo-500', to: 'to-purple-600', badge: 'bg-indigo-50 text-indigo-700' },
+                            { from: 'from-pink-500', to: 'to-rose-600', badge: 'bg-pink-50 text-pink-700' },
+                            { from: 'from-amber-500', to: 'to-orange-600', badge: 'bg-amber-50 text-amber-700' }
+                        ];
+                        const gradient = gradients[index % gradients.length];
+
+                        return (
+                            <div key={plan.plan_id} className={`bg-white rounded-3xl shadow-xl shadow-slate-200/60 border hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative group flex flex-col ${plan.estado === 'INACTIVO' ? 'border-slate-200 opacity-75' : 'border-slate-100'}`}>
+                                {/* Top Gradient Bar */}
+                                <div className={`h-2 rounded-t-3xl bg-gradient-to-r ${gradient.from} ${gradient.to}`}></div>
+
+                                <div className="p-6 pb-4 border-b border-slate-50">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className={`p-3 rounded-2xl shadow-lg ${gradient.badge}`}>
+                                            <Shield size={24} strokeWidth={2.5} />
+                                        </div>
+                                        <StatusBadge
+                                            status={plan.estado}
+                                            variant={plan.estado === 'ACTIVO' ? 'success' : 'neutral'}
+                                        />
                                     </div>
-                                    <StatusBadge
-                                        status={plan.estado}
-                                        variant={plan.estado === 'ACTIVO' ? 'success' : 'neutral'}
-                                    />
+                                    <h3 className="text-xl font-black text-slate-800 mb-2">{plan.nombre_plan}</h3>
+                                    <p className="text-sm text-slate-500 min-h-[40px] line-clamp-2">{plan.descripcion || 'Sin descripción'}</p>
                                 </div>
-                                <h3 className="text-xl font-bold text-slate-800 mb-2">{plan.nombre_plan}</h3>
-                                <p className="text-sm text-slate-500 min-h-[40px] line-clamp-2">{plan.descripcion || 'Sin descripción'}</p>
-                            </div>
 
-                            <div className="p-6 bg-slate-50/50">
-                                <div className="flex items-baseline mb-1">
-                                    <span className="text-3xl font-extrabold text-slate-900">{plan.precio_mensual}</span>
-                                    <span className="text-lg font-medium text-slate-500 ml-1">BOB</span>
-                                    <span className="text-sm text-slate-400 ml-2">/ mes</span>
+                                <div className="p-6 bg-gradient-to-br from-slate-50 to-slate-50/50">
+                                    <div className="flex items-baseline mb-1">
+                                        <span className="text-4xl font-black text-slate-900">{plan.precio_mensual}</span>
+                                        <span className="text-lg font-bold text-slate-500 ml-1">BOB</span>
+                                        <span className="text-sm text-slate-400 ml-2 font-medium">/ mes</span>
+                                    </div>
+                                    <div className="text-sm text-slate-500 font-medium">
+                                        o <span className="font-bold text-slate-700">{plan.precio_anual} BOB</span> al año
+                                    </div>
                                 </div>
-                                <div className="text-sm text-slate-500">
-                                    o {plan.precio_anual} BOB al año
-                                </div>
-                            </div>
 
-                            <div className="p-6 space-y-4 flex-1">
-                                <div className="space-y-3">
-                                    <FeatureItem label={`Hasta ${plan.max_usuarios} usuarios`} />
-                                    <FeatureItem label={`Hasta ${plan.max_productos} productos`} />
-                                    <FeatureItem
-                                        label="Ventas Online"
-                                        included={plan.ventas_online} highlight={plan.ventas_online}
-                                    />
-                                    <FeatureItem
-                                        label="Reportes Avanzados"
-                                        included={plan.reportes_avanzados} highlight={plan.reportes_avanzados}
-                                    />
+                                <div className="p-6 space-y-4 flex-1">
+                                    <div className="space-y-3">
+                                        <FeatureItem label={`Hasta ${plan.max_usuarios} usuarios`} />
+                                        <FeatureItem label={`Hasta ${plan.max_productos} productos`} />
+                                        <FeatureItem
+                                            label="Ventas Online"
+                                            included={plan.ventas_online} highlight={plan.ventas_online}
+                                        />
+                                        <FeatureItem
+                                            label="Reportes Avanzados"
+                                            included={plan.reportes_avanzados} highlight={plan.reportes_avanzados}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="p-4 border-t border-slate-100 flex gap-2">
+                                    <button
+                                        onClick={() => handleEdit(plan)}
+                                        className="flex-1 py-2.5 px-4 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2 group/btn"
+                                    >
+                                        <Edit2 size={16} className="group-hover/btn:rotate-12 transition-transform" /> Editar
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(plan.plan_id)}
+                                        className="py-2.5 px-4 bg-white border-2 border-red-200 text-red-600 font-bold rounded-xl hover:bg-red-50 hover:border-red-300 transition-all group/btn"
+                                        title="Eliminar Plan"
+                                    >
+                                        <Trash2 size={16} className="group-hover/btn:scale-110 transition-transform" />
+                                    </button>
                                 </div>
                             </div>
-
-                            <div className="p-4 border-t border-slate-100 flex gap-2">
-                                <button
-                                    onClick={() => handleEdit(plan)}
-                                    className="flex-1 py-2 px-4 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <Edit2 size={16} /> Editar
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(plan.plan_id)}
-                                    className="py-2 px-4 bg-white border border-red-100 text-red-600 font-medium rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors"
-                                    title="Eliminar Plan"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 

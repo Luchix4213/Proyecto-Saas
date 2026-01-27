@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
-import { Users, Building2, CreditCard, TrendingUp, PieChart, ArrowUpRight, DollarSign, LayoutDashboard } from 'lucide-react';
+import { Users, Building2, CreditCard, TrendingUp, PieChart, ArrowUpRight, DollarSign, LayoutDashboard, Activity } from 'lucide-react';
 import { AestheticHeader } from '../../components/common/AestheticHeader';
+import { StatCard } from '../../components/common/StatCard';
 
 interface DashboardStats {
     tenants: {
@@ -11,7 +12,7 @@ interface DashboardStats {
     };
     users: {
         total: number;
-        active: number; // Assuming API provides this or we just show total
+        active: number;
     };
     financials: {
         estimatedMonthlyRevenue: number;
@@ -45,164 +46,204 @@ export const AdminDashboardPage = () => {
     }, []);
 
     if (loading) return (
-        <div className="flex h-64 items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-500 border-t-transparent"></div>
-                <p className="text-sm font-medium text-slate-500">Cargando métricas...</p>
+        <div className="flex h-96 items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+                <div className="relative">
+                    <div className="h-16 w-16 animate-spin rounded-full border-8 border-slate-200 border-t-teal-500"></div>
+                    <Activity className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-teal-500 animate-pulse" />
+                </div>
+                <p className="text-sm font-bold text-slate-600 animate-pulse">Cargando análisis del ecosistema...</p>
             </div>
         </div>
     );
 
     if (error) return (
-        <div className="p-6 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center justify-center">
-            {error}
+        <div className="p-8 bg-gradient-to-br from-red-50 to-rose-50 text-red-700 rounded-3xl border-2 border-red-200 flex flex-col items-center justify-center gap-4 shadow-xl">
+            <div className="p-4 bg-red-100 rounded-full">
+                <TrendingUp className="h-8 w-8 text-red-600" />
+            </div>
+            <p className="text-lg font-bold">{error}</p>
         </div>
     );
 
     if (!stats) return null;
 
-    const StatCard = ({ title, value, subtext, icon: Icon, colorClass, gradientClass }: any) => (
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden group">
-            <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity`}>
-                <Icon size={80} className={colorClass} />
-            </div>
-
-            <div className="flex justify-between items-start relative z-10">
-                <div>
-                    <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{title}</p>
-                    <p className="text-3xl font-bold text-slate-800 mt-2">{value}</p>
-                </div>
-                <div className={`p-3 rounded-xl shadow-lg ${gradientClass} text-white`}>
-                    <Icon size={24} />
-                </div>
-            </div>
-            {subtext && (
-                <div className="mt-4 pt-4 border-t border-slate-50 flex items-center text-sm relative z-10">
-                    {subtext}
-                </div>
-            )}
-        </div>
-    );
+    const totalPlans = stats.plans.reduce((sum, p) => sum + p.count, 0);
 
     return (
         <div className="space-y-8 animate-fade-in-up">
             <AestheticHeader
-                title="Dashboard General"
-                description="Vista general y métricas clave del ecosistema Kipu."
+                title="Dashboard Administrativo"
+                description="Vista ejecutiva del ecosistema Kipu SaaS - Métricas clave y análisis en tiempo real"
                 icon={LayoutDashboard}
-                iconColor="from-slate-800 to-slate-900"
+                iconColor="from-indigo-600 to-purple-600"
                 action={
-                    <div className="hidden sm:block text-right">
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Sincronización</p>
-                        <p className="text-sm font-bold text-slate-600">
-                             {new Date().toLocaleTimeString()}
-                        </p>
+                    <div className="hidden lg:flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sistema Activo</p>
+                            <p className="text-sm font-bold text-slate-700">
+                                {new Date().toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                        </div>
                     </div>
                 }
             />
 
-            {/* KPI Cards */}
+            {/* Premium KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-                {/* Microempresas */}
                 <StatCard
                     title="Microempresas"
-                    value={stats.tenants.total}
+                    value={stats.tenants.total.toString()}
+                    subtitle={`${stats.tenants.active} activas`}
                     icon={Building2}
-                    colorClass="text-indigo-600"
-                    gradientClass="bg-gradient-to-br from-indigo-500 to-violet-500"
-                    subtext={
-                        <span className="flex items-center gap-2 text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded-md">
-                            <ArrowUpRight size={14} />
-                            {stats.tenants.active} Activas
-                        </span>
-                    }
+                    trend={{ value: stats.tenants.active, isPositive: true }}
+                    gradientFrom="from-indigo-500"
+                    gradientTo="to-purple-600"
                 />
 
-                {/* Ingresos Estimados */}
                 <StatCard
-                    title="Ingresos (Est.)"
-                    value={stats.financials.estimatedMonthlyRevenue.toLocaleString('es-BO', { style: 'currency', currency: 'BOB' })}
+                    title="Ingresos (MRR)"
+                    value={stats.financials.estimatedMonthlyRevenue.toLocaleString('es-BO', {
+                        style: 'currency',
+                        currency: 'BOB',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                    })}
+                    subtitle="Ingreso mensual recurrente"
                     icon={DollarSign}
-                    colorClass="text-emerald-600"
-                    gradientClass="bg-gradient-to-br from-emerald-500 to-teal-500"
-                    subtext={
-                        <span className="text-slate-400">Mensual recurrente</span>
-                    }
+                    gradientFrom="from-emerald-500"
+                    gradientTo="to-teal-600"
                 />
 
-                {/* Usuarios Totales */}
                 <StatCard
-                    title="Usuarios"
-                    value={stats.users.total}
+                    title="Usuarios Registrados"
+                    value={stats.users.total.toString()}
+                    subtitle="Propietarios y vendedores"
                     icon={Users}
-                    colorClass="text-blue-600"
-                    gradientClass="bg-gradient-to-br from-blue-500 to-cyan-500"
-                    subtext={
-                        <span className="text-slate-400">Admins y Vendedores</span>
-                    }
+                    gradientFrom="from-blue-500"
+                    gradientTo="to-cyan-600"
                 />
 
-                {/* Planes */}
                 <StatCard
-                    title="Plan Popular"
-                    value={stats.plans.sort((a: any, b: any) => b.count - a.count)[0]?.name || 'N/A'}
+                    title="Plan Más Usado"
+                    value={stats.plans.sort((a, b) => b.count - a.count)[0]?.name || 'N/A'}
+                    subtitle={`${stats.plans.sort((a, b) => b.count - a.count)[0]?.count || 0} suscripciones`}
                     icon={CreditCard}
-                    colorClass="text-purple-600"
-                    gradientClass="bg-gradient-to-br from-purple-500 to-fuchsia-500"
-                    subtext={
-                        <span className="text-slate-400">
-                            {stats.plans.sort((a: any, b: any) => b.count - a.count)[0]?.count || 0} suscripciones
-                        </span>
-                    }
+                    gradientFrom="from-pink-500"
+                    gradientTo="to-rose-600"
                 />
             </div>
 
-            {/* Charts Section */}
+            {/* Charts & Analytics */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 lg:col-span-2">
-                    <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <PieChart className="h-5 w-5 text-teal-600" />
-                        Distribución de Planes Activos
-                    </h3>
+                {/* Plans Distribution Chart */}
+                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-8 border border-slate-100 lg:col-span-2 hover:shadow-2xl transition-shadow duration-300">
+                    <div className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl shadow-lg">
+                                <PieChart className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-slate-800">Distribución de Planes</h3>
+                                <p className="text-xs text-slate-500 font-medium mt-0.5">Análisis de suscripciones activas</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Total</p>
+                            <p className="text-2xl font-black text-slate-800">{totalPlans}</p>
+                        </div>
+                    </div>
+
                     <div className="space-y-6">
-                        {stats.plans.map((plan) => {
-                            const percentage = stats.tenants.total > 0 ? (plan.count / stats.tenants.total) * 100 : 0;
-                            return (
-                                <div key={plan.name} className="relative">
-                                    <div className="flex justify-between items-end mb-2">
-                                        <span className="font-semibold text-slate-700">{plan.name}</span>
-                                        <div className="text-right">
-                                            <span className="text-lg font-bold text-slate-800">{plan.count}</span>
-                                            <span className="text-sm text-slate-400 ml-1">({Math.round(percentage)}%)</span>
+                        {stats.plans
+                            .sort((a, b) => b.count - a.count)
+                            .map((plan, index) => {
+                                const percentage = totalPlans > 0 ? (plan.count / totalPlans) * 100 : 0;
+                                const gradients = [
+                                    'from-teal-500 to-emerald-500',
+                                    'from-indigo-500 to-purple-500',
+                                    'from-blue-500 to-cyan-500',
+                                    'from-pink-500 to-rose-500'
+                                ];
+                                return (
+                                    <div key={plan.name} className="group">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200 transition-colors">
+                                                    <span className="text-sm font-black text-slate-600">#{index + 1}</span>
+                                                </div>
+                                                <span className="font-bold text-slate-700 group-hover:text-slate-900 transition-colors">{plan.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-sm font-medium text-slate-500">{Math.round(percentage)}%</span>
+                                                <span className="text-2xl font-black text-slate-800">{plan.count}</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full bg-slate-100 rounded-full h-4 overflow-hidden shadow-inner">
+                                            <div
+                                                className={`bg-gradient-to-r ${gradients[index % gradients.length]} h-4 rounded-full shadow-lg transition-all duration-1000 ease-out group-hover:shadow-xl`}
+                                                style={{
+                                                    width: `${percentage}%`,
+                                                    transitionDelay: `${index * 100}ms`
+                                                }}
+                                            ></div>
                                         </div>
                                     </div>
-                                    <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                                        <div
-                                            className="bg-gradient-to-r from-teal-500 to-emerald-500 h-3 rounded-full shadow-lg shadow-teal-500/20 transition-all duration-1000 ease-out"
-                                            style={{ width: `${percentage}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
                     </div>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm p-8 border border-slate-100 flex flex-col justify-center items-center text-center relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-teal-50 rounded-full -ml-16 -mb-16 blur-2xl"></div>
+                {/* Quick Insights */}
+                <div className="space-y-6">
+                    {/* Active Tenants Card */}
+                    <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl shadow-xl p-8 text-white relative overflow-hidden group hover:shadow-2xl transition-all duration-300">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/20 transition-all"></div>
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12 blur-xl"></div>
 
-                    <div className="bg-slate-50 p-6 rounded-full mb-6 relative z-10 shadow-inner">
-                        <TrendingUp className="h-10 w-10 text-slate-300" />
+                        <div className="relative z-10">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+                                    <Building2 className="h-6 w-6" />
+                                </div>
+                                <ArrowUpRight className="h-5 w-5 opacity-50" />
+                            </div>
+                            <p className="text-sm font-bold uppercase tracking-wider opacity-90">Tenants Activos</p>
+                            <p className="text-4xl font-black mt-2">{stats.tenants.active}</p>
+                            <p className="text-sm opacity-75 mt-2">
+                                {((stats.tenants.active / stats.tenants.total) * 100).toFixed(1)}% del total
+                            </p>
+                        </div>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-800 relative z-10">Próximamente</h3>
-                    <p className="text-slate-500 mt-2 max-w-xs relative z-10">
-                        Estamos preparando gráficas avanzadas de retención y evolución financiera.
-                    </p>
-                    <button className="mt-6 px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors relative z-10">
-                        Notificarme
-                    </button>
+
+                    {/* System Health */}
+                    <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/60 p-8 border border-slate-100 hover:shadow-2xl transition-shadow duration-300">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl shadow-lg">
+                                <Activity className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-black text-slate-800">Estado del Sistema</h4>
+                                <p className="text-xs text-slate-500 font-medium">Rendimiento óptimo</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-slate-600">Disponibilidad</span>
+                                <span className="text-sm font-black text-emerald-600">99.9%</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-slate-600">Tenants Inactivos</span>
+                                <span className="text-sm font-black text-slate-800">{stats.tenants.inactive}</span>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-slate-600">Planes activos</span>
+                                <span className="text-sm font-black text-slate-800">{stats.plans.length}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

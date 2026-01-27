@@ -3,10 +3,14 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateSuscripcionDto } from './dto/create-suscripcion.dto';
 import { UpdateSuscripcionDto } from './dto/update-suscripcion.dto';
 import { EstadoSuscripcion, RolUsuario, MetodoPago } from '@prisma/client';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 
 @Injectable()
 export class SuscripcionesService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private notificacionesService: NotificacionesService,
+  ) { }
 
   // ADMIN: Crear una suscripción manualmente (ej: pago por transferencia verificado)
   async create(createSuscripcionDto: CreateSuscripcionDto) {
@@ -127,6 +131,11 @@ export class SuscripcionesService {
           where: { tenant_id: createSuscripcionDto.tenant_id },
           data: { plan_id: createSuscripcionDto.plan_id }
         });
+      }
+
+      // 5. Notificar al Admin si hay un pago pendiente de revisión
+      if (estadoInicial === EstadoSuscripcion.PENDIENTE) {
+        await this.notificacionesService.notificarNuevaSuscripcion(createSuscripcionDto.tenant_id, monto);
       }
 
       return subscription;

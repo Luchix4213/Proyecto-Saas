@@ -1,13 +1,28 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Users, LogOut, CreditCard, Building2, Menu, Bell, User, Tag } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const AdminLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { logout, user } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            try {
+                const { notificationsService } = await import('../services/notificationsService');
+                const data = await notificationsService.getAll();
+                setUnreadCount(data.filter((n: any) => !n.leida).length);
+            } catch (error) {
+                console.error('Error fetching admin notifications:', error);
+            }
+        };
+
+        fetchNotifications();
+    }, [location.pathname]); // Re-fetch on navigation
 
     const isActive = (path: string) => location.pathname === path;
 
@@ -92,10 +107,12 @@ export const AdminLayout = () => {
 
                     <div className="flex items-center gap-4">
                         <div className="relative">
-                            <button className="p-2 rounded-full text-slate-500 hover:bg-slate-100 transition-colors relative">
+                            <Link to="/admin/notificaciones" className="p-2 rounded-full text-slate-500 hover:bg-slate-100 transition-colors relative block">
                                 <Bell size={20} />
-                                <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full border border-white"></span>
-                            </button>
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-500 rounded-full border border-white animate-pulse"></span>
+                                )}
+                            </Link>
                         </div>
 
                         <Link to="/admin/profile" className="flex items-center gap-3 pl-4 border-l border-slate-200 hover:opacity-80 transition-opacity">

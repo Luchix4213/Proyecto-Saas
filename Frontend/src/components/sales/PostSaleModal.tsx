@@ -1,15 +1,14 @@
 import React from 'react';
-import { CheckCircle, Printer, Plus, FileText, ArrowRight } from 'lucide-react';
+import { CheckCircle, Printer, Plus, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { type Venta } from '../../services/salesService';
 
 interface PostSaleModalProps {
     sale: Venta | null;
-    onClose: () => void;
     onNewSale: () => void;
 }
 
-export const PostSaleModal: React.FC<PostSaleModalProps> = ({ sale, onClose, onNewSale }) => {
+export const PostSaleModal: React.FC<PostSaleModalProps> = ({ sale, onNewSale }) => {
     if (!sale) return null;
 
     return (

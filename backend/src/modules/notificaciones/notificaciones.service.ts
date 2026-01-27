@@ -106,4 +106,44 @@ export class NotificacionesService {
       where: { usuario_id: usuarioId, leida: true },
     });
   }
+
+  // --- NOTIFICACIONES PARA SUPER ADMINS ---
+
+  async notificarNuevaEmpresa(tenantId: number, nombreEmpresa: string) {
+    // Buscar todos los Super Admins (Rol ADMIN global)
+    // El tenant_id del sistema suele ser 1 (SaaS Core), pero buscamos por rol globalmente
+    const admins = await this.prisma.usuario.findMany({
+      where: {
+        rol: RolUsuario.ADMIN, // Rol global
+        estado: 'ACTIVO',
+      },
+    });
+
+    const mensaje = `Nueva empresa registrada: "${nombreEmpresa}" (ID: ${tenantId}). Pendiente de revisión.`;
+    const tipo = 'NUEVA_EMPRESA';
+
+    const notificaciones = admins.map((admin) =>
+      this.crearNotificacion(admin.usuario_id, tipo, mensaje),
+    );
+
+    await Promise.all(notificaciones);
+  }
+
+  async notificarNuevaSuscripcion(tenantId: number, monto: number) {
+    const admins = await this.prisma.usuario.findMany({
+      where: {
+        rol: RolUsuario.ADMIN,
+        estado: 'ACTIVO',
+      },
+    });
+
+    const mensaje = `Nuevo pago de suscripción pendiente por $${monto} (Tenant ID: ${tenantId}).`;
+    const tipo = 'NUEVA_SUSCRIPCION';
+
+    const notificaciones = admins.map((admin) =>
+      this.crearNotificacion(admin.usuario_id, tipo, mensaje),
+    );
+
+    await Promise.all(notificaciones);
+  }
 }

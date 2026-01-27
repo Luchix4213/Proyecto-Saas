@@ -7,10 +7,13 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
+import { NotificacionesModule } from '../notificaciones/notificaciones.module';
+
 @Module({
   imports: [
     PrismaModule,
     PassportModule,
+    NotificacionesModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

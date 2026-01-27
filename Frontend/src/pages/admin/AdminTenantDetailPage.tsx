@@ -142,7 +142,7 @@ export const AdminTenantDetailPage = () => {
     return (
         <div className="space-y-8 animate-fade-in-up">
             <div className="flex items-center gap-4 mb-2">
-                <Link to="/admin" className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-2xl transition-all duration-300">
+                <Link to="/admin/tenants" className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-2xl transition-all duration-300">
                     <ArrowLeft size={24} />
                 </Link>
                 <div className="h-8 w-px bg-slate-200"></div>

@@ -99,6 +99,7 @@ function App() {
               <Route path="/admin/rubros" element={<AdminRubrosPage />} />
               <Route path="/admin/clientes" element={<AdminClientsPage />} />
               <Route path="/admin/profile" element={<ProfilePage />} />
+              <Route path="/admin/notificaciones" element={<NotificationsPage />} />
             </Route>
 
             {/* ===================== */}
