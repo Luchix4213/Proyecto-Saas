@@ -40,23 +40,23 @@ export const PosPage = () => {
     };
 
     const addToCart = (product: Product) => {
-        setCart(prev => {
-            const existing = prev.find(item => item.producto_id === product.producto_id);
-            if (existing) {
-                if (existing.cartQuantity >= product.stock_actual) {
-                    addToast('Stock máximo alcanzado', 'warning');
-                    return prev;
-                }
-                addToast(`+1 ${product.nombre}`, 'info');
-                return prev.map(item =>
-                    item.producto_id === product.producto_id
-                        ? { ...item, cartQuantity: item.cartQuantity + 1 }
-                        : item
-                );
+        const existing = cart.find(item => item.producto_id === product.producto_id);
+
+        if (existing) {
+            if (existing.cartQuantity >= product.stock_actual) {
+                addToast('Stock máximo alcanzado', 'warning');
+                return;
             }
+            addToast(`+1 ${product.nombre}`, 'info');
+            setCart(prev => prev.map(item =>
+                item.producto_id === product.producto_id
+                    ? { ...item, cartQuantity: item.cartQuantity + 1 }
+                    : item
+            ));
+        } else {
             addToast('Agregado al carrito', 'success');
-            return [...prev, { ...product, cartQuantity: 1 }];
-        });
+            setCart(prev => [...prev, { ...product, cartQuantity: 1 }]);
+        }
     };
 
     const removeFromCart = (productId: number) => {
@@ -65,18 +65,22 @@ export const PosPage = () => {
     };
 
     const updateQuantity = (productId: number, delta: number) => {
-        setCart(prev => prev.map(item => {
-            if (item.producto_id === productId) {
-                const newQty = item.cartQuantity + delta;
-                if (newQty > item.stock_actual) {
-                    addToast('Sin stock suficiente', 'warning');
-                    return item;
-                }
-                if (newQty < 1) return item;
-                return { ...item, cartQuantity: newQty };
-            }
-            return item;
-        }));
+        const item = cart.find(i => i.producto_id === productId);
+        if (!item) return;
+
+        const newQty = item.cartQuantity + delta;
+        if (newQty > item.stock_actual) {
+            addToast('Sin stock suficiente', 'warning');
+            return;
+        }
+
+        if (newQty < 1) return;
+
+        setCart(prev => prev.map(item =>
+            item.producto_id === productId
+                ? { ...item, cartQuantity: newQty }
+                : item
+        ));
     };
 
     const updateDiscount = (productId: number, amount: number) => {
