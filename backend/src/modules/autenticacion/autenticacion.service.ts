@@ -11,6 +11,7 @@ import * as nodemailer from 'nodemailer';
 import { RegisterTenantDto } from './dto/register-tenant.dto';
 import { EstadoEmpresa, RolUsuario } from '@prisma/client';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class AutenticacionService {
@@ -20,6 +21,7 @@ export class AutenticacionService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private notificacionesService: NotificacionesService,
+    private auditService: AuditService,
   ) {
     // Inicializar transporter si existen las credenciales
     if (process.env.SMTP_USER && process.env.SMTP_PASS) {
@@ -66,7 +68,7 @@ export class AutenticacionService {
       estado: user.estado,
     };
 
-    return {
+    const result = {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.usuario_id,
@@ -76,6 +78,17 @@ export class AutenticacionService {
         tenant_id: user.tenant_id,
       },
     };
+
+    // Log login
+    await this.auditService.createLog({
+      tenant_id: user.tenant_id,
+      usuario_id: user.usuario_id,
+      modulo: 'AUTENTICACION',
+      accion: 'LOGIN',
+      detalle: `Usuario ${user.email} inició sesión`,
+    });
+
+    return result;
   }
 
   async register(registerDto: RegisterTenantDto) {
@@ -164,11 +177,22 @@ export class AutenticacionService {
       await this.notificacionesService.notificarNuevaEmpresa(newTenant.tenant_id, newTenant.nombre_empresa);
 
       const { password_hash, ...userResult } = newUser;
-      return {
+      const result = {
         message: 'Empresa y usuario administrador registrados correctamente',
         tenant: newTenant,
         user: userResult,
       };
+
+      // Log registration
+      await this.auditService.createLog({
+        tenant_id: newTenant.tenant_id,
+        usuario_id: newUser.usuario_id,
+        modulo: 'AUTENTICACION',
+        accion: 'REGISTRO',
+        detalle: `Nuevo registro de empresa: ${newTenant.nombre_empresa}`,
+      });
+
+      return result;
     });
   }
 

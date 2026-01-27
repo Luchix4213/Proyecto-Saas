@@ -94,6 +94,7 @@ export class VentasService {
 
     const nuevaVenta = await this.prisma.$transaction(async (prisma) => {
       let totalVenta = 0;
+      let totalDescuento = 0;
       const detallesParaCrear: any[] = [];
 
       //productos
@@ -123,13 +124,13 @@ export class VentasService {
         });
 
         const precioUnitario = Number(producto.precio);
-        const subtotal = precioUnitario * item.cantidad;
-        totalVenta += subtotal;
+        const descuento = item.descuento ? Number(item.descuento) : 0; const subtotal = (precioUnitario * item.cantidad) - descuento;
+        totalVenta += subtotal; totalDescuento += descuento;
 
         detallesParaCrear.push({
           producto_id: item.producto_id,
           cantidad: item.cantidad,
-          precio_unitario: precioUnitario,
+          precio_unitario: precioUnitario, descuento: descuento,
           subtotal: subtotal,
         });
       }
@@ -152,6 +153,7 @@ export class VentasService {
           usuario_venta_id: userId,
 
           total: totalVenta,
+          total_descuento: totalDescuento,
           fecha_venta: new Date(),
           estado: EstadoVenta.PAGADA, // Asumimos pagada si es POS directo
           estado_entrega: EstadoEntrega.ENTREGADO, // Asumimos entregado inmediato en POS
@@ -348,6 +350,7 @@ export class VentasService {
       }
 
       let totalVenta = 0;
+      let totalDescuento = 0;
       const detallesParaCrear: any[] = [];
 
       // 2. Procesar productos y stock
@@ -375,13 +378,13 @@ export class VentasService {
         // });
 
         const precioUnitario = Number(producto.precio);
-        const subtotal = precioUnitario * item.cantidad;
-        totalVenta += subtotal;
+        const descuento = item.descuento ? Number(item.descuento) : 0; const subtotal = (precioUnitario * item.cantidad) - descuento;
+        totalVenta += subtotal; totalDescuento += descuento;
 
         detallesParaCrear.push({
           producto_id: item.producto_id,
           cantidad: item.cantidad,
-          precio_unitario: precioUnitario,
+          precio_unitario: precioUnitario, descuento: descuento,
           subtotal: subtotal,
         });
       }
@@ -406,6 +409,7 @@ export class VentasService {
           fecha_entrega: null,
 
           total: totalVenta,
+          total_descuento: totalDescuento,
           fecha_venta: new Date(),
           estado: EstadoVenta.REGISTRADA,
           estado_entrega: EstadoEntrega.PENDIENTE,

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, LogOut, CreditCard, Building2, Menu, Bell, User, Tag } from 'lucide-react';
+import { LayoutDashboard, Users, LogOut, CreditCard, Building2, Menu, Bell, User, Tag, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 
@@ -73,6 +73,7 @@ export const AdminLayout = () => {
                     <NavLink to="/admin/suscripciones" icon={CreditCard} label={isSidebarOpen ? 'Suscripciones' : ''} />
                     <NavLink to="/admin/usuarios" icon={Users} label={isSidebarOpen ? 'Administradores' : ''} />
                     <NavLink to="/admin/planes" icon={CreditCard} label={isSidebarOpen ? 'Planes' : ''} />
+                    <NavLink to="/admin/auditoria" icon={ShieldCheck} label={isSidebarOpen ? 'Auditoría' : ''} />
                     <div className="border-t border-slate-800 my-2 pt-2">
                         <NavLink to="/admin/perfil" icon={User} label={isSidebarOpen ? 'Mi Perfil' : ''} />
                     </div>

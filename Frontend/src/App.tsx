@@ -34,6 +34,7 @@ import { PosPage } from './pages/owner/sales/PosPage';
 import { SalesHistoryPage } from './pages/owner/sales/SalesHistoryPage';
 import { OwnerPurchasesPage } from './pages/owner/purchases/OwnerPurchasesPage';
 import { OnlineSalesPage } from './pages/owner/OnlineSalesPage';
+import { AuditPage } from './pages/owner/AuditPage';
 import { PurchaseHistoryPage } from './pages/owner/purchases/PurchaseHistoryPage';
 import { ProfilePage } from './pages/common/ProfilePage';
 
@@ -99,6 +100,7 @@ function App() {
               <Route path="/admin/clientes" element={<AdminClientsPage />} />
               <Route path="/admin/notificaciones" element={<NotificationsPage />} />
               <Route path="/admin/perfil" element={<ProfilePage />} />
+              <Route path="/admin/auditoria" element={<AuditPage />} />
             </Route>
 
             {/* ===================== */}
@@ -122,6 +124,7 @@ function App() {
               {/* Gestión general */}
               <Route path="/app/notificaciones" element={<NotificationsPage />} />
               <Route path="/app/perfil" element={<ProfilePage />} />
+              <Route path="/app/auditoria" element={<AuditPage />} />
 
               {/* Inventario */}
               <Route path="/app/productos" element={<ProductsPage />} />

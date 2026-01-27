@@ -119,6 +119,7 @@ model Tenant {
   suscripciones Suscripcion[]
   categorias    Categoria[]
   proveedors    Proveedor[]
+  audit_logs    AuditLog[]
 }
 
 model Rubro {
@@ -148,6 +149,7 @@ model Usuario {
   ventas         Venta[]
   compras        Compra[]
   notificaciones Notificacion[]
+  audit_logs     AuditLog[]
 
   @@index([tenant_id])
 }
@@ -306,6 +308,7 @@ model Venta {
   comprobante_pago String? // URL de la foto subida por el cliente
   comprobante_pdf  String? // URL
   estado           EstadoVenta   @default(REGISTRADA)
+  total_descuento  Decimal       @default(0) @db.Decimal(10, 2)
 
   // --- NUEVOS CAMPOS MÓDULO COMERCIAL ---
 
@@ -347,6 +350,7 @@ model DetalleVenta {
   producto         Producto @relation(fields: [producto_id], references: [producto_id])
   cantidad         Int
   precio_unitario  Decimal  @db.Decimal(10, 2)
+  descuento        Decimal  @default(0) @db.Decimal(10, 2)
   subtotal         Decimal  @db.Decimal(10, 2)
 }
 
@@ -358,4 +362,21 @@ model Notificacion {
   mensaje         String
   fecha_envio     DateTime @default(now())
   leida           Boolean  @default(false)
+}
+
+model AuditLog {
+  log_id     Int      @id @default(autoincrement())
+  tenant_id  Int? // Opcional para logs de sistema
+  tenant     Tenant?  @relation(fields: [tenant_id], references: [tenant_id])
+  usuario_id Int? // Usuario que realizó la acción
+  usuario    Usuario? @relation(fields: [usuario_id], references: [usuario_id])
+  modulo     String // e.g., "PRODUCTOS", "VENTAS", "USUARIOS"
+  accion     String // e.g., "CREAR", "EDITAR", "ELIMINAR", "LOGIN"
+  detalle    String   @db.Text
+  metadata   Json? // Valores previos y nuevos
+  ip_address String?
+  fecha_hora DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([usuario_id])
 }

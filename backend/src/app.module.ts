@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AutenticacionModule } from './modules/autenticacion/autenticacion.module';
@@ -24,6 +25,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { RubrosModule } from './modules/rubros/rubros.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 
 @Module({
   imports: [
@@ -34,9 +37,15 @@ import { ProveedoresModule } from './modules/proveedores/proveedores.module';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
-    AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule, PlanesModule, SuscripcionesModule, RubrosModule, CategoriesModule, ProveedoresModule
+    AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule, PlanesModule, SuscripcionesModule, RubrosModule, CategoriesModule, ProveedoresModule, AuditModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
+    },
+  ],
 })
 export class AppModule { }

@@ -79,7 +79,15 @@ export const PosPage = () => {
         }));
     };
 
-    const cartTotal = cart.reduce((sum, item) => sum + (Number(item.precio) * item.cartQuantity), 0);
+    const updateDiscount = (productId: number, amount: number) => {
+        setCart(prev => prev.map(item =>
+            item.producto_id === productId
+                ? { ...item, descuento: Math.max(0, amount) }
+                : item
+        ));
+    };
+
+    const cartTotal = cart.reduce((sum, item) => sum + (Number(item.precio) * item.cartQuantity) - (item.descuento || 0), 0);
 
     const handleCheckout = async (data: {
         client: Cliente | null,
@@ -99,7 +107,8 @@ export const PosPage = () => {
                 razon_social: data.razonSocial,
                 productos: cart.map(item => ({
                     producto_id: item.producto_id,
-                    cantidad: item.cartQuantity
+                    cantidad: item.cartQuantity,
+                    descuento: item.descuento
                 }))
             };
 
@@ -143,6 +152,7 @@ export const PosPage = () => {
                 <POSCart
                     cart={cart}
                     onUpdateQuantity={updateQuantity}
+                    onUpdateDiscount={updateDiscount}
                     onRemoveItem={removeFromCart}
                     onCheckout={() => setIsCheckoutOpen(true)}
                     onClearCart={() => {

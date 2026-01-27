@@ -5,18 +5,21 @@ import { getImageUrl } from '../../utils/imageUtils';
 
 export interface CartItem extends Product {
     cartQuantity: number;
+    descuento?: number;
 }
 
 interface POSCartProps {
     cart: CartItem[];
     onUpdateQuantity: (productId: number, delta: number) => void;
+    onUpdateDiscount: (productId: number, amount: number) => void;
     onRemoveItem: (productId: number) => void;
     onCheckout: () => void;
     onClearCart: () => void;
 }
 
-export const POSCart: React.FC<POSCartProps> = ({ cart, onUpdateQuantity, onRemoveItem, onCheckout, onClearCart }) => {
-    const total = cart.reduce((sum, item) => sum + (Number(item.precio) * item.cartQuantity), 0);
+export const POSCart: React.FC<POSCartProps> = ({ cart, onUpdateQuantity, onUpdateDiscount, onRemoveItem, onCheckout, onClearCart }) => {
+    const total = cart.reduce((sum, item) => sum + (Number(item.precio) * item.cartQuantity) - (item.descuento || 0), 0);
+    const totalDescuento = cart.reduce((sum, item) => sum + (item.descuento || 0), 0);
     const itemCount = cart.reduce((sum, item) => sum + item.cartQuantity, 0);
 
     return (
@@ -89,11 +92,22 @@ export const POSCart: React.FC<POSCartProps> = ({ cart, onUpdateQuantity, onRemo
                                             <Plus size={16} strokeWidth={3} />
                                         </button>
                                     </div>
+                                    <div className="flex flex-col gap-1 pr-1">
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dscto.</div>
+                                        <input
+                                            type="number"
+                                            className="w-16 px-1.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-rose-200 focus:border-rose-300 transition-all"
+                                            value={item.descuento || ''}
+                                            placeholder="0.00"
+                                            onChange={(e) => onUpdateDiscount(item.producto_id, Number(e.target.value))}
+                                        />
+                                    </div>
+
                                     <div className="text-right">
                                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Subtotal</div>
                                         <span className="font-black text-slate-800 text-lg leading-none">
                                             <span className="text-xs mr-0.5 align-top">Bs</span>
-                                            {(Number(item.precio) * item.cartQuantity).toFixed(2)}
+                                            {((Number(item.precio) * item.cartQuantity) - (item.descuento || 0)).toFixed(2)}
                                         </span>
                                     </div>
                                 </div>
@@ -117,6 +131,12 @@ export const POSCart: React.FC<POSCartProps> = ({ cart, onUpdateQuantity, onRemo
                         <span>Items Total</span>
                         <span>{itemCount}</span>
                     </div>
+                    {totalDescuento > 0 && (
+                        <div className="flex justify-between items-center text-rose-500 text-sm font-bold">
+                            <span>Descuento Total</span>
+                            <span>- Bs {totalDescuento.toFixed(2)}</span>
+                        </div>
+                    )}
                     <div className="flex justify-between items-center text-slate-500 text-sm font-medium">
                         <span>Impuestos (Incl.)</span>
                         <span>Bs {(total * 0.13).toFixed(2)}</span>

@@ -10,6 +10,10 @@ class DetalleVentaItemDto {
   @IsInt()
   @IsPositive()
   cantidad: number;
+
+  @IsOptional()
+  @IsNumber()
+  descuento?: number;
 }
 
 export class CreateVentaDto {

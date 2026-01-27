@@ -5,15 +5,22 @@ import { type Venta } from '../../services/salesService';
 
 interface PostSaleModalProps {
     sale: Venta | null;
+    onClose: () => void;
     onNewSale: () => void;
 }
 
-export const PostSaleModal: React.FC<PostSaleModalProps> = ({ sale, onNewSale }) => {
+export const PostSaleModal: React.FC<PostSaleModalProps> = ({ sale, onClose, onNewSale }) => {
     if (!sale) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in relative">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in"
+            onClick={onClose}
+        >
+            <div
+                className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in relative"
+                onClick={e => e.stopPropagation()}
+            >
 
                 {/* Decorative Header */}
                 <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-8 text-center relative overflow-hidden">

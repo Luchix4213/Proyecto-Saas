@@ -9,11 +9,12 @@ export interface DetalleVentaItem {
         nombre: string;
         precio: number;
     };
+    descuento?: number;
 }
 
 export interface CreateVentaData {
     cliente_id?: number | null;
-    productos: { producto_id: number; cantidad: number }[];
+    productos: { producto_id: number; cantidad: number; descuento?: number }[];
     tipo_venta: 'FISICA' | 'ONLINE';
     metodo_pago: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';
     qr_pago?: string;
