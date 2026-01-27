@@ -23,11 +23,11 @@ async function main() {
   // --- 1. PLANES ---
   console.log('Seeding Planes...');
   const planFree = await prisma.plan.upsert({
-    where: { nombre_plan: 'FREE' },
+    where: { nombre_plan: 'MICRO-PLAN' },
     update: {},
     create: {
-      nombre_plan: 'FREE',
-      descripcion: 'Plan de prueba inicial',
+      nombre_plan: 'MICRO-PLAN',
+      descripcion: 'Gestión esencial para microempresas',
       max_usuarios: 2,
       max_productos: 50,
       ventas_online: false,
@@ -39,15 +39,15 @@ async function main() {
   });
 
   const planBasico = await prisma.plan.upsert({
-    where: { nombre_plan: 'BASICO' },
+    where: { nombre_plan: 'PLAN EMPRESARIAL' },
     update: {},
     create: {
-      nombre_plan: 'BASICO',
-      descripcion: 'Tienda física con funcionalidades básicas',
+      nombre_plan: 'PLAN EMPRESARIAL',
+      descripcion: 'Ideal para negocios en crecimiento con reportes básicos',
       max_usuarios: 5,
       max_productos: 300,
       ventas_online: false,
-      reportes_avanzados: false,
+      reportes_avanzados: true, // Let's give them some reports
       precio_mensual: 99,
       precio_anual: 990,
       estado: EstadoGenerico.ACTIVO,
@@ -55,11 +55,11 @@ async function main() {
   });
 
   const planPremium = await prisma.plan.upsert({
-    where: { nombre_plan: 'PREMIUM' },
+    where: { nombre_plan: 'PLAN CORPORATIVO' },
     update: {},
     create: {
-      nombre_plan: 'PREMIUM',
-      descripcion: 'Todas las funcionalidades + ventas online',
+      nombre_plan: 'PLAN CORPORATIVO',
+      descripcion: 'Potencia total: E-commerce, analítica avanzada y usuarios ilimitados',
       max_usuarios: 1000,
       max_productos: 10000,
       ventas_online: true,

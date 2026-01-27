@@ -7,9 +7,10 @@ import { EmailService } from '../../common/services/email.service';
 
 import { PrismaModule } from '../../prisma/prisma.module';
 import { AutenticacionModule } from '../autenticacion/autenticacion.module';
+import { SuscripcionesModule } from '../suscripciones/suscripciones.module';
 
 @Module({
-  imports: [ConfigModule, PrismaModule, AutenticacionModule],
+  imports: [ConfigModule, PrismaModule, AutenticacionModule, SuscripcionesModule],
   controllers: [VentasController],
   providers: [VentasService, VentasPdfService, EmailService],
   exports: [VentasService],

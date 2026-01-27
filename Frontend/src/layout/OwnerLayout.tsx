@@ -11,13 +11,15 @@ export const OwnerLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [companyName, setCompanyName] = useState<string>('');
     const [unreadCount, setUnreadCount] = useState(0);
+    const [tenant, setTenant] = useState<any>(null);
 
     useEffect(() => {
         const fetchTenantInfo = async () => {
             if (user?.tenant_id) {
                 try {
-                    const tenant = await tenantsService.getById(user.tenant_id);
-                    setCompanyName(tenant.nombre_empresa);
+                    const tenantData = await tenantsService.getById(user.tenant_id);
+                    setCompanyName(tenantData.nombre_empresa);
+                    setTenant(tenantData);
 
                     // Fetch notifications
                     await fetchUnreadCount();
@@ -114,8 +116,8 @@ export const OwnerLayout = () => {
                     <NavLink to="/app/ventas/pos" icon={ShoppingCart} label={isSidebarOpen ? 'Punto de Venta' : ''} />
                     <NavLink to="/app/clientes" icon={Users} label={isSidebarOpen ? 'Clientes' : ''} />
 
-                    {/* Ventas Online - Solo para PROPIETARIO */}
-                    {user?.rol === 'PROPIETARIO' && (
+                    {/* Ventas Online - Solo para PROPIETARIO y si el plan lo permite */}
+                    {user?.rol === 'PROPIETARIO' && tenant?.plan?.ventas_online && (
                         <NavLink to="/app/ventas/online" icon={Globe} label={isSidebarOpen ? 'Ventas Online' : ''} />
                     )}
 

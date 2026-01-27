@@ -24,4 +24,5 @@ export interface DashboardStats {
         status: string;
         date: string; // friendly string
     }[];
+    plan?: any;
 }

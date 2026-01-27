@@ -5,6 +5,7 @@ import { CheckoutDto } from './dto/checkout.dto';
 import { EstadoEntrega, EstadoFacturacion, EstadoGenerico, EstadoVenta, TipoVenta } from '@prisma/client';
 import { VentasPdfService } from './ventas-pdf.service';
 import { EmailService } from '../../common/services/email.service';
+import { CapacidadService } from '../suscripciones/capacidad.service';
 
 @Injectable()
 export class VentasService {
@@ -12,6 +13,7 @@ export class VentasService {
     private prisma: PrismaService,
     private ventasPdfService: VentasPdfService,
     private emailService: EmailService,
+    private capacidadService: CapacidadService,
   ) { }
 
   async approvePayment(ventaId: number, tenantId: number) {
@@ -311,6 +313,11 @@ export class VentasService {
   async createOnlineSale(tenantId: number, clienteId: number | null, checkoutDto: CheckoutDto) {
     const { productos, metodo_pago, nombre, email, nit_ci,
             direccion_envio, ubicacion_maps, costo_envio, nit_facturacion, razon_social } = checkoutDto;
+
+    const tieneAcceso = await this.capacidadService.verificarAcceso(tenantId, 'ventas_online');
+    if (!tieneAcceso) {
+      throw new BadRequestException('Tu plan actual no incluye la funcionalidad de Ventas Online. Actualiza tu plan para recibir pedidos.');
+    }
 
     return await this.prisma.$transaction(async (prisma) => {
       let finalClienteId = clienteId;

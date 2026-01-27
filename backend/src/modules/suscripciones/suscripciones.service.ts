@@ -150,7 +150,7 @@ export class SuscripcionesService {
           select: { nombre_empresa: true, email: true }
         },
         plan: {
-          select: { nombre_plan: true }
+          select: { nombre_plan: true, precio_mensual: true, max_usuarios: true, max_productos: true }
         }
       },
       orderBy: [
@@ -166,7 +166,15 @@ export class SuscripcionesService {
       where: { tenant_id: tenantId },
       include: {
         plan: {
-          select: { nombre_plan: true, precio_mensual: true, precio_anual: true }
+          select: {
+            nombre_plan: true,
+            precio_mensual: true,
+            precio_anual: true,
+            max_usuarios: true,
+            max_productos: true,
+            ventas_online: true,
+            reportes_avanzados: true
+          }
         }
       },
       orderBy: { creado_en: 'desc' }

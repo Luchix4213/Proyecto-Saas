@@ -4,6 +4,7 @@ import { AuthGuard } from '../../common/guards/auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolUsuario } from '@prisma/client';
+import { FeaturesGuard } from '../../common/guards/features.guard';
 
 @Controller('reportes')
 @UseGuards(AuthGuard, RolesGuard)
@@ -26,6 +27,7 @@ export class ReportesController {
   }
 
   @Get('vendedor')
+  @UseGuards(FeaturesGuard('reportes_avanzados'))
   @Roles(RolUsuario.VENDEDOR, RolUsuario.PROPIETARIO)
   async getVendedorStats(
     @Request() req,

@@ -36,6 +36,11 @@ interface DashboardStats {
         status: string;
         date: string;
     }[];
+    plan?: {
+        nombre_plan: string;
+        reportes_avanzados: boolean;
+        ventas_online: boolean;
+    };
 }
 
 export const OwnerDashboardPage = () => {
@@ -177,7 +182,24 @@ export const OwnerDashboardPage = () => {
             {/* Main Content Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Sales Chart Section */}
-                <div className="lg:col-span-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                <div className="lg:col-span-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 relative overflow-hidden">
+                    {!stats.plan?.reportes_avanzados && (
+                        <div className="absolute inset-0 z-20 bg-white/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-8 text-center animate-fade-in">
+                            <div className="p-4 bg-slate-900 text-white rounded-2xl shadow-xl mb-4">
+                                <TrendingUp size={32} />
+                            </div>
+                            <h4 className="text-xl font-black text-slate-900 mb-2">Analítica Avanzada Bloqueada</h4>
+                            <p className="text-slate-500 text-sm max-w-xs mb-6 font-medium">
+                                Tu plan actual ({stats.plan?.nombre_plan}) no incluye el resumen histórico de ingresos.
+                            </p>
+                            <Link
+                                to="/app/suscripciones"
+                                className="px-8 py-3 bg-teal-600 text-white rounded-xl font-black hover:bg-teal-500 transition-all shadow-lg shadow-teal-900/20 active:scale-95"
+                            >
+                                Actualizar Plan
+                            </Link>
+                        </div>
+                    )}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
                         <div>
                             <h3 className="text-xl font-black text-slate-800 flex items-center gap-3">

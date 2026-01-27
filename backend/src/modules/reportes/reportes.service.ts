@@ -156,7 +156,8 @@ export class ReportesService {
             total: Number(v.total),
             status: v.estado_entrega,
             date: v.fecha_venta.toLocaleDateString()
-        })))
+        }))),
+        plan: (await this.prisma.tenant.findUnique({ where: { tenant_id: tenantId }, include: { plan: true } }))?.plan
     };
   }
 
