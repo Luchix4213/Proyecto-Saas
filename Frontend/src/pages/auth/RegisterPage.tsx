@@ -142,7 +142,7 @@ export const RegisterPage = () => {
 
         if (!formData.password) {
             newErrors.password = 'La contraseña es requerida';
-        } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)) {
+        } else if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)) {
             newErrors.password = 'Mínimo 8 caracteres, una mayúscula, un número y un carácter especial';
         }
 

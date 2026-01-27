@@ -190,7 +190,7 @@ export class AutenticacionService {
         modulo: 'AUTENTICACION',
         accion: 'REGISTRO',
         detalle: `Nuevo registro de empresa: ${newTenant.nombre_empresa}`,
-      });
+      }, prisma);
 
       return result;
     });

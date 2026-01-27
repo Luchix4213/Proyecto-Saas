@@ -43,11 +43,11 @@ export const ResetPasswordPage = () => {
             return;
         }
 
-        // Strong password check
-        const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
+        // Strong password check: Min 8 chars, 1 Uppercase, 1 Number, 1 Special
+        const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
         if (!strongPasswordRegex.test(password)) {
             setStatus('error');
-            setMessage('La contraseña debe tener al menos 6 caracteres, incluir una mayúscula y un número.');
+            setMessage('La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, un número y un carácter especial (@$!%*?&).');
             return;
         }
 

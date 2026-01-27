@@ -6,8 +6,9 @@ import { CreateAuditLogDto } from './dto/create-audit-log.dto';
 export class AuditService {
   constructor(private prisma: PrismaService) {}
 
-  async createLog(data: CreateAuditLogDto) {
-    return this.prisma.auditLog.create({
+  async createLog(data: CreateAuditLogDto, prismaClient?: any) {
+    const prisma = prismaClient || this.prisma;
+    return prisma.auditLog.create({
       data: {
         tenant_id: data.tenant_id,
         usuario_id: data.usuario_id,
