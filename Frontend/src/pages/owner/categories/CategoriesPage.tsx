@@ -229,7 +229,7 @@ export const CategoriesPage = () => {
                                                     {filterStatus === 'INACTIVO' ? (
                                                         <button
                                                             onClick={() => handleReactivate(cat.categoria_id)}
-                                                            className="p-2.5 text-emerald-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                            className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
                                                             title="Reactivar"
                                                         >
                                                             <RefreshCw size={18} />

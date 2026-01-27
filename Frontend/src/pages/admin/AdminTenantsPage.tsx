@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { tenantsService } from '../../services/tenantsService';
 import type { Tenant } from '../../services/tenantsService';
-import { Plus, X, RefreshCw, Building2, Search, Filter, Store, CheckCircle2, Clock, Ban } from 'lucide-react';
+import { Plus, X, RefreshCw, Building2, Search, Filter, Store, CheckCircle2, Clock, Ban, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import TenantForm from '../../components/tenants/TenantForm';
 import type { CreateTenantData } from '../../services/tenantsService';
@@ -233,12 +233,17 @@ export const AdminTenantsPage = () => {
                                             />
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <Link
-                                                to={`/admin/tenants/${tenant.tenant_id}`}
-                                                className="inline-flex items-center gap-1 text-sm font-semibold text-teal-600 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors"
-                                            >
-                                                Ver Detalles
-                                            </Link>
+                                            <div className="flex items-center justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                                <div className="flex p-1.5 bg-slate-50 border border-slate-100 rounded-2xl gap-1 shadow-sm">
+                                                    <Link
+                                                        to={`/admin/tenants/${tenant.tenant_id}`}
+                                                        title="Ver Detalles"
+                                                        className="p-2.5 text-slate-400 hover:text-teal-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                    >
+                                                        <Eye size={18} />
+                                                    </Link>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

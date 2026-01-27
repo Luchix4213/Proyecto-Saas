@@ -268,10 +268,15 @@ export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categor
                                             <input
                                                 type="number"
                                                 step="0.01"
-                                                {...register('precio', { required: true, min: 0 })}
-                                                className="w-full pl-10 pr-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700"
+                                                {...register('precio', {
+                                                    required: 'El precio es obligatorio',
+                                                    min: { value: 0.01, message: 'El precio debe ser mayor a 0' },
+                                                    valueAsNumber: true
+                                                })}
+                                                className={`w-full pl-10 pr-5 py-3.5 bg-slate-50 border rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700 ${errors.precio ? 'border-red-300' : 'border-slate-200'}`}
                                             />
                                         </div>
+                                        {errors.precio && <span className="text-[10px] text-red-500 font-black uppercase tracking-wider ml-1">{errors.precio.message}</span>}
                                     </div>
 
                                     <div className="space-y-2">
@@ -314,18 +319,26 @@ export const ProductForm = ({ isOpen, onClose, onSuccess, productToEdit, categor
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Stock Actual</label>
                                         <input
                                             type="number"
-                                            {...register('stock_actual', { min: 0, valueAsNumber: true })}
-                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700"
+                                            {...register('stock_actual', {
+                                                min: { value: 0, message: 'Mínimo 0' },
+                                                valueAsNumber: true
+                                            })}
+                                            className={`w-full px-5 py-3.5 bg-slate-50 border rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700 ${errors.stock_actual ? 'border-red-300' : 'border-slate-200'}`}
                                         />
+                                        {errors.stock_actual && <span className="text-[10px] text-red-500 font-black uppercase tracking-wider ml-1">{errors.stock_actual.message}</span>}
                                     </div>
 
                                     <div className="space-y-2">
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Stock Mínimo</label>
                                         <input
                                             type="number"
-                                            {...register('stock_minimo', { min: 0, valueAsNumber: true })}
-                                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700"
+                                            {...register('stock_minimo', {
+                                                min: { value: 0, message: 'Mínimo 0' },
+                                                valueAsNumber: true
+                                            })}
+                                            className={`w-full px-5 py-3.5 bg-slate-50 border rounded-2xl focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all font-bold text-slate-700 ${errors.stock_minimo ? 'border-red-300' : 'border-slate-200'}`}
                                         />
+                                        {errors.stock_minimo && <span className="text-[10px] text-red-500 font-black uppercase tracking-wider ml-1">{errors.stock_minimo.message}</span>}
                                     </div>
 
                                     <div className="col-span-1 md:col-span-2 pt-2">

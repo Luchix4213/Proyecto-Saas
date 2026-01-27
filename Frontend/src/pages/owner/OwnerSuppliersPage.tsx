@@ -286,31 +286,35 @@ export const OwnerSuppliersPage = () => {
                                                         {supplier.estado}
                                                     </span>
                                                 </td>
-                                                <td className="px-8 py-5 whitespace-nowrap text-right">
-                                                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                                                        <button
-                                                            onClick={() => navigate(`/owner/purchases/history?proveedorId=${supplier.proveedor_id}`)}
-                                                            className="p-2.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all"
-                                                            title="Historial de Compras"
-                                                        >
-                                                            <History size={20} className="stroke-[2.5]" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleOpenModal(supplier)}
-                                                            className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-                                                            title="Editar"
-                                                        >
-                                                            <Pencil size={20} className="stroke-[2.5]" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(supplier.proveedor_id)}
-                                                            className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                                            title="Eliminar"
-                                                        >
-                                                            <Trash2 size={20} className="stroke-[2.5]" />
-                                                        </button>
-                                                    </div>
-                                                </td>
+                                                <td className="px-8 py-5 text-right">
+                                            <div className="flex items-center justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                                <div className="flex p-1.5 bg-slate-50 border border-slate-100 rounded-2xl gap-1 shadow-sm">
+                                                    <button
+                                                        onClick={() => navigate(`/owner/purchases/history?proveedorId=${supplier.proveedor_id}`)}
+                                                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                        title="Historial de Compras"
+                                                    >
+                                                        <History size={18} />
+                                                    </button>
+                                                    <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
+                                                    <button
+                                                        onClick={() => handleOpenModal(supplier)}
+                                                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                        title="Editar Proveedor"
+                                                    >
+                                                        <Pencil size={18} />
+                                                    </button>
+                                                    <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
+                                                    <button
+                                                        onClick={() => handleDelete(supplier.proveedor_id)}
+                                                        className="p-2.5 text-slate-300 hover:text-red-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                        title="Eliminar Permanente"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
                                             </motion.tr>
                                         ))
                                     )}

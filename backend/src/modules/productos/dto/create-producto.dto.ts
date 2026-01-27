@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, IsNotEmpty, IsBoolean, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsNotEmpty, IsBoolean, Min, IsPositive } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateProductoDto {
@@ -13,7 +13,7 @@ export class CreateProductoDto {
     @Type(() => Number)
     @IsNumber()
     @IsNotEmpty()
-    @Min(0)
+    @IsPositive()
     precio: number;
 
     @Type(() => Number)

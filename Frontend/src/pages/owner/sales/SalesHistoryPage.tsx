@@ -221,23 +221,28 @@ export const SalesHistoryPage = () => {
                                             <div className="text-[10px] text-slate-400 font-bold">BOB</div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                {sale.tipo_venta === 'ONLINE' && (
-                                                    <Link
-                                                        to="/ventas-online"
-                                                        className="p-2.5 bg-slate-100 text-slate-500 hover:bg-slate-900 hover:text-white rounded-xl transition-all"
-                                                        title="Gestionar Pedido"
+                                            <div className="flex items-center justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                                <div className="flex p-1.5 bg-slate-50 border border-slate-100 rounded-2xl gap-1 shadow-sm">
+                                                    {sale.tipo_venta === 'ONLINE' && (
+                                                        <>
+                                                            <Link
+                                                                to="/ventas-online"
+                                                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                                title="Gestionar Pedido"
+                                                            >
+                                                                <RefreshCw size={18} />
+                                                            </Link>
+                                                            <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
+                                                        </>
+                                                    )}
+                                                    <button
+                                                        onClick={() => handleViewDetails(sale.venta_id)}
+                                                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                        title="Ver detalles"
                                                     >
-                                                        <RefreshCw size={16} />
-                                                    </Link>
-                                                )}
-                                                <button
-                                                    onClick={() => handleViewDetails(sale.venta_id)}
-                                                    className="p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm"
-                                                    title="Ver detalles"
-                                                >
-                                                    <Eye size={16} />
-                                                </button>
+                                                        <Eye size={18} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>

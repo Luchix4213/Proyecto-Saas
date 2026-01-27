@@ -295,29 +295,30 @@ export const OnlineSalesPage = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
-                                                    <div className="flex items-center justify-end gap-2 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                                    <div className="flex items-center justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
                                                         {sale.estado === 'REGISTRADA' && (
-                                                            <div className="flex p-1 bg-white border border-slate-100 rounded-xl gap-1 shadow-sm">
+                                                            <div className="flex p-1.5 bg-slate-50 border border-slate-100 rounded-2xl gap-1 shadow-sm">
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); handleApprove(sale.venta_id); }}
-                                                                    className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                                    className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
                                                                     title="Aprobar Pago"
                                                                 >
-                                                                    <CheckCircle size={18} className="stroke-[2.5]" />
+                                                                    <CheckCircle size={18} />
                                                                 </button>
+                                                                <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); handleReject(sale.venta_id); }}
-                                                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                    className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
                                                                     title="Rechazar"
                                                                 >
-                                                                    <XCircle size={18} className="stroke-[2.5]" />
+                                                                    <XCircle size={18} />
                                                                 </button>
                                                             </div>
                                                         )}
                                                         {sale.estado === 'PAGADA' && sale.estado_entrega !== 'ENTREGADO' && (
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); handleDeliver(sale.venta_id); }}
-                                                                className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20 flex items-center gap-2"
+                                                                className="px-6 py-2.5 bg-slate-900 border border-transparent rounded-2xl shadow-xl shadow-slate-900/20 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-slate-800 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center gap-2"
                                                             >
                                                                 <Truck size={14} /> Entregar
                                                             </button>

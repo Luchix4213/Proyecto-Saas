@@ -191,34 +191,38 @@ export const AdminSubscriptionsPage = () => {
                                             />
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                {sub.comprobante_url && (
-                                                    <button
-                                                        onClick={() => setSelectedSub(sub)}
-                                                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                        title="Ver Comprobante"
-                                                    >
-                                                        <Eye size={18} />
-                                                    </button>
-                                                )}
-                                                {sub.estado === 'PENDIENTE' && (
-                                                    <div className="flex justify-end gap-2 transition-opacity">
+                                            <div className="flex items-center justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                                <div className="flex p-1.5 bg-slate-50 border border-slate-100 rounded-2xl gap-1 shadow-sm">
+                                                    {sub.comprobante_url && (
                                                         <button
-                                                            onClick={() => handleApprove(sub.suscripcion_id)}
-                                                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                                            title="Aprobar"
+                                                            onClick={() => setSelectedSub(sub)}
+                                                            title="Ver Comprobante"
+                                                            className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
                                                         >
-                                                            <Check size={18} />
+                                                            <Eye size={18} />
                                                         </button>
-                                                        <button
-                                                            onClick={() => handleReject(sub.suscripcion_id)}
-                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                            title="Rechazar"
-                                                        >
-                                                            <X size={18} />
-                                                        </button>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                    {sub.estado === 'PENDIENTE' && (
+                                                        <>
+                                                            {sub.comprobante_url && <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>}
+                                                            <button
+                                                                onClick={() => handleApprove(sub.suscripcion_id)}
+                                                                title="Aprobar"
+                                                                className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                            >
+                                                                <Check size={18} />
+                                                            </button>
+                                                            <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
+                                                            <button
+                                                                onClick={() => handleReject(sub.suscripcion_id)}
+                                                                title="Rechazar"
+                                                                className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                            >
+                                                                <X size={18} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>

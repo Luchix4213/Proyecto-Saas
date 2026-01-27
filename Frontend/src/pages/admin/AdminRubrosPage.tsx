@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { rubrosService, type Rubro } from '../../services/rubrosService';
 import { RubroForm } from '../../components/rubros/RubroForm';
-import { Plus, Edit2, Trash2, Search, Hash, Tag } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Hash, Tag } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { AestheticHeader } from '../../components/common/AestheticHeader';
@@ -184,21 +184,24 @@ export const AdminRubrosPage = () => {
                                         />
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <button
-                                                onClick={() => openEditModal(rubro)}
-                                                className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
-                                                title="Editar"
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(rubro.rubro_id)}
-                                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Eliminar"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                        <div className="flex items-center justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                            <div className="flex p-1.5 bg-slate-50 border border-slate-100 rounded-2xl gap-1 shadow-sm">
+                                                <button
+                                                    onClick={() => openEditModal(rubro)}
+                                                    title="Editar"
+                                                    className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                                <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
+                                                <button
+                                                    onClick={() => handleDelete(rubro.rubro_id)}
+                                                    title="Eliminar Permanente"
+                                                    className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>

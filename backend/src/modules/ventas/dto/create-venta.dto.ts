@@ -32,6 +32,7 @@ export class CreateVentaDto {
 
   @IsOptional()
   @IsNumber()
+  @IsPositive()
   monto_recibido?: number;
 
   @IsOptional()

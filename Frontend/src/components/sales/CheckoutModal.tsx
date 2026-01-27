@@ -47,6 +47,8 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
                 nitFacturacion,
                 razonSocial
             });
+        } catch (error) {
+            console.error(error);
         } finally {
             setIsProcessing(false);
         }
@@ -216,7 +218,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
                 <div className="p-6 border-t border-slate-100 bg-slate-50/80 shrink-0">
                     <button
                         onClick={handleSubmit}
-                        disabled={isProcessing}
+                        disabled={isProcessing || (paymentMethod === 'EFECTIVO' && (!montoRecibido || Number(montoRecibido) < total))}
                         className="w-full py-4 bg-teal-600 text-white rounded-2xl font-black text-lg hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-teal-500/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
                     >
                         {isProcessing ? 'Procesando...' : (
@@ -225,6 +227,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, t
                             </>
                         )}
                     </button>
+                    {paymentMethod === 'EFECTIVO' && montoRecibido && Number(montoRecibido) < total && (
+                        <p className="text-center text-red-500 text-xs font-bold mt-2 animate-pulse">
+                            ¡Monto insuficiente! Faltan Bs {(total - Number(montoRecibido)).toFixed(2)}
+                        </p>
+                    )}
                 </div>
             </div>
         </div>

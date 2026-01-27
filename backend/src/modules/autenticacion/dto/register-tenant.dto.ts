@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, MinLength, IsString, IsOptional, IsNumber } from 'class-validator';
+import { IsEmail, IsNotEmpty, MinLength, IsString, IsOptional, IsNumber, Matches } from 'class-validator';
 
 export class RegisterTenantDto {
     // Datos Empresa
@@ -38,6 +38,10 @@ export class RegisterTenantDto {
     email: string;
 
     @IsNotEmpty()
-    @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+    @IsString()
+    @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
+    @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, {
+        message: 'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial',
+    })
     password: string;
 }

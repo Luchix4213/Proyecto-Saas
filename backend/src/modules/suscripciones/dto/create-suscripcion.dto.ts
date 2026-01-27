@@ -1,4 +1,4 @@
-import { IsInt, IsEnum, IsOptional, IsNumber, IsDateString, IsString } from 'class-validator';
+import { IsInt, IsEnum, IsOptional, IsNumber, IsDateString, IsString, IsPositive } from 'class-validator';
 import { EstadoSuscripcion, MetodoPago } from '@prisma/client';
 import { Type } from 'class-transformer';
 
@@ -24,6 +24,7 @@ export class CreateSuscripcionDto {
 
   @IsOptional()
   @IsNumber()
+  @IsPositive()
   monto?: number; // Calculated by backend now
 
   @IsEnum(MetodoPago)

@@ -117,7 +117,6 @@ export const RegisterPage = () => {
     const validateStep2 = () => {
         const newErrors: Record<string, string> = {};
         const nameRegex = /^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/; // Letters and spaces only, including Spanish chars
-        const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d).{6,}$/;
 
         if (!formData.nombre.trim()) {
             newErrors.nombre = 'El nombre es requerido';
@@ -143,8 +142,8 @@ export const RegisterPage = () => {
 
         if (!formData.password) {
             newErrors.password = 'La contraseña es requerida';
-        } else if (!strongPasswordRegex.test(formData.password)) {
-            newErrors.password = 'Mínimo 6 caracteres, una mayúscula y un número';
+        } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)) {
+            newErrors.password = 'Mínimo 8 caracteres, una mayúscula, un número y un carácter especial';
         }
 
         if (formData.password !== formData.confirmPassword) {

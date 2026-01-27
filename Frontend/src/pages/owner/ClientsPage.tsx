@@ -308,53 +308,57 @@ export const ClientsPage = () => {
                                                         </span>
                                                     </td>
                                                     <td className="px-8 py-5 text-right">
-                                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
-                                                            {client.telefono && (
-                                                                <a
-                                                                    href={`https://wa.me/${client.telefono.replace(/\D/g, '')}`}
-                                                                    target="_blank"
-                                                                    rel="noreferrer"
-                                                                    className="p-2.5 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-colors"
-                                                                    title="Enviar WhatsApp"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    <MessageCircle size={20} className="stroke-[2.5]" />
-                                                                </a>
-                                                            )}
-                                                            <button
-                                                                onClick={() => handleHistory(client)}
-                                                                className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
-                                                                title="Historial de Compras"
-                                                            >
-                                                                <History size={20} className="stroke-[2.5]" />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleEdit(client)}
-                                                                className="p-2.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-colors"
-                                                                title="Editar Cliente"
-                                                            >
-                                                                <Pencil size={20} className="stroke-[2.5]" />
-                                                            </button>
+                                            <div className="flex items-center justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                                <div className="flex p-1.5 bg-slate-50 border border-slate-100 rounded-2xl gap-1 shadow-sm">
+                                                    {client.telefono && (
+                                                        <a
+                                                            href={`https://wa.me/${client.telefono.replace(/\D/g, '')}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                            title="WhatsApp"
+                                                        >
+                                                            <MessageCircle size={18} />
+                                                        </a>
+                                                    )}
+                                                    <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
+                                                    <button
+                                                        onClick={() => handleHistory(client)}
+                                                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                        title="Historial de Compras"
+                                                    >
+                                                        <History size={18} />
+                                                    </button>
+                                                    <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
+                                                    <button
+                                                        onClick={() => handleEdit(client)}
+                                                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                        title="Editar Cliente"
+                                                    >
+                                                        <Pencil size={18} />
+                                                    </button>
+                                                    <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
 
-                                                            {client.estado === 'INACTIVO' ? (
-                                                                <button
-                                                                    onClick={() => handleReactivate(client)}
-                                                                    className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
-                                                                    title="Reactivar Cliente"
-                                                                >
-                                                                    <UserCheck size={20} className="stroke-[2.5]" />
-                                                                </button>
-                                                            ) : (
-                                                                <button
-                                                                    onClick={() => handleDelete(client)}
-                                                                    className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                                                                    title="Dar de baja"
-                                                                >
-                                                                    <Trash2 size={20} className="stroke-[2.5]" />
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </td>
+                                                    {client.estado === 'INACTIVO' ? (
+                                                        <button
+                                                            onClick={() => handleReactivate(client)}
+                                                            className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                            title="Reactivar Cliente"
+                                                        >
+                                                            <UserCheck size={18} />
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => handleDelete(client)}
+                                                            className="p-2.5 text-slate-300 hover:text-red-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                            title="Dar de baja"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </td>
                                                 </motion.tr>
                                             ))
                                         )}

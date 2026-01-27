@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Check, Shield, X, Layout, Crown } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, Shield, X, Layout, Crown } from 'lucide-react';
 import { planesService, type Plan, type CreatePlanData } from '../../services/planesService';
 import { useToast } from '../../context/ToastContext';
 import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
@@ -261,16 +261,17 @@ export const AdminPlansPage: React.FC = () => {
                                 <div className="p-4 border-t border-slate-100 flex gap-2">
                                     <button
                                         onClick={() => handleEdit(plan)}
-                                        className="flex-1 py-2.5 px-4 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2 group/btn"
+                                        className="flex-1 py-2.5 px-4 bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-md font-bold rounded-xl transition-all flex items-center justify-center gap-2 group/btn"
                                     >
-                                        <Edit2 size={16} className="group-hover/btn:rotate-12 transition-transform" /> Editar
+                                        <Pencil size={18} className="group-hover/btn:rotate-12 transition-transform" />
+                                        <span>Editar</span>
                                     </button>
                                     <button
                                         onClick={() => handleDelete(plan.plan_id)}
-                                        className="py-2.5 px-4 bg-white border-2 border-red-200 text-red-600 font-bold rounded-xl hover:bg-red-50 hover:border-red-300 transition-all group/btn"
+                                        className="py-2.5 px-4 bg-white border border-slate-200 text-slate-300 hover:text-red-500 hover:border-red-100 hover:shadow-md font-bold rounded-xl transition-all group/btn"
                                         title="Eliminar Plan"
                                     >
-                                        <Trash2 size={16} className="group-hover/btn:scale-110 transition-transform" />
+                                        <Trash2 size={18} className="group-hover/btn:scale-110 transition-transform" />
                                     </button>
                                 </div>
                             </div>

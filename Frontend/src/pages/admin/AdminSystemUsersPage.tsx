@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { userService, type Usuario } from '../../services/userService';
-import { Plus, Edit2, Trash2, Shield, User as UserIcon, Search, KeyRound, Ban, Users, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, Shield, User as UserIcon, Search, KeyRound, Ban, Users, Check } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
 import { AestheticHeader } from '../../components/common/AestheticHeader';
@@ -218,37 +218,42 @@ export const AdminSystemUsersPage = () => {
                                             />
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={() => handleChangePassword(user)}
-                                                    className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                                                    title="Cambiar Contraseña"
-                                                >
-                                                    <KeyRound size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleToggleStatus(user)}
-                                                    className={`p-2 rounded-lg transition-colors ${user.estado === 'ACTIVO'
-                                                        ? 'text-slate-400 hover:text-red-500 hover:bg-red-50'
-                                                        : 'text-slate-400 hover:text-emerald-500 hover:bg-emerald-50'}`}
-                                                    title={user.estado === 'ACTIVO' ? 'Desactivar' : 'Reactivar'}
-                                                >
-                                                    {user.estado === 'ACTIVO' ? <Ban size={16} /> : <Check size={16} />}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEdit(user)}
-                                                    className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
-                                                    title="Editar"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(user)}
-                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Eliminar"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                                            <div className="flex items-center justify-end gap-3 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                                <div className="flex p-1.5 bg-slate-50 border border-slate-100 rounded-2xl gap-1 shadow-sm">
+                                                    <button
+                                                        onClick={() => handleChangePassword(user)}
+                                                        title="Cambiar Contraseña"
+                                                        className="p-2.5 text-slate-400 hover:text-amber-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                    >
+                                                        <KeyRound size={18} />
+                                                    </button>
+                                                    <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
+                                                    <button
+                                                        onClick={() => handleToggleStatus(user)}
+                                                        title={user.estado === 'ACTIVO' ? 'Desactivar' : 'Reactivar'}
+                                                        className={`p-2.5 transition-all rounded-xl hover:bg-white hover:shadow-md ${user.estado === 'ACTIVO'
+                                                            ? 'text-slate-400 hover:text-red-500'
+                                                            : 'text-slate-400 hover:text-emerald-500'}`}
+                                                    >
+                                                        {user.estado === 'ACTIVO' ? <Ban size={18} /> : <Check size={18} />}
+                                                    </button>
+                                                    <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
+                                                    <button
+                                                        onClick={() => handleEdit(user)}
+                                                        title="Editar"
+                                                        className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                    >
+                                                        <Pencil size={18} />
+                                                    </button>
+                                                    <div className="w-[1px] h-4 bg-slate-200 self-center mx-1"></div>
+                                                    <button
+                                                        onClick={() => handleDelete(user)}
+                                                        title="Eliminar Permanente"
+                                                        className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-white hover:shadow-md rounded-xl transition-all"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
