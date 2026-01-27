@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import { Truck, CheckCircle, XCircle, User, FileText, Smartphone, ShoppingBag } from 'lucide-react';
+import { Truck, CheckCircle, XCircle, User, FileText, Smartphone, ShoppingBag, Eye, Printer } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
 import { AestheticHeader } from '../../components/common/AestheticHeader';
@@ -16,6 +16,7 @@ interface Venta {
     estado_entrega: string;
     tipo_venta: string;
     comprobante_pago?: string;
+    comprobante_pdf?: string;
     cliente?: {
         nombre: string;
         email: string;
@@ -251,20 +252,33 @@ export const OnlineSalesPage = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6">
-                                                    {sale.comprobante_pago ? (
-                                                        <button
-                                                            className="inline-flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setPreviewImage(`http://localhost:3000${sale.comprobante_pago}`);
-                                                                setIsPreviewOpen(true);
-                                                            }}
-                                                        >
-                                                            <FileText size={14} /> Ver Recibo
-                                                        </button>
-                                                    ) : (
-                                                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">Sin Archivo</span>
-                                                    )}
+                                                    <div className="flex flex-col gap-2">
+                                                        {sale.comprobante_pago ? (
+                                                            <button
+                                                                className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm border border-blue-100 w-fit"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setPreviewImage(`http://localhost:3000${sale.comprobante_pago}`);
+                                                                    setIsPreviewOpen(true);
+                                                                }}
+                                                            >
+                                                                <Eye size={14} /> Ver Pago
+                                                            </button>
+                                                        ) : (
+                                                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-300 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 w-fit">Sin Pago</span>
+                                                        )}
+                                                        {sale.comprobante_pdf && (
+                                                            <a
+                                                                href={`http://localhost:3000${sale.comprobante_pdf}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center gap-2 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm border border-emerald-100 w-fit"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <FileText size={14} /> Ver Recibo
+                                                            </a>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <span className={`inline-flex px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm
@@ -343,7 +357,7 @@ export const OnlineSalesPage = () => {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl p-8 overflow-hidden"
+                            className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl p-8 overflow-y-auto max-h-[90vh]"
                             onClick={e => e.stopPropagation()}
                         >
                             <div className="flex justify-between items-start mb-6">
@@ -371,23 +385,29 @@ export const OnlineSalesPage = () => {
                                 </div>
                             </div>
 
-                            {selectedSale.comprobante_pago && (
-                                <div className="mb-8">
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Verificación de Pago</label>
-                                    <div
-                                        className="relative rounded-2xl overflow-hidden border border-slate-100 cursor-zoom-in group shadow-md"
+                             <div className="grid grid-cols-2 gap-4 mb-6">
+                                {selectedSale.comprobante_pago && (
+                                    <button
                                         onClick={() => {
                                             setPreviewImage(`http://localhost:3000${selectedSale.comprobante_pago}`);
                                             setIsPreviewOpen(true);
                                         }}
+                                        className="flex items-center justify-center gap-2 py-4 rounded-2xl font-black uppercase tracking-widest text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 transition-all border border-blue-100"
                                     >
-                                        <img src={`http://localhost:3000${selectedSale.comprobante_pago}`} alt="Comprobante" className="w-full h-32 object-cover group-hover:scale-110 transition-transform duration-500" />
-                                        <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-white text-[10px] font-black uppercase tracking-widest">Ampliar Imagen</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+                                        <Eye size={16} /> Ver Pago
+                                    </button>
+                                )}
+                                {selectedSale.comprobante_pdf && (
+                                    <a
+                                        href={`http://localhost:3000${selectedSale.comprobante_pdf}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-2 py-4 rounded-2xl font-black uppercase tracking-widest text-xs text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-all border border-emerald-100"
+                                    >
+                                        <Printer size={16} /> Ver Recibo
+                                    </a>
+                                )}
+                            </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 {selectedSale.estado === 'REGISTRADA' ? (

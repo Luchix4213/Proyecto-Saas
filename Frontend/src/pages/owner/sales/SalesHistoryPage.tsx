@@ -3,7 +3,7 @@ import {
     Search, Calendar, ShoppingBag,
     Monitor, User, Eye,
     RefreshCw, X, Package,
-    FileText, MapPin, Truck, Banknote, Printer
+    FileText, MapPin, Truck, Banknote
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AestheticHeader } from '../../../components/common/AestheticHeader';
@@ -322,56 +322,48 @@ export const SalesHistoryPage = () => {
                                                     <FileText size={12} />
                                                     {selectedSale.estado_facturacion || 'PENDIENTE'}
                                                 </span>
-                                                <div className="flex gap-2">
-                                                    {selectedSale.estado_facturacion !== 'EMITIDA' ? (
-                                                        <>
-                                                            {selectedSale.comprobante_pago && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setPreviewImage(`http://localhost:3000${selectedSale.comprobante_pago}`);
-                                                                        setIsPreviewOpen(true);
-                                                                    }}
-                                                                    className="text-xs font-bold text-teal-600 hover:text-teal-800 flex items-center gap-1 bg-teal-50 px-2 py-1 rounded-lg"
-                                                                >
-                                                                    <Eye size={12} /> Ver Pago
-                                                                </button>
-                                                            )}
-                                                            {selectedSale.comprobante_pdf && (
-                                                                <a
-                                                                    href={`http://localhost:3000${selectedSale.comprobante_pdf}`}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 bg-slate-100 px-2 py-1 rounded-lg"
-                                                                >
-                                                                    <Printer size={12} /> Ver Recibo
-                                                                </a>
-                                                            )}
-                                                            <button
-                                                                onClick={async () => {
-                                                                    try {
-                                                                        const updated = await salesService.emitInvoice(selectedSale.venta_id);
-                                                                        setSelectedSale(updated);
-                                                                        setSales(prev => prev.map(s => s.venta_id === updated.venta_id ? updated : s));
-                                                                        addToast('Factura emitida exitosamente', 'success');
-                                                                    } catch (e) {
-                                                                        console.error(e);
-                                                                        addToast('Error al emitir factura', 'error');
-                                                                    }
-                                                                }}
-                                                                className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 px-2 py-1 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
-                                                            >
-                                                                <FileText size={12} /> Emitir Factura
-                                                            </button>
-                                                        </>
-                                                    ) : (
+                                                <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-100">
+                                                    {selectedSale.comprobante_pago && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setPreviewImage(`http://localhost:3000${selectedSale.comprobante_pago}`);
+                                                                setIsPreviewOpen(true);
+                                                            }}
+                                                            className="text-xs font-bold text-teal-600 hover:text-teal-800 flex items-center gap-1.5 bg-teal-50 px-3 py-1.5 rounded-lg border border-teal-100 transition-colors"
+                                                        >
+                                                            <Eye size={14} /> Ver Pago
+                                                        </button>
+                                                    )}
+
+                                                    {selectedSale.comprobante_pdf && (
                                                         <a
                                                             href={`http://localhost:3000${selectedSale.comprobante_pdf}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="text-xs font-bold text-white flex items-center gap-1 bg-blue-600 px-3 py-1.5 rounded-lg shadow-sm hover:bg-blue-700 transition-all hover:shadow-md"
+                                                            className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-colors"
                                                         >
-                                                            <FileText size={14} /> Ver Factura
+                                                            <FileText size={14} />
+                                                            {selectedSale.estado_facturacion === 'EMITIDA' ? 'Ver Factura' : 'Ver Recibo'}
                                                         </a>
+                                                    )}
+
+                                                    {selectedSale.estado_facturacion !== 'EMITIDA' && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                try {
+                                                                    const updated = await salesService.emitInvoice(selectedSale.venta_id);
+                                                                    setSelectedSale(updated);
+                                                                    setSales(prev => prev.map(s => s.venta_id === updated.venta_id ? updated : s));
+                                                                    addToast('Factura emitida exitosamente', 'success');
+                                                                } catch (e) {
+                                                                    console.error(e);
+                                                                    addToast('Error al emitir factura', 'error');
+                                                                }
+                                                            }}
+                                                            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg hover:bg-indigo-100 border border-indigo-100 transition-colors"
+                                                        >
+                                                            <FileText size={14} /> Emitir Factura
+                                                        </button>
                                                     )}
                                                 </div>
                                             </div>
