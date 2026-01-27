@@ -166,13 +166,13 @@ export const NotificationsPage = () => {
                 return {
                     label: 'Gestionar Inventario',
                     icon: <Package size={14} />,
-                    onClick: () => navigate('/productos')
+                    onClick: () => navigate('/app/productos')
                 };
             case 'NUEVA_VENTA':
                 return {
                     label: 'Ver Venta',
                     icon: <ShoppingCart size={14} />,
-                    onClick: () => navigate('/ventas-online')
+                    onClick: () => navigate('/app/ventas/online')
                 };
             default:
                 return null;

@@ -111,7 +111,7 @@ export const OwnerDashboardPage = () => {
                             {new Date().toLocaleDateString('es-BO', { weekday: 'long', day: 'numeric', month: 'long' })}
                         </div>
                         <Link
-                            to="/productos"
+                            to="/app/productos"
                             className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 active:scale-95"
                         >
                             <Plus size={18} />
@@ -239,10 +239,10 @@ export const OwnerDashboardPage = () => {
                         <h3 className="text-lg font-black mb-6 relative z-10">Herramientas</h3>
                         <div className="grid grid-cols-2 gap-4 relative z-10">
                             {[
-                                { to: '/mi-empresa', icon: Building2, label: 'Negocio', color: 'text-teal-400' },
-                                { to: '/productos', icon: Package, label: 'Productos', color: 'text-indigo-400' },
-                                { to: '/clientes', icon: Users, label: 'Clientes', color: 'text-blue-400' },
-                                { to: '/suscripcion', icon: CreditCard, label: 'Plan', color: 'text-fuchsia-400' }
+                                { to: '/app/empresa', icon: Building2, label: 'Negocio', color: 'text-teal-400' },
+                                { to: '/app/productos', icon: Package, label: 'Productos', color: 'text-indigo-400' },
+                                { to: '/app/clientes', icon: Users, label: 'Clientes', color: 'text-blue-400' },
+                                { to: '/app/suscripciones', icon: CreditCard, label: 'Plan', color: 'text-fuchsia-400' }
                             ].map((item, i) => (
                                 <Link
                                     key={i}
@@ -260,7 +260,7 @@ export const OwnerDashboardPage = () => {
                     <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
                         <div className="flex items-center justify-between mb-8">
                             <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">Últimos Pedidos</h3>
-                            <Link to="/pedidos" className="p-2 bg-slate-50 text-slate-400 hover:text-teal-600 rounded-xl transition-all">
+                            <Link to="/app/ventas/online" className="p-2 bg-slate-50 text-slate-400 hover:text-teal-600 rounded-xl transition-all">
                                 <ChevronRight size={18} />
                             </Link>
                         </div>

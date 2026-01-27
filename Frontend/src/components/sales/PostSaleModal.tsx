@@ -59,7 +59,7 @@ export const PostSaleModal: React.FC<PostSaleModalProps> = ({ sale, onNewSale })
                         {/* Primary Actions */}
                         <div className="grid grid-cols-2 gap-4">
                              <Link
-                                to="/ventas/historial"
+                                to="/app/ventas/historial"
                                 className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors"
                             >
                                 Ver Historial

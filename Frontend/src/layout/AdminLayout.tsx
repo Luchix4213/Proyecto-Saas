@@ -74,7 +74,7 @@ export const AdminLayout = () => {
                     <NavLink to="/admin/usuarios" icon={Users} label={isSidebarOpen ? 'Administradores' : ''} />
                     <NavLink to="/admin/planes" icon={CreditCard} label={isSidebarOpen ? 'Planes' : ''} />
                     <div className="border-t border-slate-800 my-2 pt-2">
-                        <NavLink to="/admin/profile" icon={User} label={isSidebarOpen ? 'Mi Perfil' : ''} />
+                        <NavLink to="/admin/perfil" icon={User} label={isSidebarOpen ? 'Mi Perfil' : ''} />
                     </div>
                 </nav>
 
@@ -115,7 +115,7 @@ export const AdminLayout = () => {
                             </Link>
                         </div>
 
-                        <Link to="/admin/profile" className="flex items-center gap-3 pl-4 border-l border-slate-200 hover:opacity-80 transition-opacity">
+                        <Link to="/admin/perfil" className="flex items-center gap-3 pl-4 border-l border-slate-200 hover:opacity-80 transition-opacity">
                             <div className="text-right hidden sm:block">
                                 <p className="text-sm font-semibold text-slate-800">{user?.nombre || 'Admin'}</p>
                                 <p className="text-xs text-slate-500">Super Admin</p>

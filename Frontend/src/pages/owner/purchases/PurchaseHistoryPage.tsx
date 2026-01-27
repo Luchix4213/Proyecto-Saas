@@ -78,7 +78,7 @@ export const PurchaseHistoryPage = () => {
                 iconColor="from-indigo-500 to-purple-600"
                 action={
                     <Link
-                        to="/owner/purchases"
+                        to="/app/compras"
                         className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm text-sm font-black text-slate-600 hover:bg-slate-50 transition-all hover:border-indigo-200 active:scale-95"
                     >
                         <ArrowLeft size={18} className="text-slate-400" />
@@ -102,10 +102,10 @@ export const PurchaseHistoryPage = () => {
                     </div>
                     <div className="flex gap-2">
                         {proveedorIdParam && (
-                            <Link
-                                to="/owner/purchases/history"
-                                className="px-4 py-2 bg-amber-50 rounded-xl text-xs font-black text-amber-600 flex items-center gap-2 border border-amber-100 hover:bg-amber-100 transition-all"
-                            >
+                                <Link
+                                    to="/app/compras/historial"
+                                    className="px-4 py-2 bg-amber-50 rounded-xl text-xs font-black text-amber-600 flex items-center gap-2 border border-amber-100 hover:bg-amber-100 transition-all"
+                                >
                                 <Filter size={14} /> Quitar filtro
                             </Link>
                         )}

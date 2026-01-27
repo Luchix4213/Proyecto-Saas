@@ -221,9 +221,9 @@ export const SellerDashboardPage = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <QuickAction to="/pos" icon={ShoppingBag} label="Nueva Venta" color="from-teal-500 to-emerald-600" />
-                <QuickAction to="/clientes" icon={Users} label="Clientes" color="from-blue-500 to-indigo-600" />
-                <QuickAction to="/ventas/historial" icon={Clock} label="Historial" color="from-purple-500 to-pink-600" />
+                <QuickAction to="/app/ventas/pos" icon={ShoppingBag} label="Nueva Venta" color="from-teal-500 to-emerald-600" />
+                <QuickAction to="/app/clientes" icon={Users} label="Clientes" color="from-blue-500 to-indigo-600" />
+                <QuickAction to="/app/ventas/historial" icon={Clock} label="Historial" color="from-purple-500 to-pink-600" />
             </div>
 
             {/* Two columns: Top Products & Recent Sales */}

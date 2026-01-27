@@ -219,7 +219,7 @@ export const OwnerPurchasesPage = () => {
                 iconColor="from-indigo-600 to-teal-500"
                 action={
                     <Link
-                        to="/owner/purchases/history"
+                        to="/app/compras/historial"
                         className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm text-sm font-black text-slate-600 hover:bg-slate-50 transition-all hover:border-indigo-200 active:scale-95"
                     >
                         <History size={18} className="text-indigo-500" />

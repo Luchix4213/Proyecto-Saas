@@ -90,7 +90,7 @@ export const MarketplaceLayout = () => {
                         <div className="h-8 w-px bg-slate-200 hidden sm:block"></div>
 
                         {user ? (
-                            <Link to={user.rol === 'ADMIN' ? '/admin/dashboard' : '/dashboard'} className="hidden sm:flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-teal-600 transition-colors">
+                            <Link to={user.rol === 'ADMIN' ? '/admin/dashboard' : '/app/dashboard'} className="hidden sm:flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-teal-600 transition-colors">
                                 <div className="h-10 w-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center border border-teal-100">
                                     <User size={20} />
                                 </div>

@@ -79,7 +79,7 @@ export const OwnerLayout = () => {
                 </div>
 
                 <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
-                    <NavLink to="/dashboard" icon={LayoutDashboard} label={isSidebarOpen ? 'Dashboard' : ''} />
+                    <NavLink to="/app/dashboard" icon={LayoutDashboard} label={isSidebarOpen ? 'Dashboard' : ''} />
 
                     {/* Gestión - Solo para PROPIETARIO */}
                     {user?.rol === 'PROPIETARIO' && (
@@ -87,13 +87,13 @@ export const OwnerLayout = () => {
                             <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
                                 Gestión
                             </div>
-                            <NavLink to="/mi-empresa" icon={Building2} label={isSidebarOpen ? 'Mi Empresa' : ''} />
-                            <NavLink to="/usuarios" icon={Users} label={isSidebarOpen ? 'Usuarios' : ''} />
-                            <NavLink to="/categorias" icon={Tag} label={isSidebarOpen ? 'Categorías' : ''} />
-                            <NavLink to="/productos" icon={Package} label={isSidebarOpen ? 'Productos' : ''} />
-                            <NavLink to="/proveedores" icon={Truck} label={isSidebarOpen ? 'Proveedores' : ''} />
-                            <NavLink to="/compras" icon={ShoppingBag} label={isSidebarOpen ? 'Compras (Stock)' : ''} />
-                            <NavLink to="/suscripcion" icon={CreditCard} label={isSidebarOpen ? 'Suscripción' : ''} />
+                            <NavLink to="/app/empresa" icon={Building2} label={isSidebarOpen ? 'Mi Empresa' : ''} />
+                            <NavLink to="/app/usuarios" icon={Users} label={isSidebarOpen ? 'Usuarios' : ''} />
+                            <NavLink to="/app/categorias" icon={Tag} label={isSidebarOpen ? 'Categorías' : ''} />
+                            <NavLink to="/app/productos" icon={Package} label={isSidebarOpen ? 'Productos' : ''} />
+                            <NavLink to="/app/proveedores" icon={Truck} label={isSidebarOpen ? 'Proveedores' : ''} />
+                            <NavLink to="/app/compras" icon={ShoppingBag} label={isSidebarOpen ? 'Compras (Stock)' : ''} />
+                            <NavLink to="/app/suscripciones" icon={CreditCard} label={isSidebarOpen ? 'Suscripción' : ''} />
                         </>
                     )}
 
@@ -103,25 +103,25 @@ export const OwnerLayout = () => {
                             <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
                                 Catálogo
                             </div>
-                            <NavLink to="/productos" icon={Package} label={isSidebarOpen ? 'Productos' : ''} />
+                            <NavLink to="/app/productos" icon={Package} label={isSidebarOpen ? 'Productos' : ''} />
                         </>
                     )}
 
                     <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
                         Operaciones
                     </div>
-                    <NavLink to="/pos" icon={ShoppingCart} label={isSidebarOpen ? 'Punto de Venta' : ''} />
-                    <NavLink to="/clientes" icon={Users} label={isSidebarOpen ? 'Clientes' : ''} />
+                    <NavLink to="/app/ventas/pos" icon={ShoppingCart} label={isSidebarOpen ? 'Punto de Venta' : ''} />
+                    <NavLink to="/app/clientes" icon={Users} label={isSidebarOpen ? 'Clientes' : ''} />
 
                     {/* Ventas Online - Solo para PROPIETARIO */}
                     {user?.rol === 'PROPIETARIO' && (
-                        <NavLink to="/ventas-online" icon={Globe} label={isSidebarOpen ? 'Ventas Online' : ''} />
+                        <NavLink to="/app/ventas/online" icon={Globe} label={isSidebarOpen ? 'Ventas Online' : ''} />
                     )}
 
-                    <NavLink to="/ventas/historial" icon={ShoppingBag} label={isSidebarOpen ? 'Historial de Ventas' : ''} />
+                    <NavLink to="/app/ventas/historial" icon={ShoppingBag} label={isSidebarOpen ? 'Historial de Ventas' : ''} />
 
                     <div className="border-t border-slate-800 my-2 pt-2">
-                        <NavLink to="/profile" icon={User} label={isSidebarOpen ? 'Mi Perfil' : ''} />
+                        <NavLink to="/app/perfil" icon={User} label={isSidebarOpen ? 'Mi Perfil' : ''} />
                     </div>
                 </nav>
 
@@ -154,7 +154,7 @@ export const OwnerLayout = () => {
 
                     <div className="flex items-center gap-4">
                         <div className="relative">
-                            <Link to="/notificaciones" className="p-2 rounded-full text-white/80 hover:bg-white/10 transition-colors relative block">
+                            <Link to="/app/notificaciones" className="p-2 rounded-full text-white/80 hover:bg-white/10 transition-colors relative block">
                                 <Bell size={20} />
                                 {unreadCount > 0 && (
                                     <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-red-400 rounded-full border border-teal-600 animate-pulse"></span>
@@ -162,7 +162,7 @@ export const OwnerLayout = () => {
                             </Link>
                         </div>
 
-                        <Link to="/profile" className="flex items-center gap-3 pl-4 border-l border-white/20 hover:opacity-80 transition-opacity">
+                        <Link to="/app/perfil" className="flex items-center gap-3 pl-4 border-l border-white/20 hover:opacity-80 transition-opacity">
                             <div className="text-right hidden sm:block">
                                 <p className="text-sm font-semibold text-white">{user?.nombre || 'Usuario'}</p>
                                 <p className="text-xs text-teal-100">{user?.rol || 'Propietario'}</p>

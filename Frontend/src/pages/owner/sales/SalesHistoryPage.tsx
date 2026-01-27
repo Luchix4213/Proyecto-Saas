@@ -226,7 +226,7 @@ export const SalesHistoryPage = () => {
                                                     {sale.tipo_venta === 'ONLINE' && (
                                                         <>
                                                             <Link
-                                                                to="/ventas-online"
+                                                                to="/app/ventas/online"
                                                                 className="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-md rounded-xl transition-all"
                                                                 title="Gestionar Pedido"
                                                             >

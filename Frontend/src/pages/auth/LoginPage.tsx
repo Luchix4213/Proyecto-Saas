@@ -23,7 +23,7 @@ export const LoginPage = () => {
             if (user?.rol === 'ADMIN') {
                 navigate('/admin/dashboard');
             } else {
-                navigate('/dashboard');
+                navigate('/app/dashboard');
             }
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al iniciar sesión');

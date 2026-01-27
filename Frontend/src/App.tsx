@@ -60,20 +60,19 @@ function App() {
       <ToastProvider>
         <BrowserRouter>
           <Routes>
-            {/* ... routes ... */}
             {/* ===================== */}
             {/* MARKETPLACE (PÚBLICO) */}
             {/* ===================== */}
             <Route element={<MarketplaceLayout />}>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/stores" element={<LandingPage />} />
               <Route path="/tienda/:slug" element={<StorefrontPage />} />
               <Route path="/tienda/:slug/checkout" element={<CheckoutPage />} />
-              <Route path="/stores" element={<LandingPage />} />
               <Route path="/productos-global" element={<GlobalProductsPage />} />
             </Route>
 
             {/* ===================== */}
-            {/* AUTH */}
+            {/* 🔐 AUTH */}
             {/* ===================== */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -81,7 +80,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* ===================== */}
-            {/* ADMIN ROUTES */}
+            {/* ADMIN (SAAS OWNER) */}
             {/* ===================== */}
             <Route
               element={
@@ -98,12 +97,12 @@ function App() {
               <Route path="/admin/suscripciones" element={<AdminSubscriptionsPage />} />
               <Route path="/admin/rubros" element={<AdminRubrosPage />} />
               <Route path="/admin/clientes" element={<AdminClientsPage />} />
-              <Route path="/admin/profile" element={<ProfilePage />} />
               <Route path="/admin/notificaciones" element={<NotificationsPage />} />
+              <Route path="/admin/perfil" element={<ProfilePage />} />
             </Route>
 
             {/* ===================== */}
-            {/* OWNER/SELLER ROUTES */}
+            {/* 🏪 PANEL DEL NEGOCIO (OWNER / VENDEDOR) */}
             {/* ===================== */}
             <Route
               element={
@@ -112,27 +111,34 @@ function App() {
                 </PrivateRoute>
               }
             >
-              {/* Dashboard - Conditional based on role */}
-              <Route path="/dashboard" element={<DashboardRoute />} />
+              {/* Dashboard dinámico por rol */}
+              <Route path="/app/dashboard" element={<DashboardRoute />} />
 
-              {/* PROPIETARIO Only Pages */}
-              <Route path="/mi-empresa" element={<MyTenantPage />} />
-              <Route path="/notificaciones" element={<NotificationsPage />} />
-              <Route path="/usuarios" element={<UsersPage />} />
-              <Route path="/suscripcion" element={<SubscriptionPage />} />
-              <Route path="/categorias" element={<CategoriesPage />} />
-              <Route path="/proveedores" element={<OwnerSuppliersPage />} />
-              <Route path="/compras" element={<OwnerPurchasesPage />} />
-              <Route path="/owner/purchases" element={<Navigate to="/compras" replace />} />
-              <Route path="/owner/purchases/history" element={<PurchaseHistoryPage />} />
-              <Route path="/ventas-online" element={<OnlineSalesPage />} />
+              {/* Configuración del negocio (solo owner normalmente) */}
+              <Route path="/app/empresa" element={<MyTenantPage />} />
+              <Route path="/app/suscripciones" element={<SubscriptionPage />} />
+              <Route path="/app/usuarios" element={<UsersPage />} />
 
-              {/* Shared Pages (PROPIETARIO & VENDEDOR) */}
-              <Route path="/productos" element={<ProductsPage />} />
-              <Route path="/clientes" element={<ClientsPage />} />
-              <Route path="/pos" element={<PosPage />} />
-              <Route path="/ventas/historial" element={<SalesHistoryPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
+              {/* Gestión general */}
+              <Route path="/app/notificaciones" element={<NotificationsPage />} />
+              <Route path="/app/perfil" element={<ProfilePage />} />
+
+              {/* Inventario */}
+              <Route path="/app/productos" element={<ProductsPage />} />
+              <Route path="/app/categorias" element={<CategoriesPage />} />
+              <Route path="/app/proveedores" element={<OwnerSuppliersPage />} />
+
+              {/* Clientes */}
+              <Route path="/app/clientes" element={<ClientsPage />} />
+
+              {/* Compras */}
+              <Route path="/app/compras" element={<OwnerPurchasesPage />} />
+              <Route path="/app/compras/historial" element={<PurchaseHistoryPage />} />
+
+              {/* Ventas */}
+              <Route path="/app/ventas/pos" element={<PosPage />} />
+              <Route path="/app/ventas/historial" element={<SalesHistoryPage />} />
+              <Route path="/app/ventas/online" element={<OnlineSalesPage />} />
             </Route>
 
             {/* ===================== */}
