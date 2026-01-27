@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../../api/axios';
-import { Users, Building2, CreditCard, TrendingUp, PieChart, ArrowUpRight, DollarSign } from 'lucide-react';
+import { Users, Building2, CreditCard, TrendingUp, PieChart, ArrowUpRight, DollarSign, LayoutDashboard } from 'lucide-react';
+import { AestheticHeader } from '../../components/common/AestheticHeader';
 
 interface DashboardStats {
     tenants: {
@@ -85,15 +86,20 @@ export const AdminDashboardPage = () => {
 
     return (
         <div className="space-y-8 animate-fade-in-up">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Dashboard General</h1>
-                    <p className="text-slate-500">Vista general del sistema Kipu</p>
-                </div>
-                <div className="hidden sm:block text-sm text-slate-400">
-                    Última actualización: {new Date().toLocaleTimeString()}
-                </div>
-            </div>
+            <AestheticHeader
+                title="Dashboard General"
+                description="Vista general y métricas clave del ecosistema Kipu."
+                icon={LayoutDashboard}
+                iconColor="from-slate-800 to-slate-900"
+                action={
+                    <div className="hidden sm:block text-right">
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Sincronización</p>
+                        <p className="text-sm font-bold text-slate-600">
+                             {new Date().toLocaleTimeString()}
+                        </p>
+                    </div>
+                }
+            />
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

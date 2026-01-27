@@ -109,7 +109,12 @@ export const PosPage = () => {
             setIsCheckoutOpen(false);
             setLastSale(newSale);
             await loadData(); // Refresh stock
-            addToast('Venta procesada con éxito', 'success');
+
+            // Enhanced notification with sale details
+            addToast(
+                `✓ Venta registrada: Bs. ${newSale.total.toFixed(2)} | ${cart.length} producto(s)`,
+                'success'
+            );
 
         } catch (error: any) {
             console.error('Sale error:', error);

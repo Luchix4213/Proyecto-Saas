@@ -44,6 +44,15 @@ import { StorefrontPage } from './pages/marketplace/StorefrontPage';
 import { CheckoutPage } from './pages/marketplace/CheckoutPage';
 import { GlobalProductsPage } from './pages/marketplace/GlobalProductsPage';
 import { OwnerDashboardPage } from './pages/owner/OwnerDashboardPage';
+import { SellerDashboardPage } from './pages/seller/SellerDashboardPage';
+
+// Dashboard route component to conditionally render based on role
+import { useAuth } from './context/AuthContext';
+
+const DashboardRoute = () => {
+  const { user } = useAuth();
+  return user?.rol === 'VENDEDOR' ? <SellerDashboardPage /> : <OwnerDashboardPage />;
+};
 
 function App() {
   return (
@@ -93,7 +102,7 @@ function App() {
             </Route>
 
             {/* ===================== */}
-            {/* OWNER/APP ROUTES */}
+            {/* OWNER/SELLER ROUTES */}
             {/* ===================== */}
             <Route
               element={
@@ -102,19 +111,24 @@ function App() {
                 </PrivateRoute>
               }
             >
-              <Route path="/dashboard" element={<OwnerDashboardPage />} />
+              {/* Dashboard - Conditional based on role */}
+              <Route path="/dashboard" element={<DashboardRoute />} />
+
+              {/* PROPIETARIO Only Pages */}
               <Route path="/mi-empresa" element={<MyTenantPage />} />
               <Route path="/notificaciones" element={<NotificationsPage />} />
               <Route path="/usuarios" element={<UsersPage />} />
-              <Route path="/clientes" element={<ClientsPage />} />
               <Route path="/suscripcion" element={<SubscriptionPage />} />
               <Route path="/categorias" element={<CategoriesPage />} />
-              <Route path="/productos" element={<ProductsPage />} />
               <Route path="/proveedores" element={<OwnerSuppliersPage />} />
               <Route path="/compras" element={<OwnerPurchasesPage />} />
               <Route path="/owner/purchases" element={<Navigate to="/compras" replace />} />
               <Route path="/owner/purchases/history" element={<PurchaseHistoryPage />} />
               <Route path="/ventas-online" element={<OnlineSalesPage />} />
+
+              {/* Shared Pages (PROPIETARIO & VENDEDOR) */}
+              <Route path="/productos" element={<ProductsPage />} />
+              <Route path="/clientes" element={<ClientsPage />} />
               <Route path="/pos" element={<PosPage />} />
               <Route path="/ventas/historial" element={<SalesHistoryPage />} />
               <Route path="/profile" element={<ProfilePage />} />

@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { getAllSubscriptions, approveSubscription, rejectSubscription, type Suscripcion } from '../../services/suscripcionesService';
-import { Check, X, Eye, CreditCard, CheckCircle2, Ban, AlertCircle } from 'lucide-react';
+import { Check, X, Calendar, CreditCard, Building2, ExternalLink, Activity, Ban, Eye } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
+import { AestheticHeader } from '../../components/common/AestheticHeader';
+import { StatusBadge } from '../../components/common/StatusBadge';
+import { EmptyState } from '../../components/common/EmptyState';
 
 export const AdminSubscriptionsPage = () => {
     const { addToast } = useToast();
     const [subscriptions, setSubscriptions] = useState<Suscripcion[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
     const [selectedSub, setSelectedSub] = useState<Suscripcion | null>(null);
 
     const [confirmConfig, setConfirmConfig] = useState<{
@@ -31,10 +33,11 @@ export const AdminSubscriptionsPage = () => {
 
     const loadSubscriptions = async () => {
         try {
+            setLoading(true);
             const data = await getAllSubscriptions();
             setSubscriptions(data);
         } catch (err) {
-            setError('Error al cargar suscripciones');
+            console.error('Error al cargar suscripciones:', err);
             addToast('Error al cargar suscripciones', 'error');
         } finally {
             setLoading(false);
@@ -45,7 +48,7 @@ export const AdminSubscriptionsPage = () => {
         setConfirmConfig({
             isOpen: true,
             title: 'Aprobar Suscripción',
-            message: '¿Estás seguro de aprobar esta suscripción? Esto activará el plan para la empresa.',
+            message: '¿Estás seguro de aprobar esta suscripción? El acceso será habilitado de inmediato.',
             type: 'success',
             onConfirm: async () => {
                 try {
@@ -64,7 +67,7 @@ export const AdminSubscriptionsPage = () => {
         setConfirmConfig({
             isOpen: true,
             title: 'Rechazar Suscripción',
-            message: '¿Estás seguro de rechazar esta suscripción? El pago no será validado.',
+            message: '¿Estás seguro de rechazar esta suscripción?',
             type: 'danger',
             onConfirm: async () => {
                 try {
@@ -87,20 +90,18 @@ export const AdminSubscriptionsPage = () => {
 
     return (
         <div className="space-y-8 animate-fade-in-up">
-            {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                    <CreditCard className="text-teal-600" />
-                    Gestión de Suscripciones
-                </h1>
-                <p className="text-slate-500 mt-1">Supervisa y aprueba los planes y pagos de las microempresas.</p>
-            </div>
+            <AestheticHeader
+                title="Suscripciones Globales"
+                description="Monitorea y gestiona el estado de las membresías de todas las microempresas."
+                icon={Activity}
+                iconColor="from-amber-500 to-orange-600"
+            />
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Suscripciones</p>
+                        <p className="text-sm text-slate-500 font-medium">Total Suscripciones</p>
                         <p className="text-2xl font-bold text-slate-800 mt-1">{stats.total}</p>
                     </div>
                     <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
@@ -109,187 +110,179 @@ export const AdminSubscriptionsPage = () => {
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Activas</p>
+                        <p className="text-sm text-slate-500 font-medium">Suscripciones Activas</p>
                         <p className="text-2xl font-bold text-slate-800 mt-1">{stats.active}</p>
                     </div>
                     <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                        <CheckCircle2 size={20} />
+                        <Check size={20} />
                     </div>
                 </div>
                 <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pendientes de Aprobación</p>
+                        <p className="text-sm text-slate-500 font-medium">Pendientes de Aprobación</p>
                         <p className="text-2xl font-bold text-slate-800 mt-1">{stats.pending}</p>
                     </div>
                     <div className="p-3 bg-amber-50 text-amber-600 rounded-lg">
-                        <AlertCircle size={20} />
+                        <Activity size={20} />
                     </div>
                 </div>
             </div>
-
-            {error && (
-                <div className="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-3">
-                    <Ban size={20} />
-                    <span className="font-medium">{error}</span>
-                </div>
-            )}
 
             {/* Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-slate-50 border-b border-slate-200">
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Empresa</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Plan Solicitado</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Monto</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Comprobante</th>
-                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center">
-                                        <div className="flex flex-col items-center justify-center gap-3">
-                                            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500 border-t-transparent"></div>
-                                            <span className="text-sm font-medium text-slate-500">Cargando suscripciones...</span>
-                                        </div>
-                                    </td>
+                    {loading ? (
+                        <div className="flex justify-center py-12">
+                            <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent"></div>
+                        </div>
+                    ) : subscriptions.length === 0 ? (
+                        <EmptyState
+                            icon={CreditCard}
+                            title="No hay suscripciones"
+                            description="No se encontraron registros de suscripción en el sistema."
+                        />
+                    ) : (
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="bg-slate-50 border-b border-slate-200">
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Empresa / Plan</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Monto</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Periodo</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
                                 </tr>
-                            ) : subscriptions.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
-                                        No hay historial de suscripciones.
-                                    </td>
-                                </tr>
-                            ) : (
-                                subscriptions.map((sub) => (
-                                    <tr key={sub.suscripcion_id} className={`group hover:bg-slate-50/80 transition-colors ${sub.estado === 'PENDIENTE' ? 'bg-amber-50/30' : ''}`}>
-                                        <td className="px-6 py-4 text-sm text-slate-500 font-mono">#{sub.suscripcion_id}</td>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {subscriptions.map((sub) => (
+                                    <tr key={sub.suscripcion_id} className="group hover:bg-slate-50/80 transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-slate-800">{sub.tenant?.nombre_empresa}</div>
-                                            <div className="text-xs text-slate-500">{sub.tenant?.email}</div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
+                                                    <Building2 size={18} />
+                                                </div>
+                                                <div>
+                                                    <div className="font-bold text-slate-800">{sub.tenant?.nombre_empresa}</div>
+                                                    <div className="text-xs text-amber-600 font-bold uppercase tracking-wider">{sub.plan?.nombre_plan}</div>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="font-medium text-slate-700">{sub.plan?.nombre_plan}</span>
+                                            <div className="text-sm font-bold text-slate-700">
+                                                ${sub.monto}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${sub.estado === 'ACTIVA' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                                                sub.estado === 'PENDIENTE' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                                                    'bg-red-50 text-red-700 border-red-100'
-                                                }`}>
-                                                <span className={`h-1.5 w-1.5 rounded-full ${sub.estado === 'ACTIVA' ? 'bg-emerald-500' :
-                                                    sub.estado === 'PENDIENTE' ? 'bg-amber-500' :
-                                                        'bg-red-500'
-                                                    }`}></span>
-                                                {sub.estado}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 font-mono text-sm text-slate-700">
-                                            {sub.monto} BOB
+                                            <div className="flex flex-col gap-1">
+                                                <div className="text-[10px] flex items-center gap-1 font-bold text-slate-400">
+                                                    <Calendar size={10} /> INICIO: {new Date(sub.fecha_inicio).toLocaleDateString()}
+                                                </div>
+                                                <div className="text-[10px] flex items-center gap-1 font-bold text-slate-400">
+                                                    <Calendar size={10} /> FIN: {new Date(sub.fecha_fin).toLocaleDateString()}
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {sub.comprobante_url ? (
-                                                <button
-                                                    onClick={() => setSelectedSub(sub)}
-                                                    className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors"
-                                                >
-                                                    <Eye size={14} /> Ver Imagen
-                                                </button>
-                                            ) : (
-                                                <span className="text-slate-400 text-xs italic">N/A</span>
-                                            )}
+                                            <StatusBadge
+                                                status={sub.estado}
+                                                variant={
+                                                    sub.estado === 'ACTIVA' ? 'success' :
+                                                    sub.estado === 'PENDIENTE' ? 'warning' : 'neutral'
+                                                }
+                                            />
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            {sub.estado === 'PENDIENTE' ? (
-                                                <div className="flex justify-end gap-2 text-slate-300 translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+                                            <div className="flex justify-end gap-2">
+                                                {sub.comprobante_url && (
                                                     <button
-                                                        onClick={() => handleApprove(sub.suscripcion_id)}
-                                                        className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200 transition-colors"
-                                                        title="Aprobar"
+                                                        onClick={() => setSelectedSub(sub)}
+                                                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                        title="Ver Comprobante"
                                                     >
-                                                        <Check size={16} strokeWidth={2.5} />
+                                                        <Eye size={18} />
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleReject(sub.suscripcion_id)}
-                                                        className="p-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                                                        title="Rechazar"
-                                                    >
-                                                        <X size={16} strokeWidth={2.5} />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <span className="text-slate-300">-</span>
-                                            )}
+                                                )}
+                                                {sub.estado === 'PENDIENTE' && (
+                                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={() => handleApprove(sub.suscripcion_id)}
+                                                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                                            title="Aprobar"
+                                                        >
+                                                            <Check size={18} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleReject(sub.suscripcion_id)}
+                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            title="Rechazar"
+                                                        >
+                                                            <X size={18} />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
 
-            {/* Modal de Comprobante */}
+            {/* Modal para ver comprobante */}
             {selectedSub && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col animate-scale-in border border-slate-100">
-                        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <div>
-                                <h3 className="font-bold text-lg text-slate-800">Comprobante de Pago</h3>
-                                <p className="text-sm text-slate-500">{selectedSub.tenant?.nombre_empresa}</p>
-                            </div>
-                            <button
-                                onClick={() => setSelectedSub(null)}
-                                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
-                            >
-                                <X size={20} />
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in" onClick={() => setSelectedSub(null)}>
+                    <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden max-w-2xl w-full animate-scale-in border border-slate-100" onClick={e => e.stopPropagation()}>
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
+                                <Building2 className="text-indigo-600" />
+                                {selectedSub.tenant?.nombre_empresa}
+                            </h3>
+                            <button onClick={() => setSelectedSub(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:rotate-90 transition-all duration-300">
+                                <X size={24} />
                             </button>
                         </div>
-
-                        <div className="p-4 overflow-y-auto flex-1 flex justify-center bg-slate-100">
+                        <div className="p-0 bg-slate-100 flex items-center justify-center overflow-auto max-h-[65vh]">
                             {selectedSub.comprobante_url ? (
                                 <img
                                     src={'http://localhost:3000' + selectedSub.comprobante_url}
-                                    alt="Comprobante"
-                                    className="max-w-full h-auto object-contain shadow-md rounded-lg"
+                                    alt="Comprobante de pago"
+                                    className="max-w-full h-auto object-contain shadow-2xl"
                                 />
                             ) : (
-                                <div className="flex flex-col items-center justify-center text-slate-400 h-64">
-                                    <Ban size={48} className="mb-2 opacity-50" />
+                                <div className="py-20 text-slate-400 flex flex-col items-center">
+                                    <Ban size={48} className="opacity-20 mb-2" />
                                     <p>No hay imagen disponible</p>
                                 </div>
                             )}
                         </div>
-
-                        <div className="p-4 border-t border-slate-100 bg-white flex justify-between items-center">
-                            <span className="text-sm text-slate-500 font-mono">ID: #{selectedSub.suscripcion_id}</span>
-                            <div className="flex gap-2">
+                        <div className="p-6 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">Pago: ${selectedSub.monto}</div>
+                            <div className="flex gap-3 w-full sm:w-auto">
                                 {selectedSub.estado === 'PENDIENTE' && (
                                     <>
                                         <button
                                             onClick={() => { handleReject(selectedSub.suscripcion_id); setSelectedSub(null); }}
-                                            className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl hover:bg-red-100 font-bold text-sm transition-colors"
+                                            className="flex-1 sm:flex-none px-6 py-3 border border-red-200 text-red-600 rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-red-50 transition-all"
                                         >
                                             Rechazar
                                         </button>
                                         <button
                                             onClick={() => { handleApprove(selectedSub.suscripcion_id); setSelectedSub(null); }}
-                                            className="px-4 py-2 bg-emerald-600 text-white shadow-lg shadow-emerald-200 border border-transparent rounded-xl hover:bg-emerald-700 font-bold text-sm transition-colors"
+                                            className="flex-1 sm:flex-none px-6 py-3 bg-emerald-600 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5"
                                         >
-                                            Aprobar Pago
+                                            Aprobar
                                         </button>
                                     </>
                                 )}
-                                <button
-                                    onClick={() => setSelectedSub(null)}
-                                    className="px-4 py-2 bg-white text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 font-medium text-sm transition-colors"
+                                <a
+                                    href={'http://localhost:3000' + selectedSub.comprobante_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all hover:-translate-y-0.5"
                                 >
-                                    Cerrar
-                                </button>
+                                    <ExternalLink size={16} /> Abrir Original
+                                </a>
                             </div>
                         </div>
                     </div>

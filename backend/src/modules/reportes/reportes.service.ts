@@ -226,4 +226,177 @@ export class ReportesService {
       plans: enrichedPlans
     };
   }
+
+  async getVendedorStats(
+    tenantId: number,
+    usuarioId: number,
+    filter?: string,
+    startDate?: string,
+    endDate?: string
+  ) {
+    // Determine date range based on filter
+    let rangeStart: Date;
+    let rangeEnd: Date = new Date();
+
+    if (filter === 'custom' && startDate && endDate) {
+      rangeStart = new Date(startDate);
+      rangeEnd = new Date(endDate);
+      rangeEnd.setHours(23, 59, 59, 999);
+    } else if (filter === 'today') {
+      rangeStart = new Date();
+      rangeStart.setHours(0, 0, 0, 0);
+    } else if (filter === 'month') {
+      rangeStart = new Date();
+      rangeStart.setDate(1);
+      rangeStart.setHours(0, 0, 0, 0);
+    } else {
+      // Default: 'week'
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const diffToMon = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      rangeStart = new Date(today);
+      rangeStart.setDate(today.getDate() - diffToMon);
+      rangeStart.setHours(0, 0, 0, 0);
+    }
+
+    // 1. Today's stats
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const todaySales = await this.prisma.venta.aggregate({
+      _count: { venta_id: true },
+      _sum: { total: true },
+      where: {
+        tenant_id: tenantId,
+        usuario_id: usuarioId,
+        estado: { not: EstadoVenta.CANCELADA },
+        fecha_venta: { gte: todayStart, lte: todayEnd }
+      }
+    });
+
+    // 2. Week sales (for chart)
+    const weekStart = new Date();
+    const dayOfWeek = weekStart.getDay();
+    const diffToMon = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    weekStart.setDate(weekStart.getDate() - diffToMon);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+
+    const weekSales = await this.prisma.venta.groupBy({
+      by: ['fecha_venta'],
+      _sum: { total: true },
+      where: {
+        tenant_id: tenantId,
+        usuario_id: usuarioId,
+        estado: { not: EstadoVenta.CANCELADA },
+        fecha_venta: { gte: weekStart, lte: weekEnd }
+      }
+    });
+
+    const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const weekData = weekDays.map((day, index) => {
+      const dayAmount = weekSales
+        .filter(sale => {
+          const saleDate = new Date(sale.fecha_venta);
+          let dayIndex = saleDate.getDay() - 1;
+          if (dayIndex === -1) dayIndex = 6;
+          return dayIndex === index;
+        })
+        .reduce((sum, sale) => sum + Number(sale._sum.total || 0), 0);
+
+      return { day, amount: dayAmount };
+    });
+
+    const weekTotal = weekData.reduce((sum, day) => sum + day.amount, 0);
+
+    // 3. Top products (for the selected range)
+    const topProducts = await this.prisma.detalleVenta.groupBy({
+      by: ['producto_id'],
+      _sum: { cantidad: true, precio_unitario: true },
+      where: {
+        venta: {
+          tenant_id: tenantId,
+          usuario_id: usuarioId,
+          estado: { not: EstadoVenta.CANCELADA },
+          fecha_venta: { gte: rangeStart, lte: rangeEnd }
+        }
+      },
+      orderBy: { _sum: { cantidad: 'desc' } },
+      take: 5
+    });
+
+    const topProductsEnriched = await Promise.all(
+      topProducts.map(async (item) => {
+        const product = await this.prisma.producto.findUnique({
+          where: { producto_id: item.producto_id },
+          select: { nombre: true }
+        });
+
+        // Calculate total revenue for this product
+        const details = await this.prisma.detalleVenta.findMany({
+          where: {
+            producto_id: item.producto_id,
+            venta: {
+              tenant_id: tenantId,
+              usuario_id: usuarioId,
+              estado: { not: EstadoVenta.CANCELADA },
+              fecha_venta: { gte: rangeStart, lte: rangeEnd }
+            }
+          },
+          select: { cantidad: true, precio_unitario: true }
+        });
+
+        const total = details.reduce((sum, d) => sum + (d.cantidad * Number(d.precio_unitario)), 0);
+
+        return {
+          producto_id: item.producto_id,
+          nombre: product?.nombre || 'Producto desconocido',
+          cantidad: item._sum.cantidad || 0,
+          total: total
+        };
+      })
+    );
+
+    // 4. Recent sales
+    const recentSales = await this.prisma.venta.findMany({
+      where: {
+        tenant_id: tenantId,
+        usuario_id: usuarioId,
+        estado: { not: EstadoVenta.CANCELADA }
+      },
+      orderBy: { fecha_venta: 'desc' },
+      take: 10,
+      include: {
+        cliente: true
+      }
+    });
+
+    const recentSalesFormatted = recentSales.map(sale => ({
+      venta_id: sale.venta_id,
+      fecha: sale.fecha_venta.toISOString(),
+      cliente_nombre: sale.cliente
+        ? `${sale.cliente.nombre} ${sale.cliente.paterno || ''}`.trim()
+        : 'Cliente Casual',
+      total: Number(sale.total),
+      tipo_comprobante: sale.nro_factura ? 'FACTURA' : 'NOTA'
+    }));
+
+    return {
+      today: {
+        sales: todaySales._count.venta_id || 0,
+        amount: Number(todaySales._sum.total || 0)
+      },
+      week: {
+        sales: weekData,
+        total: weekTotal
+      },
+      topProducts: topProductsEnriched,
+      recentSales: recentSalesFormatted
+    };
+  }
 }

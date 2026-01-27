@@ -268,7 +268,7 @@ export const CategoriesPage = () => {
                     {loading ? (
                         <div className="p-12 text-center">
                             <Loader2 className="animate-spin text-teal-500 mx-auto" size={32} />
-                            <p className="text-slate-400 font-bold mt-2 font-black uppercase tracking-widest text-[10px]">Cargando...</p>
+                            <p className="text-slate-400 font-bold mt-2 uppercase tracking-widest text-[10px]">Cargando...</p>
                         </div>
                     ) : filteredCategories.length === 0 ? (
                         <div className="p-8">

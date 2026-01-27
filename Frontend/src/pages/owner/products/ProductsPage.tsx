@@ -9,6 +9,7 @@ import { ConfirmDialog, type DialogType } from '../../../components/common/Confi
 import { AestheticHeader } from '../../../components/common/AestheticHeader';
 import { EmptyState } from '../../../components/common/EmptyState';
 import { useToast } from '../../../context/ToastContext';
+import { useAuth } from '../../../context/AuthContext';
 
 export const ProductsPage = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -19,6 +20,8 @@ export const ProductsPage = () => {
     const [filterStatus, setFilterStatus] = useState<string>('TODAS');
 
     const { addToast } = useToast();
+    const { user } = useAuth();
+    const isVendedor = user?.rol === 'VENDEDOR';
     const [confirmConfig, setConfirmConfig] = useState<{
         isOpen: boolean;
         title: string;
@@ -141,13 +144,15 @@ export const ProductsPage = () => {
                     icon={ShoppingBag}
                     iconColor="from-teal-500 to-emerald-600"
                     action={
-                        <button
-                            onClick={handleCreate}
-                            className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 border border-transparent rounded-2xl shadow-xl shadow-slate-900/20 text-sm font-bold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all hover:-translate-y-0.5"
-                        >
-                            <Plus size={20} className="stroke-[3]" />
-                            Nuevo Producto
-                        </button>
+                        !isVendedor ? (
+                            <button
+                                onClick={handleCreate}
+                                className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 border border-transparent rounded-2xl shadow-xl shadow-slate-900/20 text-sm font-bold text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all hover:-translate-y-0.5"
+                            >
+                                <Plus size={20} className="stroke-[3]" />
+                                Nuevo Producto
+                            </button>
+                        ) : null
                     }
                 />
 
@@ -303,34 +308,36 @@ export const ProductsPage = () => {
                                                         )}
                                                     </div>
 
-                                                    {/* Actions Overlay */}
-                                                    <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
-                                                        <button
-                                                            onClick={() => handleEdit(product)}
-                                                            className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-teal-400 hover:text-white transition-all shadow-lg transform hover:scale-110"
-                                                            title="Editar"
-                                                        >
-                                                            <Pencil size={20} />
-                                                        </button>
+                                                    {/* Actions Overlay - Hidden for VENDEDOR */}
+                                                    {!isVendedor && (
+                                                        <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                                                            <button
+                                                                onClick={() => handleEdit(product)}
+                                                                className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-teal-400 hover:text-white transition-all shadow-lg transform hover:scale-110"
+                                                                title="Editar"
+                                                            >
+                                                                <Pencil size={20} />
+                                                            </button>
 
-                                                        {product.estado === 'INACTIVO' ? (
-                                                            <button
-                                                                onClick={() => handleReactivate(product)}
-                                                                className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-emerald-500 hover:text-white transition-all shadow-lg transform hover:scale-110"
-                                                                title="Reactivar"
-                                                            >
-                                                                <Package size={20} />
-                                                            </button>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handleDelete(product)}
-                                                                className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg transform hover:scale-110"
-                                                                title="Eliminar"
-                                                            >
-                                                                <Trash2 size={20} />
-                                                            </button>
-                                                        )}
-                                                    </div>
+                                                            {product.estado === 'INACTIVO' ? (
+                                                                <button
+                                                                    onClick={() => handleReactivate(product)}
+                                                                    className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-emerald-500 hover:text-white transition-all shadow-lg transform hover:scale-110"
+                                                                    title="Reactivar"
+                                                                >
+                                                                    <Package size={20} />
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleDelete(product)}
+                                                                    className="p-3 bg-white text-slate-800 rounded-2xl hover:bg-red-500 hover:text-white transition-all shadow-lg transform hover:scale-110"
+                                                                    title="Eliminar"
+                                                                >
+                                                                    <Trash2 size={20} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Info Area */}

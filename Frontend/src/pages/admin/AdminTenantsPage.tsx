@@ -6,6 +6,8 @@ import { Link } from 'react-router-dom';
 import TenantForm from '../../components/tenants/TenantForm';
 import type { CreateTenantData } from '../../services/tenantsService';
 import { useToast } from '../../context/ToastContext';
+import { AestheticHeader } from '../../components/common/AestheticHeader';
+import { StatusBadge } from '../../components/common/StatusBadge';
 
 export const AdminTenantsPage = () => {
     const { addToast } = useToast();
@@ -68,32 +70,30 @@ export const AdminTenantsPage = () => {
 
     return (
         <div className="space-y-8 animate-fade-in-up">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                        <Building2 className="text-teal-600" />
-                        Gestión de Microempresas
-                    </h1>
-                    <p className="text-slate-500 mt-1">Administración de tenants registrados en la plataforma SaaS.</p>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => fetchTenants()}
-                        className="p-2.5 text-slate-400 hover:text-teal-600 bg-white border border-slate-200 hover:border-teal-200 rounded-xl transition-all shadow-sm"
-                        title="Refrescar lista"
-                    >
-                        <RefreshCw size={20} />
-                    </button>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white hover:from-teal-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all hover:-translate-y-0.5 hover:shadow-teal-500/30"
-                    >
-                        <Plus size={18} strokeWidth={2.5} />
-                        Nueva Empresa
-                    </button>
-                </div>
-            </div>
+            <AestheticHeader
+                title="Gestión de Microempresas"
+                description="Administración y monitoreo de todos los tenants registrados en la plataforma."
+                icon={Building2}
+                iconColor="from-teal-600 to-emerald-600"
+                action={
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => fetchTenants()}
+                            className="p-3 text-slate-400 hover:text-teal-600 bg-white border border-slate-200 hover:border-teal-200 rounded-2xl transition-all shadow-sm group"
+                            title="Refrescar lista"
+                        >
+                            <RefreshCw size={20} className="group-active:rotate-180 transition-transform duration-500" />
+                        </button>
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="flex items-center gap-2 px-6 py-3 bg-slate-900 border border-transparent rounded-[1.25rem] shadow-xl text-sm font-black text-white hover:bg-slate-800 transition-all hover:-translate-y-0.5"
+                        >
+                            <Plus size={18} strokeWidth={3} />
+                            NUEVA EMPRESA
+                        </button>
+                    </div>
+                }
+            />
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -243,16 +243,13 @@ export const AdminTenantsPage = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${tenant.estado === 'ACTIVA' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                                                    tenant.estado === 'PENDIENTE' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                                                        'bg-red-50 text-red-700 border-red-100'
-                                                }`}>
-                                                <span className={`h-1.5 w-1.5 rounded-full ${tenant.estado === 'ACTIVA' ? 'bg-emerald-500' :
-                                                        tenant.estado === 'PENDIENTE' ? 'bg-amber-500' :
-                                                            'bg-red-500'
-                                                    }`}></span>
-                                                {tenant.estado}
-                                            </span>
+                                            <StatusBadge
+                                                status={tenant.estado}
+                                                variant={
+                                                    tenant.estado === 'ACTIVA' ? 'success' :
+                                                    tenant.estado === 'PENDIENTE' ? 'warning' : 'error'
+                                                }
+                                            />
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <Link

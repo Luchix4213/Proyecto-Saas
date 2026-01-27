@@ -81,16 +81,31 @@ export const OwnerLayout = () => {
                 <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
                     <NavLink to="/dashboard" icon={LayoutDashboard} label={isSidebarOpen ? 'Dashboard' : ''} />
 
-                    <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
-                        Gestión
-                    </div>
-                    <NavLink to="/mi-empresa" icon={Building2} label={isSidebarOpen ? 'Mi Empresa' : ''} />
-                    <NavLink to="/usuarios" icon={Users} label={isSidebarOpen ? 'Usuarios' : ''} />
-                    <NavLink to="/categorias" icon={Tag} label={isSidebarOpen ? 'Categorías' : ''} />
-                    <NavLink to="/productos" icon={Package} label={isSidebarOpen ? 'Productos' : ''} />
-                    <NavLink to="/proveedores" icon={Truck} label={isSidebarOpen ? 'Proveedores' : ''} />
-                    <NavLink to="/compras" icon={ShoppingBag} label={isSidebarOpen ? 'Compras (Stock)' : ''} />
-                    <NavLink to="/suscripcion" icon={CreditCard} label={isSidebarOpen ? 'Suscripción' : ''} />
+                    {/* Gestión - Solo para PROPIETARIO */}
+                    {user?.rol === 'PROPIETARIO' && (
+                        <>
+                            <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
+                                Gestión
+                            </div>
+                            <NavLink to="/mi-empresa" icon={Building2} label={isSidebarOpen ? 'Mi Empresa' : ''} />
+                            <NavLink to="/usuarios" icon={Users} label={isSidebarOpen ? 'Usuarios' : ''} />
+                            <NavLink to="/categorias" icon={Tag} label={isSidebarOpen ? 'Categorías' : ''} />
+                            <NavLink to="/productos" icon={Package} label={isSidebarOpen ? 'Productos' : ''} />
+                            <NavLink to="/proveedores" icon={Truck} label={isSidebarOpen ? 'Proveedores' : ''} />
+                            <NavLink to="/compras" icon={ShoppingBag} label={isSidebarOpen ? 'Compras (Stock)' : ''} />
+                            <NavLink to="/suscripcion" icon={CreditCard} label={isSidebarOpen ? 'Suscripción' : ''} />
+                        </>
+                    )}
+
+                    {/* Catálogo - Solo para VENDEDOR */}
+                    {user?.rol === 'VENDEDOR' && (
+                        <>
+                            <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
+                                Catálogo
+                            </div>
+                            <NavLink to="/productos" icon={Package} label={isSidebarOpen ? 'Productos' : ''} />
+                        </>
+                    )}
 
                     <div className={`px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider ${!isSidebarOpen && 'hidden'}`}>
                         Operaciones
@@ -98,7 +113,11 @@ export const OwnerLayout = () => {
                     <NavLink to="/pos" icon={ShoppingCart} label={isSidebarOpen ? 'Punto de Venta' : ''} />
                     <NavLink to="/clientes" icon={Users} label={isSidebarOpen ? 'Clientes' : ''} />
 
-                    <NavLink to="/ventas-online" icon={Globe} label={isSidebarOpen ? 'Ventas Online' : ''} />
+                    {/* Ventas Online - Solo para PROPIETARIO */}
+                    {user?.rol === 'PROPIETARIO' && (
+                        <NavLink to="/ventas-online" icon={Globe} label={isSidebarOpen ? 'Ventas Online' : ''} />
+                    )}
+
                     <NavLink to="/ventas/historial" icon={ShoppingBag} label={isSidebarOpen ? 'Historial de Ventas' : ''} />
 
                     <div className="border-t border-slate-800 my-2 pt-2">

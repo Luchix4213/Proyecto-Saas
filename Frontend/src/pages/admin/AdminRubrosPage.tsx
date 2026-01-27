@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Pencil, Trash2, Tag, Loader2 } from 'lucide-react';
 import { rubrosService, type Rubro } from '../../services/rubrosService';
 import { RubroForm } from '../../components/rubros/RubroForm';
+import { Plus, Edit2, Trash2, Search, Hash, Tag } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
-import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { AestheticHeader } from '../../components/common/AestheticHeader';
+import { StatusBadge } from '../../components/common/StatusBadge';
+import { EmptyState } from '../../components/common/EmptyState';
 
 export const AdminRubrosPage = () => {
     const { addToast } = useToast();
@@ -16,11 +19,13 @@ export const AdminRubrosPage = () => {
     const [editingRubro, setEditingRubro] = useState<Rubro | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
 
+
+
     const [confirmConfig, setConfirmConfig] = useState<{
         isOpen: boolean;
         title: string;
         message: string;
-        type: DialogType;
+        type: 'info' | 'warning' | 'danger';
         onConfirm: () => void;
     }>({
         isOpen: false,
@@ -112,29 +117,23 @@ export const AdminRubrosPage = () => {
         setIsModalOpen(true);
     };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <Loader2 className="animate-spin text-teal-600" size={32} />
-            </div>
-        );
-    }
-
     return (
-        <div className="space-y-6 animate-fade-in">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800">Rubros de Negocio</h1>
-                    <p className="text-slate-500">Gestiona las categorías de negocio disponibles para las empresas</p>
-                </div>
-                <button
-                    onClick={openCreateModal}
-                    className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors shadow-lg shadow-teal-600/20"
-                >
-                    <Plus size={20} />
-                    Nuevo Rubro
-                </button>
-            </div>
+        <div className="space-y-8 animate-fade-in-up">
+            <AestheticHeader
+                title="Sectores de Negocio"
+                description="Gestiona los rubros y categorías comerciales disponibles para las microempresas."
+                icon={Tag}
+                iconColor="from-pink-500 to-rose-600"
+                action={
+                    <button
+                        onClick={openCreateModal}
+                        className="flex items-center gap-2 px-6 py-3 bg-slate-900 border border-transparent rounded-[1.25rem] shadow-xl text-sm font-black text-white hover:bg-slate-800 transition-all hover:-translate-y-0.5"
+                    >
+                        <Plus size={18} strokeWidth={3} />
+                        NUEVO RUBRO
+                    </button>
+                }
+            />
 
             {/* Filters */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
@@ -151,47 +150,61 @@ export const AdminRubrosPage = () => {
             </div>
 
             {/* List */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredRubros.map((rubro) => (
-                    <div key={rubro.rubro_id} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
-                        {/* Decorative background */}
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                             <Tag size={100} className="text-teal-600" />
-                        </div>
-
-                        <div className="flex justify-between items-start mb-4 relative z-10">
-                            <div className="p-3 bg-gradient-to-br from-teal-500 to-emerald-500 text-white rounded-xl shadow-lg shadow-teal-500/20 group-hover:scale-110 transition-transform duration-300">
-                                <Tag size={20} />
-                            </div>
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0 bg-white/80 backdrop-blur-sm p-1 rounded-lg">
-                                <button
-                                    onClick={() => openEditModal(rubro)}
-                                    className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
-                                    title="Editar"
-                                >
-                                    <Pencil size={16} />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(rubro.rubro_id)}
-                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Eliminar"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
-                        <h3 className="font-bold text-slate-800 text-lg mb-2 relative z-10 group-hover:text-teal-700 transition-colors">{rubro.nombre}</h3>
-                        <p className="text-slate-500 text-sm line-clamp-2 relative z-10 leading-relaxed">
-                            {rubro.descripcion || 'Sin descripción disponible para este rubro.'}
-                        </p>
+            <div className="overflow-x-auto">
+                {loading ? (
+                    <div className="flex justify-center py-12">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500 border-t-transparent"></div>
                     </div>
-                ))}
-
-                {filteredRubros.length === 0 && (
-                    <div className="col-span-full py-12 flex flex-col items-center justify-center text-slate-400 bg-white rounded-xl border border-dashed border-slate-300">
-                        <Tag size={48} className="mb-4 opacity-20" />
-                        <p>No se encontraron rubros</p>
-                    </div>
+                ) : filteredRubros.length === 0 ? (
+                    <EmptyState
+                        icon={Hash}
+                        title="No se encontraron rubros"
+                        description="Ajusta los filtros o crea un nuevo sector para comenzar."
+                    />
+                ) : (
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="bg-slate-50 border-b border-slate-200">
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre del Rubro</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</th>
+                                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {filteredRubros.map((rubro) => (
+                                <tr key={rubro.rubro_id} className="group hover:bg-slate-50/80 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="font-bold text-slate-800">{rubro.nombre}</div>
+                                        <div className="text-xs text-slate-400 font-mono">ID: {rubro.rubro_id}</div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <StatusBadge
+                                            status={rubro.estado}
+                                            variant={rubro.estado === 'ACTIVO' ? 'success' : 'neutral'}
+                                        />
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={() => openEditModal(rubro)}
+                                                className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors"
+                                                title="Editar"
+                                            >
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(rubro.rubro_id)}
+                                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Eliminar"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
             </div>
 

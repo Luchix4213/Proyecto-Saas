@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Plus, Search, Pencil, Trash2, AlertCircle, Phone, Mail, CreditCard, CheckCircle2, TrendingUp, Truck, History } from 'lucide-react';
+import { Plus, Search, Pencil, Trash2, AlertCircle, Phone, Mail, CreditCard, CheckCircle2, TrendingUp, Truck, History } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { suppliersService, type Proveedor, type CreateProveedorData } from '../../services/suppliersService';
 import { SupplierForm } from '../../components/suppliers/SupplierForm';

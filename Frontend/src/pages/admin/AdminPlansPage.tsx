@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, Check, Shield, X, Layout, Crown } from 'lucide-react';
 import { planesService, type Plan, type CreatePlanData } from '../../services/planesService';
-import { Plus, Edit2, Trash2, Check, X, Shield } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
+import { AestheticHeader } from '../../components/common/AestheticHeader';
+import { StatusBadge } from '../../components/common/StatusBadge';
+import { EmptyState } from '../../components/common/EmptyState';
 
-export const AdminPlansPage = () => {
+export const AdminPlansPage: React.FC = () => {
     const { addToast } = useToast();
     const [plans, setPlans] = useState<Plan[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [showModal, setShowModal] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
 
     const [confirmConfig, setConfirmConfig] = useState<{
@@ -47,6 +50,7 @@ export const AdminPlansPage = () => {
 
     const loadPlans = async () => {
         try {
+            setLoading(true);
             const data = await planesService.getAll();
             setPlans(data);
         } catch (err) {
@@ -71,7 +75,7 @@ export const AdminPlansPage = () => {
             reportes_avanzados: plan.reportes_avanzados,
             estado: plan.estado
         });
-        setShowModal(true);
+        setIsModalOpen(true);
     };
 
     const handleDelete = (id: number) => {
@@ -103,7 +107,7 @@ export const AdminPlansPage = () => {
                 await planesService.create(formData);
                 addToast('Plan creado correctamente', 'success');
             }
-            setShowModal(false);
+            setIsModalOpen(false);
             setEditingPlan(null);
             setFormData({
                 nombre_plan: '',
@@ -128,37 +132,14 @@ export const AdminPlansPage = () => {
         return plan.estado === filterStatus;
     });
 
-    if (loading) return (
-        <div className="flex h-64 items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-teal-500 border-t-transparent"></div>
-                <p className="text-sm font-medium text-slate-500">Cargando planes...</p>
-            </div>
-        </div>
-    );
-
     return (
-        <div className="space-y-6 animate-fade-in-up">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-                        <Shield className="text-teal-600" />
-                        Gestión de Planes
-                    </h1>
-                    <p className="text-slate-500">Configura los paquetes de suscripción disponibles.</p>
-                </div>
-                <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                    <select
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                        className="rounded-xl border-slate-200 py-2.5 pl-3 pr-10 text-sm focus:border-teal-500 focus:ring-teal-500 bg-white shadow-sm"
-                    >
-                        <option value="ALL">Todos los Estados</option>
-                        <option value="ACTIVO">Activos</option>
-                        <option value="INACTIVO">Inactivos</option>
-                    </select>
-
+        <div className="space-y-8 animate-fade-in-up">
+            <AestheticHeader
+                title="Planes de Suscripción"
+                description="Diseña y gestiona los niveles de acceso y precios para tus clientes SaaS."
+                icon={Crown}
+                iconColor="from-amber-500 to-orange-600"
+                action={
                     <button
                         onClick={() => {
                             setEditingPlan(null);
@@ -173,86 +154,125 @@ export const AdminPlansPage = () => {
                                 reportes_avanzados: false,
                                 estado: 'ACTIVO'
                             });
-                            setShowModal(true);
+                            setIsModalOpen(true);
                         }}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 font-medium shadow-lg shadow-teal-600/20 transition-all hover:-translate-y-0.5"
+                        className="flex items-center gap-2 px-6 py-3 bg-slate-900 border border-transparent rounded-[1.25rem] shadow-xl text-sm font-black text-white hover:bg-slate-800 transition-all hover:-translate-y-0.5"
                     >
-                        <Plus size={20} /> Nuevo Plan
+                        <Plus size={18} strokeWidth={3} />
+                        CREAR NUEVO PLAN
                     </button>
+                }
+            />
+
+            {error && (
+                <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100">
+                    {error}
                 </div>
+            )}
+
+            <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="rounded-xl border-slate-200 py-2.5 pl-3 pr-10 text-sm focus:border-teal-500 focus:ring-teal-500 bg-white shadow-sm"
+                >
+                    <option value="ALL">Todos los Estados</option>
+                    <option value="ACTIVO">Activos</option>
+                    <option value="INACTIVO">Inactivos</option>
+                </select>
             </div>
 
-            {error && <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100">{error}</div>}
-
-            {/* Plans Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-                {filteredPlans.map((plan) => (
-                    <div key={plan.plan_id} className={`bg-white rounded-2xl shadow-sm border hover:shadow-xl transition-all duration-300 relative group flex flex-col ${plan.estado === 'INACTIVO' ? 'border-slate-200 opacity-75' : 'border-slate-100'}`}>
-                        {/* Status Badge */}
-                        <div className="absolute top-4 right-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide ${plan.estado === 'ACTIVO' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'
-                                }`}>
-                                {plan.estado}
-                            </span>
-                        </div>
-
-                        <div className="p-6 pb-4 border-b border-slate-50">
-                            <h3 className="text-xl font-bold text-slate-800 mb-2">{plan.nombre_plan}</h3>
-                            <p className="text-sm text-slate-500 min-h-[40px] line-clamp-2">{plan.descripcion || 'Sin descripción'}</p>
-                        </div>
-
-                        <div className="p-6 bg-slate-50/50">
-                            <div className="flex items-baseline mb-1">
-                                <span className="text-3xl font-extrabold text-slate-900">{plan.precio_mensual}</span>
-                                <span className="text-lg font-medium text-slate-500 ml-1">BOB</span>
-                                <span className="text-sm text-slate-400 ml-2">/ mes</span>
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-96 bg-white rounded-[2rem] animate-pulse border border-slate-100"></div>
+                    ))}
+                </div>
+            ) : filteredPlans.length === 0 ? (
+                <EmptyState
+                    icon={Layout}
+                    title="No hay planes configurados"
+                    description="Comienza creando tu primer plan de suscripción para recibir microempresas."
+                    action={
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold"
+                        >
+                            Crear Plan
+                        </button>
+                    }
+                />
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                    {filteredPlans.map((plan) => (
+                        <div key={plan.plan_id} className={`bg-white rounded-2xl shadow-sm border hover:shadow-xl transition-all duration-300 relative group flex flex-col ${plan.estado === 'INACTIVO' ? 'border-slate-200 opacity-75' : 'border-slate-100'}`}>
+                            <div className="p-6 pb-4 border-b border-slate-50">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className={`p-3 rounded-2xl bg-slate-50 text-slate-600`}>
+                                        <Shield size={24} />
+                                    </div>
+                                    <StatusBadge
+                                        status={plan.estado}
+                                        variant={plan.estado === 'ACTIVO' ? 'success' : 'neutral'}
+                                    />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">{plan.nombre_plan}</h3>
+                                <p className="text-sm text-slate-500 min-h-[40px] line-clamp-2">{plan.descripcion || 'Sin descripción'}</p>
                             </div>
-                            <div className="text-sm text-slate-500">
-                                o {plan.precio_anual} BOB al año
+
+                            <div className="p-6 bg-slate-50/50">
+                                <div className="flex items-baseline mb-1">
+                                    <span className="text-3xl font-extrabold text-slate-900">{plan.precio_mensual}</span>
+                                    <span className="text-lg font-medium text-slate-500 ml-1">BOB</span>
+                                    <span className="text-sm text-slate-400 ml-2">/ mes</span>
+                                </div>
+                                <div className="text-sm text-slate-500">
+                                    o {plan.precio_anual} BOB al año
+                                </div>
+                            </div>
+
+                            <div className="p-6 space-y-4 flex-1">
+                                <div className="space-y-3">
+                                    <FeatureItem label={`Hasta ${plan.max_usuarios} usuarios`} />
+                                    <FeatureItem label={`Hasta ${plan.max_productos} productos`} />
+                                    <FeatureItem
+                                        label="Ventas Online"
+                                        included={plan.ventas_online} highlight={plan.ventas_online}
+                                    />
+                                    <FeatureItem
+                                        label="Reportes Avanzados"
+                                        included={plan.reportes_avanzados} highlight={plan.reportes_avanzados}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="p-4 border-t border-slate-100 flex gap-2">
+                                <button
+                                    onClick={() => handleEdit(plan)}
+                                    className="flex-1 py-2 px-4 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Edit2 size={16} /> Editar
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(plan.plan_id)}
+                                    className="py-2 px-4 bg-white border border-red-100 text-red-600 font-medium rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors"
+                                    title="Eliminar Plan"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
                             </div>
                         </div>
-
-                        <div className="p-6 space-y-4 flex-1">
-                            <div className="space-y-3">
-                                <FeatureItem label={`Hasta ${plan.max_usuarios} usuarios`} />
-                                <FeatureItem label={`Hasta ${plan.max_productos} productos`} />
-                                <FeatureItem
-                                    label="Ventas Online"
-                                    included={plan.ventas_online} highlight={plan.ventas_online}
-                                />
-                                <FeatureItem
-                                    label="Reportes Avanzados"
-                                    included={plan.reportes_avanzados} highlight={plan.reportes_avanzados}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="p-4 border-t border-slate-100 flex gap-2">
-                            <button
-                                onClick={() => handleEdit(plan)}
-                                className="flex-1 py-2 px-4 bg-white border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center gap-2"
-                            >
-                                <Edit2 size={16} /> Editar
-                            </button>
-                            <button
-                                onClick={() => handleDelete(plan.plan_id)}
-                                className="py-2 px-4 bg-white border border-red-100 text-red-600 font-medium rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors"
-                                title="Eliminar Plan"
-                            >
-                                <Trash2 size={16} />
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             {/* Modal */}
-            {showModal && (
+            {isModalOpen && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
                     <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-8 max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold text-slate-800">{editingPlan ? 'Editar Plan' : 'Nuevo Plan'}</h2>
-                            <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">
+                            <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                                 <X size={24} />
                             </button>
                         </div>
@@ -380,7 +400,7 @@ export const AdminPlansPage = () => {
                             <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100">
                                 <button
                                     type="button"
-                                    onClick={() => setShowModal(false)}
+                                    onClick={() => setIsModalOpen(false)}
                                     className="px-5 py-2.5 border border-slate-200 rounded-xl text-slate-700 hover:bg-slate-50 font-medium transition-colors"
                                 >
                                     Cancelar
