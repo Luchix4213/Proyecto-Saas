@@ -43,7 +43,15 @@ export class ReportesController {
       req.user.usuario_id,
       filter,
       startDate,
-      endDate
     );
+  }
+
+  @Get('vendedores')
+  @Roles(RolUsuario.PROPIETARIO)
+  async getStaffPerformance(@Request() req) {
+      if (!req.user.tenant_id) {
+          throw new ForbiddenException('No tienes un tenant asignado');
+      }
+      return this.reportesService.getStaffPerformance(req.user.tenant_id);
   }
 }

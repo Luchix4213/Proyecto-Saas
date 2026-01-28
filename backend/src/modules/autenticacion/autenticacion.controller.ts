@@ -24,7 +24,7 @@ export class AutenticacionController {
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: LoginDto & { expoPushToken?: string }) {
     const user = await this.authService.validateUser(
       loginDto.email,
       loginDto.password,
@@ -32,7 +32,7 @@ export class AutenticacionController {
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
-    return this.authService.login(user);
+    return this.authService.login(user, loginDto.expoPushToken);
   }
 
   @Post('forgot-password')

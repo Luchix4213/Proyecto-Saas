@@ -400,4 +400,36 @@ export class ReportesService {
       recentSales: recentSalesFormatted
     };
   }
+
+  async getStaffPerformance(tenantId: number) {
+    const users = await this.prisma.usuario.findMany({
+      where: {
+          tenant_id: tenantId,
+          rol: { in: ['VENDEDOR', 'PROPIETARIO'] }
+      }
+    });
+
+    const stats = await Promise.all(users.map(async (u) => {
+        const sales = await this.prisma.venta.aggregate({
+            _sum: { total: true },
+            _count: { venta_id: true },
+            where: {
+                tenant_id: tenantId,
+                usuario_id: u.usuario_id,
+                estado: { not: EstadoVenta.CANCELADA }
+            }
+        });
+
+        return {
+            usuario_id: u.usuario_id,
+            nombre: `${u.nombre} ${u.paterno || ''}`.trim(),
+            rol: u.rol,
+            total_ventas: Number(sales._sum.total || 0),
+            cantidad_ventas: sales._count.venta_id || 0
+        };
+    }));
+
+    // Sort by sales desc
+    return stats.sort((a, b) => b.total_ventas - a.total_ventas);
+  }
 }

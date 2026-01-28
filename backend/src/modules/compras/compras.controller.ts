@@ -24,21 +24,33 @@ export class ComprasController {
     }),
     fileFilter: imageFileFilter,
   }))
-  create(@Request() req, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
-    let createCompraDto: CreateCompraDto;
+  async create(@Request() req, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
+    try {
+        console.log('--- CREATE COMPRA REQUEST ---');
+        console.log('Body:', JSON.stringify(body, null, 2));
 
-    // Handle both JSON (body) and FormData (body.data string)
-    if (body.data && typeof body.data === 'string') {
-        try {
-            createCompraDto = JSON.parse(body.data);
-        } catch (e) {
-            throw new Error('Invalid JSON data');
+        let createCompraDto: CreateCompraDto;
+
+        // Handle both JSON (body) and FormData (body.data string)
+        if (body.data && typeof body.data === 'string') {
+            try {
+                createCompraDto = JSON.parse(body.data);
+            } catch (e) {
+                console.error('JSON Parse Error:', e);
+                throw new Error('Invalid JSON data');
+            }
+        } else {
+            createCompraDto = body;
         }
-    } else {
-        createCompraDto = body;
-    }
 
-    return this.comprasService.create(req.user.tenant_id, req.user.usuario_id, createCompraDto, file);
+        console.log('Parsed DTO:', JSON.stringify(createCompraDto, null, 2));
+
+        return await this.comprasService.create(req.user.tenant_id, req.user.usuario_id, createCompraDto, file);
+    } catch (error) {
+        console.error('--- ERROR CREATING COMPRA ---');
+        console.error(error);
+        throw error;
+    }
   }
 
   @Get()

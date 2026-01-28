@@ -145,6 +145,7 @@ model Usuario {
   fecha_creacion  DateTime       @default(now())
   reset_token     String?
   reset_token_exp DateTime?
+  expo_push_token String?
 
   ventas         Venta[]
   compras        Compra[]

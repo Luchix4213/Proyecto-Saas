@@ -7,13 +7,43 @@ export class NotificacionesService {
   constructor(private prisma: PrismaService) { }
 
   async crearNotificacion(usuarioId: number, tipo: string, mensaje: string) {
-    return this.prisma.notificacion.create({
+    const notificacion = await this.prisma.notificacion.create({
       data: {
         usuario_id: usuarioId,
         tipo,
         mensaje,
       },
+      include: { usuario: true }, // Incluir usuario para obtener su expo_push_token
     });
+
+    // Si el usuario tiene un token de Expo, enviar push notification
+    if (notificacion.usuario.expo_push_token) {
+      await this.sendPushNotification(notificacion.usuario.expo_push_token, mensaje, tipo);
+    }
+
+    return notificacion;
+  }
+
+  private async sendPushNotification(expoPushToken: string, message: string, title: string) {
+    try {
+      await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Accept-encoding': 'gzip, deflate',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: expoPushToken,
+          sound: 'default',
+          title: title.replace(/_/g, ' '), // Formatear tipo de notificación
+          body: message,
+          data: { someData: 'goes here' },
+        }),
+      });
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+    }
   }
 
   async notificarStockBajo(tenantId: number, productoNombre: string, stockActual: number, stockMinimo: number) {

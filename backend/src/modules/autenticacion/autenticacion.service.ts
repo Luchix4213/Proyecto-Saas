@@ -59,7 +59,15 @@ export class AutenticacionService {
     return null;
   }
 
-  async login(user: any) {
+  async login(user: any, expoPushToken?: string) {
+    // Si se provee un token de Expo, actualizarlo en el usuario
+    if (expoPushToken) {
+      await this.prisma.usuario.update({
+        where: { usuario_id: user.usuario_id },
+        data: { expo_push_token: expoPushToken },
+      });
+    }
+
     const payload = {
       email: user.email,
       sub: user.usuario_id,
@@ -85,7 +93,7 @@ export class AutenticacionService {
       usuario_id: user.usuario_id,
       modulo: 'AUTENTICACION',
       accion: 'LOGIN',
-      detalle: `Usuario ${user.email} inició sesión`,
+      detalle: `Usuario ${user.email} inició sesión ${expoPushToken ? '(con Push Token)' : ''}`,
     });
 
     return result;
