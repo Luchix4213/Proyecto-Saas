@@ -29,15 +29,21 @@ export interface PublicProduct {
 
 export const consumerService = {
     // Get list of tenants/stores for the marketplace
-    getFeaturedTenants: async (rubro?: string): Promise<PublicTenant[]> => {
-        const response = await client.get('/tenants/marketplace', { params: { rubro } });
+    getFeaturedTenants: async (rubro?: string, search?: string): Promise<PublicTenant[]> => {
+        const response = await client.get('/tenants/marketplace', { params: { rubro, search } });
+        return response.data;
+    },
+
+    // Get specific tenant info by slug
+    getTenantBySlug: async (slug: string): Promise<PublicTenant> => {
+        const response = await client.get(`/tenants/slug/${slug}`);
         return response.data;
     },
 
     // Get public products for a specific store
-    getStoreProducts: async (slug: string, categoryId?: number): Promise<PublicProduct[]> => {
+    getStoreProducts: async (slug: string, categoryId?: number, search?: string): Promise<PublicProduct[]> => {
         const response = await client.get(`/productos/store/${slug}`, {
-            params: { categoryId }
+            params: { categoryId, search }
         });
         return response.data;
     },
@@ -62,6 +68,12 @@ export const consumerService = {
         const config = isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
 
         const response = await client.post(`/ventas/public/${slug}/checkout`, data, config);
+        return response.data;
+    },
+
+    // Get all rubros/categories
+    getRubros: async (): Promise<any[]> => {
+        const response = await client.get('/rubros');
         return response.data;
     }
 };

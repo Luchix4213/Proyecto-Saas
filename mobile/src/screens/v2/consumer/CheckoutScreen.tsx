@@ -51,15 +51,9 @@ export const CheckoutScreen = () => {
         setFetchingTenant(true);
         try {
             // Fetch tenant info
-            const tenantData = await consumerService.getStoreProducts(tenantSlug); // This gives products, but I need tenant
-            // Wait, I should use a getTenant method. consumerService has getFeaturedTenants but not getBySlug.
-            // Let's use tenantsService.findBySlug? No, consumer portal should use public endpoints.
-            // I'll add getTenantBySlug to consumerService if missing.
-
-            // For now, let's assume we fetch it.
-            const tenants = await consumerService.getFeaturedTenants();
-            const found = tenants.find(t => t.slug === tenantSlug);
-            setTenant(found || null);
+            // Fetch tenant info
+            const tenantData = await consumerService.getTenantBySlug(tenantSlug);
+            setTenant(tenantData || null);
 
             const saved = await storageUtils.getClientData();
             if (saved) {

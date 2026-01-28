@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ArrowLeft, Heart, Minus, Plus, ShoppingCart, Share2, Star, CheckCircle } from 'lucide-react-native';
 import { useCartStore } from '../../../store/cartStore';
+import { useFavoritesStore } from '../../../store/favoritesStore';
 import { storageUtils } from '../../../utils/storageUtils';
 
 const { width } = Dimensions.get('window');
@@ -14,13 +15,32 @@ export const ProductDetailScreen = () => {
     const route = useRoute<any>();
     const theme = useTheme();
     const { addItem } = useCartStore();
+    const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
 
     // Product comes from API (PublicProduct interface + tenant_slug injected)
     const product = route.params?.product || {};
+    const tenantName = route.params?.tenantName || product.tenant_slug || 'Tienda';
 
     const [quantity, setQuantity] = useState(1);
-    const [isFavorite, setIsFavorite] = useState(false);
     const [showSnackbar, setShowSnackbar] = useState(false);
+
+    const isFav = isFavorite(product.producto_id);
+
+    const toggleFavorite = () => {
+        if (isFav) {
+            removeFavorite(product.producto_id);
+        } else {
+            addFavorite({
+                id: product.producto_id,
+                name: product.nombre,
+                price: product.precio,
+                image: product.imagen_url,
+                store: tenantName,
+                type: 'PRODUCT',
+                slug: product.tenant_slug
+            });
+        }
+    };
 
     const handleShare = async () => {
         try {
@@ -80,9 +100,9 @@ export const ProductDetailScreen = () => {
                                 onPress={handleShare}
                             />
                             <IconButton
-                                icon={() => <Heart size={22} color={isFavorite ? "#ef4444" : "#1e293b"} fill={isFavorite ? "#ef4444" : "transparent"} />}
+                                icon={() => <Heart size={22} color={isFav ? "#ef4444" : "#1e293b"} fill={isFav ? "#ef4444" : "transparent"} />}
                                 style={styles.iconButton}
-                                onPress={() => setIsFavorite(!isFavorite)}
+                                onPress={toggleFavorite}
                             />
                         </View>
                     </View>

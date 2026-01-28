@@ -198,21 +198,33 @@ export class TenantsService {
     });
   }
 
-  async findAllPublic(rubro?: string) {
+  async findAllPublic(rubro?: string, search?: string) {
     return this.prisma.tenant.findMany({
       where: {
         estado: 'ACTIVA',
         email: { not: 'system@saas.com' }, // Exclude system tenant
-        ...(rubro ? {
-          rubros: {
-            some: {
-              nombre: {
-                contains: rubro,
-                mode: 'insensitive'
+        OR: [
+          ...(rubro ? [{
+            rubros: {
+              some: {
+                nombre: {
+                  contains: rubro,
+                  mode: 'insensitive' as const
+                }
               }
             }
-          }
-        } : {})
+          }] : []),
+          ...(search ? [
+            { nombre_empresa: { contains: search, mode: 'insensitive' as const } },
+            {
+              rubros: {
+                some: {
+                  nombre: { contains: search, mode: 'insensitive' as const }
+                }
+              }
+            }
+          ] : [])
+        ]
       },
       select: {
           tenant_id: true,

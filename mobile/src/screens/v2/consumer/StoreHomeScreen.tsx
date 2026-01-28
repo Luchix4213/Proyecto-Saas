@@ -3,7 +3,7 @@ import { View, FlatList, Image, TouchableOpacity, StyleSheet, ScrollView, Activi
 import { Text, Surface, Searchbar, useTheme, Button, IconButton, Badge } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ShoppingCart, Store as StoreIcon, Clock, MapPin, Search } from 'lucide-react-native';
+import { ShoppingCart, Store as StoreIcon, Clock, MapPin, Search, Heart } from 'lucide-react-native';
 import { consumerService, PublicTenant, PublicProduct, PublicCategory } from '../../../api/consumerService';
 import { useCartStore } from '../../../store/cartStore';
 
@@ -24,22 +24,29 @@ export const StoreHomeScreen = () => {
     const [categories, setCategories] = useState<PublicCategory[]>([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
+    // Debounce search
     useEffect(() => {
-        loadData();
-    }, [tenantSlug]);
+        const delayDebounceFn = setTimeout(() => {
+            loadData(searchQuery);
+        }, 500);
 
-    const loadData = async () => {
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery, tenantSlug, selectedCategoryId]);
+
+    // Initial load handled by search effect (searchQuery is '' initially)
+
+    const loadData = async (query = '') => {
         setLoading(true);
         try {
             if (isStorefront) {
                 const [productData, categoryData] = await Promise.all([
-                    consumerService.getStoreProducts(tenantSlug),
+                    consumerService.getStoreProducts(tenantSlug, selectedCategoryId || undefined, query),
                     consumerService.getStoreCategories(tenantSlug)
                 ]);
                 setProducts(productData);
                 setCategories(categoryData);
             } else {
-                const data = await consumerService.getFeaturedTenants();
+                const data = await consumerService.getFeaturedTenants(undefined, query);
                 setTenants(data);
             }
         } catch (error) {
@@ -49,16 +56,9 @@ export const StoreHomeScreen = () => {
         }
     };
 
-    const filteredProducts = products.filter(p => {
-        const matchesSearch = p.nombre.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategoryId === null || (p as any).categoria_id === selectedCategoryId;
-        return matchesSearch && matchesCategory;
-    });
-
-    const filteredTenants = tenants.filter(t =>
-        t.nombre_empresa.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (t.rubro && t.rubro.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    // Data is already filtered by backend
+    const filteredProducts = products;
+    const filteredTenants = tenants;
 
     const renderTenant = ({ item }: { item: PublicTenant }) => (
         <TouchableOpacity
@@ -91,7 +91,7 @@ export const StoreHomeScreen = () => {
         <TouchableOpacity
             style={styles.productCardContainer}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('ProductDetail', { product: { ...item, tenant_slug: tenantSlug } })}
+            onPress={() => navigation.navigate('ProductDetail', { product: { ...item, tenant_slug: tenantSlug }, tenantName })}
         >
             <Surface style={styles.productCard} elevation={1}>
                 <View style={styles.imageContainer}>
@@ -172,7 +172,11 @@ export const StoreHomeScreen = () => {
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <IconButton
                         icon={() => <Clock size={24} color="#1e293b" />}
-                        onPress={() => navigation.navigate('MyOrders')}
+                        onPress={() => navigation.navigate('OrdersTab')}
+                    />
+                    <IconButton
+                        icon={() => <Heart size={24} color="#1e293b" />}
+                        onPress={() => navigation.navigate('FavoritesTab')}
                     />
                     <View>
                         <IconButton
@@ -187,17 +191,16 @@ export const StoreHomeScreen = () => {
             </View>
 
             {/* Search Section */}
-            <View style={styles.searchSection}>
-                <Searchbar
-                    placeholder={isStorefront ? `Buscar en ${tenantName}...` : "Buscar tiendas..."}
-                    onChangeText={setSearchQuery}
-                    value={searchQuery}
-                    style={styles.searchBar}
-                    inputStyle={styles.searchInput}
-                    iconColor={theme.colors.primary}
-                    placeholderTextColor="#94a3b8"
-                />
-            </View>
+            <TouchableOpacity style={styles.searchSection} onPress={() => navigation.navigate('SearchTab')} activeOpacity={0.9}>
+                    <Searchbar
+                        placeholder={isStorefront ? `Buscar en ${tenantName}...` : "Buscar tiendas..."}
+                        onChangeText={setSearchQuery}
+                        value={searchQuery}
+                        style={{ backgroundColor: 'white', elevation: 0, borderWidth: 1, borderColor: '#f1f5f9' }}
+                        inputStyle={{ fontSize: 14 }}
+                        iconColor={theme.colors.primary}
+                    />
+            </TouchableOpacity>
 
             {/* Content */}
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>

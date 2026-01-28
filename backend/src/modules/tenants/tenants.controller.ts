@@ -33,8 +33,8 @@ export class TenantsController {
   }
 
   @Get('marketplace')
-  async findAllPublic(@Query('rubro') rubro?: string) {
-    return this.tenantsService.findAllPublic(rubro);
+  async findAllPublic(@Query('rubro') rubro?: string, @Query('search') search?: string) {
+    return this.tenantsService.findAllPublic(rubro, search);
   }
 
   @Get()

@@ -74,7 +74,7 @@ export const MyOrdersScreen = () => {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <AestheticHeader title="Mis Pedidos" subtitle="Historial local de compras" showBack />
+            <AestheticHeader title="Mis Pedidos" subtitle="Historial local de compras" />
 
             <FlatList
                 data={orders}
@@ -92,7 +92,7 @@ export const MyOrdersScreen = () => {
                         <Button
                             mode="contained"
                             style={{ marginTop: 20, borderRadius: 12 }}
-                            onPress={() => navigation.navigate('StoreHome')}
+                            onPress={() => navigation.navigate('HomeTab')}
                         >
                             Explorar Tiendas
                         </Button>

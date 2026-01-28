@@ -35,5 +35,13 @@ export const storageUtils = {
         } catch (error) {
             console.error('Error clearing client data', error);
         }
+    },
+
+    clearAuth: async () => {
+        try {
+            await AsyncStorage.clear();
+        } catch (error) {
+            console.error('Error clearing auth', error);
+        }
     }
 };
