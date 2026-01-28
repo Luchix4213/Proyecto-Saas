@@ -33,6 +33,10 @@ export class UpdateTenantDto {
 
     @IsOptional()
     @IsString()
+    qr_pago_url?: string;
+
+    @IsOptional()
+    @IsString()
     horario_atencion?: string;
 
     @IsOptional()

@@ -1,40 +1,46 @@
 import client from './client';
 
-export interface Supplier {
+export interface Proveedor {
   proveedor_id: number;
   nombre: string;
-  nit_ci?: string;
   telefono?: string;
-  direccion?: string;
   email?: string;
   datos_pago?: string;
-  contacto_nombre?: string;
   estado: 'ACTIVO' | 'INACTIVO';
 }
 
+export interface CreateProveedorData {
+  nombre: string;
+  telefono?: string;
+  email?: string;
+  datos_pago?: string;
+}
+
+export interface UpdateProveedorData extends Partial<CreateProveedorData> { }
+
 export const suppliersService = {
   getAll: async () => {
-    const response = await client.get<Supplier[]>('/proveedores');
+    const response = await client.get<Proveedor[]>('/proveedores');
     return response.data;
   },
 
   getById: async (id: number) => {
-    const response = await client.get<Supplier>(`/proveedores/${id}`);
+    const response = await client.get<Proveedor>(`/proveedores/${id}`);
     return response.data;
   },
 
-  create: async (data: Partial<Supplier>) => {
-    const response = await client.post<Supplier>('/proveedores', data);
+  create: async (data: CreateProveedorData) => {
+    const response = await client.post<Proveedor>('/proveedores', data);
     return response.data;
   },
 
-  update: async (id: number, data: Partial<Supplier>) => {
-    const response = await client.patch<Supplier>(`/proveedores/${id}`, data);
+  update: async (id: number, data: UpdateProveedorData) => {
+    const response = await client.patch<Proveedor>(`/proveedores/${id}`, data);
     return response.data;
   },
 
   delete: async (id: number) => {
-    const response = await client.delete(`/proveedores/${id}`);
+    const response = await client.delete<Proveedor>(`/proveedores/${id}`);
     return response.data;
   },
 };

@@ -47,6 +47,16 @@ Interfaz de alto nivel para el administrador del ecosistema.
   - Listado maestro de negocios.
   - Activación/Suspensión manual de empresas.
 - **Planes**: Gestión de límites de productos y ventas por tier.
+- **Audit Logs**: Monitoreo de seguridad y actividad.
+
+### 4. Rol: CONSUMIDOR (Tienda Online / Portal Público)
+
+Interfaz pública para que los clientes finales compren online (e.g. `tienda.app/slug-negocio`).
+
+- **Catálogo Público**: Navegación por categorías y productos con fotos grandes.
+- **Carrito de Compras**: Gestión de pedidos.
+- **Checkout Web**: Pasarela de pagos simplificada.
+- **Tracking**: Estado del pedido (Recibido, En preparación, Listo).
 
 ---
 
@@ -84,33 +94,40 @@ Implementaremos un esquema de **Navegación Condicional**:
   - [x] Reportes de ventas por usuario/vendedor (`StaffReportScreen.tsx`).
   - [x] Gestión de Categorías (`CategoriesScreen.tsx`).
   - [x] Menú de configuración (`MoreScreen.tsx`).
-  - [ ] **Configuración de Negocio**: Logo, colores, ticket header/footer.
-  - [ ] **Mi Suscripción**: Upgrade de plan, facturación.
+  - [x] Configuración de Negocio (`BusinessSettingsScreen.tsx`).
+  - [x] Configuración de Negocio (`BusinessSettingsScreen.tsx`).
+  - [x] Mi Suscripción (`SubscriptionScreen.tsx`).
+  - [x] Centro de Notificaciones (`NotificationsScreen.tsx`).
 
 - [ ] **Vendedor (Vendor)**:
   - [x] Dashboard Operativo (`VendorDashboard.tsx`).
-  - [ ] **POS (Punto de Venta)**: Grid visual de productos, escáner QR/Barra, buscador rápido.
+  - [x] **POS (Punto de Venta)**: Grid visual de productos, escáner QR/Barra, buscador rápido.
   - [ ] **Carrito de Compras**: Modificación de cantidades, descuentos manuales, selección de cliente.
   - [ ] **Checkout**: Selección de método de pago (Efectivo/QR/Fiado), cálculo de cambio, impresión de ticket.
   - [ ] **Clientes**: Búsqueda rápida y formulario de registro simplificado.
   - [ ] **Caja (Shift)**: Apertura y Cierre de turno, conteo de efectivo.
   - [ ] **Historial Local**: Ventas del día actual, reimpresión de tickets.
 
-- [ ] **Admin (SaaS Global)**:
+- [x] **Admin (SaaS Global)**:
   - [x] Dashboard Global métricas clave (`AdminDashboard.tsx`).
-  - [ ] **Tenants (Empresas)**: Listado con búsqueda global, detalle de empresa, switch de estado (Activo/Suspendido).
-  - [ ] **Planes**: CRUD de planes de suscripción (Precios, límites de productos/usuarios).
-  - [ ] **Usuarios Globales**: Búsqueda de usuarios para soporte.
-  - [ ] **Audit Log**: Visor de actividad crítica del sistema.
+  - [x] **Tenants (Empresas)**: Listado con búsqueda global, detalle de empresa, switch de estado (Activo/Suspendido).
+  - [x] **Planes**: CRUD de planes de suscripción (Precios, límites de productos/usuarios).
+  - [x] **Usuarios Globales**: Búsqueda de usuarios para soporte.
+  - [x] **Audit Log**: Visor de actividad crítica del sistema.
+
+- [ ] **Consumidor (Public Portal)**:
+  - [ ] **Home Tienda**: Listado de productos destacados y categorías.
+  - [ ] **Detalle Producto**: Vista inmersiva con selección de variantes.
+  - [ ] **Carrito**: Resumen de orden y selección de entrega/retiro.
+  - [ ] **Checkout**: Integración de pagos y confirmación.
 
 ---
 
 ## 🎯 Hoja de Ruta (Next Steps)
 
-1.  **Finalizar Refinamiento Propietario**: Asegurar que todas las pantallas v2 de Owner estén conectadas y sin errores (bugs recientes en `ProductForm` y `MoreScreen`).
+1.  **Refactor de Componentes**: Crear librerías de componentes reutilizables (`Card`, `Stat`, `Button`) que usen consistentemente el tema.
 2.  **Módulo de Ventas (Vendedor)**: Implementar el flujo de POS/Nueva Venta con búsqueda de productos y carrito (Prioridad Alta).
-3.  **Admin Dashboard**: Implementar gestión de Tenants y Planes.
-4.  **Refactor de Componentes**: Crear librerías de componentes reutilizables (`Card`, `Stat`, `Button`) que usen consistentemente el tema.
+3.  **Portal Público (E-commerce)**: Desarrollar la experiencia de compra para clientes finales.
 
 ---
 

@@ -16,7 +16,10 @@ import { CategoriesScreen } from '../../screens/v2/owner/CategoriesScreen';
 import { CategoryFormScreen } from '../../screens/v2/owner/CategoryFormScreen';
 import { BusinessSettingsScreen } from '../../screens/v2/owner/BusinessSettingsScreen';
 import { SubscriptionScreen } from '../../screens/v2/owner/SubscriptionScreen';
+import { ClientsScreen } from '../../screens/v2/owner/ClientsScreen';
 import { LayoutDashboard, Package, ShoppingBag, Menu } from 'lucide-react-native';
+import { ClientFormScreen } from '../../screens/v2/owner/ClientFormScreen';
+import { NotificationsScreen } from '../../screens/v2/owner/NotificationsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -88,6 +91,10 @@ export const OwnerStack = () => {
       <Stack.Screen name="CategoryForm" component={CategoryFormScreen} />
       <Stack.Screen name="BusinessSettings" component={BusinessSettingsScreen} />
       <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+      <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+      <Stack.Screen name="Clients" component={ClientsScreen} />
+      <Stack.Screen name="ClientForm" component={ClientFormScreen} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} />
     </Stack.Navigator>
   );
 };

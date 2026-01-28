@@ -70,7 +70,8 @@ export class TenantsController {
   @UseInterceptors(
     FileFieldsInterceptor([
         { name: 'logo', maxCount: 1 },
-        { name: 'banner', maxCount: 1 }
+        { name: 'banner', maxCount: 1 },
+        { name: 'qr_pago', maxCount: 1 }
     ], {
       storage: diskStorage({
         destination: './uploads/tenants',
@@ -82,7 +83,7 @@ export class TenantsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTenantDto: UpdateTenantDto,
-    @UploadedFiles() files: { logo?: Express.Multer.File[], banner?: Express.Multer.File[] },
+    @UploadedFiles() files: { logo?: Express.Multer.File[], banner?: Express.Multer.File[], qr_pago?: Express.Multer.File[] },
     @Request() req
   ) {
     // 1. Validar permisos: ADMIN o PROPIETARIO del mismo tenant
@@ -100,6 +101,11 @@ export class TenantsController {
     // 3. Si hay archivo banner
     if (files?.banner && files.banner.length > 0) {
       updateTenantDto.banner_url = `/uploads/tenants/${files.banner[0].filename}`;
+    }
+
+    // 4. Si hay archivo QR
+    if (files?.qr_pago && files.qr_pago.length > 0) {
+      updateTenantDto.qr_pago_url = `/uploads/tenants/${files.qr_pago[0].filename}`;
     }
 
     // 4. Si el usuario intenta cambiar 'estado' y no es ADMIN, lo ignoramos o lanzamos error

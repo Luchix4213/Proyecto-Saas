@@ -135,7 +135,8 @@ export class TenantsService {
           telefono: true,
           email: true,
           horario_atencion: true,
-          moneda: true
+          moneda: true,
+          qr_pago_url: true
       }
     });
   }
@@ -169,7 +170,8 @@ export class TenantsService {
             telefono: true,
             email: true,
             horario_atencion: true,
-            moneda: true
+            moneda: true,
+            qr_pago_url: true
         }
     });
   }
@@ -223,7 +225,8 @@ export class TenantsService {
           telefono: true,
           email: true,
           horario_atencion: true,
-          moneda: true
+          moneda: true,
+          qr_pago_url: true
       },
       orderBy: {
         fecha_registro: 'desc',

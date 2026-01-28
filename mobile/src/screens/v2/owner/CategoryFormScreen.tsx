@@ -29,7 +29,7 @@ export const CategoryFormScreen = () => {
       if (editingCategory) {
         await categoriesService.update(editingCategory.categoria_id, formData);
       } else {
-        await categoriesService.create(formData);
+        await categoriesService.create({ nombre: formData.nombre!, descripcion: formData.descripcion });
       }
       Alert.alert('Éxito', `Categoría ${editingCategory ? 'actualizada' : 'creada'} correctamente.`);
       navigation.goBack();

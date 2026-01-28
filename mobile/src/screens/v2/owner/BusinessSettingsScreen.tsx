@@ -62,6 +62,20 @@ export const BusinessSettingsScreen = () => {
         }
     };
 
+    const [qrPago, setQrPago] = useState<string | null>(null);
+
+    const pickQrImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          quality: 0.5,
+        });
+
+        if (!result.canceled) {
+          setQrPago(result.assets[0].uri);
+        }
+    };
+
     const handleSave = async () => {
         if (!tenant) return;
         setLoading(true);
@@ -77,6 +91,14 @@ export const BusinessSettingsScreen = () => {
                  const type = match ? `image/${match[1]}` : `image/jpeg`;
                  // @ts-ignore
                  formData.append('logo', { uri: logo, name: filename || 'logo.jpg', type });
+            }
+
+            if (qrPago && !qrPago.startsWith('http')) {
+                const filename = qrPago.split('/').pop();
+                const match = /\.(\w+)$/.exec(filename || '');
+                const type = match ? `image/${match[1]}` : `image/jpeg`;
+                // @ts-ignore
+                formData.append('qr_pago', { uri: qrPago, name: filename || 'qr.jpg', type });
             }
 
             await tenantsService.updateTenant(tenant.tenant_id, formData);
@@ -122,7 +144,7 @@ export const BusinessSettingsScreen = () => {
                                 </View>
                             )}
                         </TouchableOpacity>
-                        <Text style={styles.logoHint}>Toca para cambiar</Text>
+                        <Text style={styles.logoHint}>Logo del Negocio</Text>
                     </View>
 
                     <View style={styles.inputContainer}>
@@ -138,6 +160,27 @@ export const BusinessSettingsScreen = () => {
                             outlineStyle={styles.inputOutline}
                             textColor='#0f172a'
                         />
+                    </View>
+                </Surface>
+
+                {/* QR Pago Section */}
+                <Text style={styles.sectionTitle}>Cobro QR</Text>
+                <Surface style={styles.card} elevation={1}>
+                    <View style={{ alignItems: 'center' }}>
+                        <TouchableOpacity
+                            onPress={pickQrImage}
+                            style={styles.qrContainer}
+                        >
+                            {qrPago ? (
+                                <Image source={{ uri: qrPago }} style={styles.qrImage} />
+                            ) : (
+                                <View style={styles.qrPlaceholder}>
+                                    <Camera size={32} color="#cbd5e1" />
+                                    <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>Subir QR de Pago</Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                        <Text style={styles.logoHint}>Toca para subir tu QR</Text>
                     </View>
                 </Surface>
 
@@ -315,5 +358,25 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '800',
         letterSpacing: 0.5
+    },
+    qrContainer: {
+        width: '100%',
+        height: 200,
+        borderRadius: 20,
+        overflow: 'hidden',
+        backgroundColor: '#f8fafc',
+        borderWidth: 2,
+        borderColor: '#e2e8f0',
+        borderStyle: 'dashed',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    qrImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'contain'
+    },
+    qrPlaceholder: {
+        alignItems: 'center'
     }
 });

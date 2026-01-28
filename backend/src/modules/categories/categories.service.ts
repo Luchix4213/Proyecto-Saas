@@ -64,4 +64,24 @@ export class CategoriesService {
       data: { estado: 'INACTIVO' },
     });
   }
+
+  async findPublicBySlug(slugOrId: string) {
+    const id = parseInt(slugOrId);
+    const isId = !isNaN(id);
+
+    return this.prisma.categoria.findMany({
+      where: {
+        tenant: {
+          OR: [
+            { slug: slugOrId },
+            ...(isId ? [{ tenant_id: id }] : [])
+          ]
+        },
+        estado: 'ACTIVO',
+      },
+      orderBy: {
+        nombre: 'asc',
+      }
+    });
+  }
 }
