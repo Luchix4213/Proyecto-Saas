@@ -10,29 +10,34 @@ export class EmailService {
   constructor(private configService: ConfigService) {
     const user = this.configService.get<string>('SMTP_USER');
     const pass = this.configService.get<string>('SMTP_PASS');
+    const host = this.configService.get<string>('SMTP_HOST');
+    const portStr = this.configService.get<string>('SMTP_PORT');
+    const secureStr = this.configService.get<string>('SMTP_SECURE');
 
-    // Smart Default for Gmail if HOST is missing
-    let host = this.configService.get<string>('SMTP_HOST');
-    const port = this.configService.get<number>('SMTP_PORT'); // Restore port variable
-
-    if (!host && user && user.includes('@gmail.com')) {
-      host = 'smtp.gmail.com';
-      this.logger.log('SMTP_HOST not found, inferring Gmail host: smtp.gmail.com');
-    }
+    const port = portStr ? parseInt(portStr, 10) : 587;
+    // Use SMTP_SECURE if provided, otherwise check if port is 465
+    const secure = secureStr !== undefined ? (secureStr === 'true' || secureStr === '1') : (port === 465);
 
     if (host && user && pass) {
       this.transporter = nodemailer.createTransport({
         host,
-        port: port || 587,
-        secure: port === 465, // true for 465, false for other ports
+        port,
+        secure,
         auth: {
           user,
           pass,
         },
+        // Add timeouts to prevent hanging sockets
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 10000,
+        socketTimeout: 10000,
       });
-      this.logger.log(`EmailService initialized with host: ${host}`);
+      this.logger.log(`EmailService initialized with host: ${host}, port: ${port}, secure: ${secure}`);
     } else {
-      this.logger.warn('SMTP credentials not found. EmailService will log emails to console instead of sending.');
+      this.logger.warn('SMTP credentials incomplete. EmailService will log emails to console.');
+      if (!host) this.logger.warn('Missing SMTP_HOST');
+      if (!user) this.logger.warn('Missing SMTP_USER');
+      if (!pass) this.logger.warn('Missing SMTP_PASS');
     }
   }
 
