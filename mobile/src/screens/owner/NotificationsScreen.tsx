@@ -14,7 +14,7 @@ interface Notification {
     mensaje: string;
     tipo: 'STOCK_BAJO' | 'VENTA_NUEVA' | 'COMPRA_APROBADA' | 'GENERAL';
     leida: boolean;
-    fecha_creacion: string;
+    fecha_envio: string;
     data?: any;
 }
 
@@ -70,12 +70,22 @@ export const NotificationsScreen = () => {
 
     const getIcon = (tipo: string) => {
         switch (tipo) {
-            case 'STOCK_BAJO': return <AlertTriangle size={24} color="#ef4444" />;
-            case 'VENTA_NUEVA': return <ShoppingBag size={24} color="#10b981" />;
-            case 'COMPRA_APROBADA': return <CheckCircle size={24} color="#3b82f6" />;
-            default: return <Bell size={24} color="#6366f1" />;
+            case 'STOCK_BAJO':
+            case 'STOCK_AGOTADO':
+                return <AlertTriangle size={24} color="#ef4444" />;
+            case 'VENTA_NUEVA':
+                return <ShoppingBag size={24} color="#10b981" />;
+            case 'COMPRA_APROBADA':
+            case 'STOCK_ACTUALIZADO':
+                return <CheckCircle size={24} color="#3b82f6" />;
+            default:
+                return <Bell size={24} color="#6366f1" />;
         }
     };
+
+    const filteredNotifications = notifications.filter(n =>
+        ['STOCK_BAJO', 'STOCK_AGOTADO', 'VENTA_NUEVA', 'COMPRA_APROBADA', 'STOCK_ACTUALIZADO'].includes(n.tipo)
+    );
 
     const renderItem = ({ item }: { item: Notification }) => (
         <TouchableOpacity
@@ -89,7 +99,7 @@ export const NotificationsScreen = () => {
                 <View style={styles.contentContainer}>
                     <Text style={[styles.message, !item.leida && styles.boldText]}>{item.mensaje}</Text>
                     <Text style={styles.date}>
-                        {format(new Date(item.fecha_creacion), "d 'de' MMMM, HH:mm", { locale: es })}
+                        {format(new Date(item.fecha_envio), "d 'de' MMMM, HH:mm", { locale: es })}
                     </Text>
                 </View>
                 {!item.leida && <View style={styles.dot} />}
@@ -116,7 +126,7 @@ export const NotificationsScreen = () => {
                 </View>
             ) : (
                 <FlatList
-                    data={notifications}
+                    data={filteredNotifications}
                     renderItem={renderItem}
                     keyExtractor={item => item.notificacion_id.toString()}
                     contentContainerStyle={styles.listContent}
@@ -124,7 +134,7 @@ export const NotificationsScreen = () => {
                     ListEmptyComponent={
                         <View style={styles.emptyContainer}>
                             <Bell size={48} color="#cbd5e1" />
-                            <Text style={styles.emptyText}>No tienes notificaciones nuevas</Text>
+                            <Text style={styles.emptyText}>No tienes notificaciones pendientes</Text>
                         </View>
                     }
                 />

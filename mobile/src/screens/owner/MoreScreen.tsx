@@ -15,7 +15,8 @@ import {
   MapPin,
   HelpCircle,
   FileText,
-  Layers
+  Layers,
+  Bell
 } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -30,6 +31,7 @@ export const MoreScreen = () => {
       items: [
         { label: 'Categorías', icon: Layers, screen: 'Categories', color: '#8b5cf6' },
         { label: 'Proveedores', icon: Building2, screen: 'Suppliers', color: '#3b82f6' },
+        { label: 'Mis Clientes', icon: Users, screen: 'Clients', color: '#6366f1' },
         { label: 'Compras de Stock', icon: ShoppingCart, screen: 'Purchases', color: '#10b981' },
       ]
     },
@@ -50,6 +52,7 @@ export const MoreScreen = () => {
       title: 'Configuracion',
       items: [
         { label: 'Ajustes del Negocio', icon: Settings, screen: 'BusinessSettings', color: '#64748b' },
+        { label: 'Notificaciones', icon: Bell, screen: 'Notifications', color: '#f59e0b' },
         { label: 'Ayuda y Soporte', icon: HelpCircle, screen: null, color: '#94a3b8' },
       ]
     }

@@ -6,6 +6,7 @@ import { EstadoEntrega, EstadoGenerico, EstadoVenta, TipoVenta, TipoEntrega, Est
 import { randomBytes } from 'crypto';
 import { VentasPdfService } from './ventas-pdf.service';
 import { EmailService } from '../../common/services/email.service';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { CapacidadService } from '../suscripciones/capacidad.service';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class VentasService {
     private ventasPdfService: VentasPdfService,
     private emailService: EmailService,
     private capacidadService: CapacidadService,
+    private notificacionesService: NotificacionesService,
   ) { }
 
   async approvePayment(ventaId: number, tenantId: number) {
@@ -446,6 +448,13 @@ export class VentasService {
           cliente: true,
         },
       });
+
+      // Notify owner about new online sale
+      this.notificacionesService.notificarVentaNueva(
+        tenantId,
+        nuevaVenta.venta_id,
+        totalVenta
+      ).catch(e => console.error('Error sending new sale notification', e));
 
       return nuevaVenta;
     });

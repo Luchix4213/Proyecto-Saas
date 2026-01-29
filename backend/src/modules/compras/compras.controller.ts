@@ -31,7 +31,6 @@ export class ComprasController {
 
         let createCompraDto: CreateCompraDto;
 
-        // Handle both JSON (body) and FormData (body.data string)
         if (body.data && typeof body.data === 'string') {
             try {
                 createCompraDto = JSON.parse(body.data);
@@ -43,7 +42,33 @@ export class ComprasController {
             createCompraDto = body;
         }
 
-        console.log('Parsed DTO:', JSON.stringify(createCompraDto, null, 2));
+        // --- NEW: Fix parsing for Mobile/FormData ---
+        if (createCompraDto) {
+            // 1. Array products might come as stringified JSON from mobile FormData
+            if (typeof createCompraDto.productos === 'string') {
+                try {
+                    createCompraDto.productos = JSON.parse(createCompraDto.productos);
+                } catch (e) {
+                    console.error('Error parsing productos string:', e);
+                }
+            }
+
+            // 2. Ensure IDs and numeric values are numbers, not strings
+            if (createCompraDto.proveedor_id) {
+                createCompraDto.proveedor_id = Number(createCompraDto.proveedor_id);
+            }
+
+            if (Array.isArray(createCompraDto.productos)) {
+                createCompraDto.productos = createCompraDto.productos.map(p => ({
+                    ...p,
+                    producto_id: Number(p.producto_id),
+                    cantidad: Number(p.cantidad),
+                    costo_unitario: Number(p.costo_unitario)
+                }));
+            }
+        }
+
+        console.log('Parsed DTO (Fixed):', JSON.stringify(createCompraDto, null, 2));
 
         return await this.comprasService.create(req.user.tenant_id, req.user.usuario_id, createCompraDto, file);
     } catch (error) {

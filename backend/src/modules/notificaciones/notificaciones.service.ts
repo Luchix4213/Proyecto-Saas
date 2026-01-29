@@ -76,8 +76,27 @@ export class NotificacionesService {
       },
     });
 
-    const mensaje = `Compra #${compraId} registrada exitosamente. Stock actualizado para ${cantidadProductos} productos.`;
-    const tipo = 'STOCK_ACTUALIZADO';
+    const mensaje = `Compra #${compraId} aprobada. Stock actualizado para ${cantidadProductos} productos.`;
+    const tipo = 'COMPRA_APROBADA';
+
+    const notificaciones = usuarios.map((usuario) =>
+      this.crearNotificacion(usuario.usuario_id, tipo, mensaje),
+    );
+
+    await Promise.all(notificaciones);
+  }
+
+  async notificarVentaNueva(tenantId: number, ventaId: number, total: number) {
+    const usuarios = await this.prisma.usuario.findMany({
+      where: {
+        tenant_id: tenantId,
+        rol: { in: [RolUsuario.PROPIETARIO, RolUsuario.ADMIN] },
+        estado: 'ACTIVO',
+      },
+    });
+
+    const mensaje = `Nueva Venta Online #${ventaId} recibida por un total de ${total} BOB.`;
+    const tipo = 'VENTA_NUEVA';
 
     const notificaciones = usuarios.map((usuario) =>
       this.crearNotificacion(usuario.usuario_id, tipo, mensaje),
