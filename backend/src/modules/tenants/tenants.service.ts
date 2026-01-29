@@ -235,28 +235,30 @@ export class TenantsService {
         plan: {
           ventas_online: true,
         },
-        OR: [
-          ...(rubro ? [{
-            rubros: {
-              some: {
-                nombre: {
-                  contains: rubro,
-                  mode: 'insensitive' as const
-                }
-              }
-            }
-          }] : []),
-          ...(search ? [
-            { nombre_empresa: { contains: search, mode: 'insensitive' as const } },
-            {
+        ...((rubro || search) ? {
+          OR: [
+            ...(rubro ? [{
               rubros: {
                 some: {
-                  nombre: { contains: search, mode: 'insensitive' as const }
+                  nombre: {
+                    contains: rubro,
+                    mode: 'insensitive' as const
+                  }
                 }
               }
-            }
-          ] : [])
-        ]
+            }] : []),
+            ...(search ? [
+              { nombre_empresa: { contains: search, mode: 'insensitive' as const } },
+              {
+                rubros: {
+                  some: {
+                    nombre: { contains: search, mode: 'insensitive' as const }
+                  }
+                }
+              }
+            ] : [])
+          ]
+        } : {})
       },
       select: {
         tenant_id: true,
