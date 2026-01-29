@@ -4,9 +4,23 @@ import { tenantsService, type Tenant } from '../../services/tenantsService';
 import { productsService, type Product } from '../../services/productsService';
 import { type Category } from '../../services/categoriesService';
 import {
-    ShoppingBag, Star, MapPin, Clock, Phone, Mail, ArrowLeft,
-    Package, Search, Info, RefreshCw
+    Package, Search, Info, RefreshCw, Facebook, Instagram, Youtube, Video, Map,
+    ArrowLeft, ShoppingBag, Star, MapPin, Clock, Phone, Mail
 } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 import { useCartStore } from '../../store/useCartStore';
 import { CartDrawer } from '../../components/marketplace/CartDrawer';
 import { StorefrontProductCard } from '../../components/marketplace/StorefrontProductCard';
@@ -106,7 +120,7 @@ export const StorefrontPage = () => {
                 <div className="h-[24rem] relative">
                     {tenant.banner_url ? (
                         <div className="absolute inset-0">
-                             <img
+                            <img
                                 src={getImageUrl(tenant.banner_url)}
                                 alt="Banner"
                                 className="w-full h-full object-cover"
@@ -115,8 +129,8 @@ export const StorefrontPage = () => {
                         </div>
                     ) : (
                         <div className="w-full h-full bg-slate-900 relative overflow-hidden">
-                             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
-                             <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-teal-900 opacity-80"></div>
+                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-teal-900 opacity-80"></div>
                         </div>
                     )}
 
@@ -196,7 +210,7 @@ export const StorefrontPage = () => {
                             className="w-full pl-14 pr-4 py-4 bg-white/90 backdrop-blur-xl border border-white/20 rounded-[1.5rem] focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-400 font-medium text-lg text-slate-700"
                         />
                     </div>
-                     <button
+                    <button
                         onClick={() => setIsCartOpen(true)}
                         className="px-8 py-4 bg-slate-900 text-white rounded-[1.5rem] shadow-xl shadow-slate-900/20 flex items-center justify-center gap-3 font-bold hover:bg-slate-800 transition-all active:scale-95 relative group overflow-hidden"
                     >
@@ -270,7 +284,7 @@ export const StorefrontPage = () => {
                                 {tenant.telefono && (
                                     <div className="group cursor-pointer flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
                                         <div className="h-10 w-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center">
-                                             <Phone size={18} />
+                                            <Phone size={18} />
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">WhatsApp</p>
@@ -281,7 +295,7 @@ export const StorefrontPage = () => {
                                 {tenant.email && (
                                     <div className="group cursor-pointer flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
                                         <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center">
-                                             <Mail size={18} />
+                                            <Mail size={18} />
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Email</p>
@@ -291,6 +305,103 @@ export const StorefrontPage = () => {
                                 )}
                             </div>
                         </div>
+
+                        {/* Social Media & Map */}
+                        {(tenant.facebook_url || tenant.instagram_url || tenant.youtube_url || tenant.tiktok_url || tenant.google_maps_url) && (
+                            <div className="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm hidden lg:block space-y-6">
+                                {(tenant.facebook_url || tenant.instagram_url || tenant.youtube_url || tenant.tiktok_url) && (
+                                    <div>
+                                        <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-sm uppercase tracking-wider opacity-50">
+                                            Síguenos
+                                        </h3>
+                                        <div className="flex gap-2 flex-wrap">
+                                            {tenant.facebook_url && (
+                                                <a href={tenant.facebook_url} target="_blank" rel="noopener noreferrer" className="p-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110">
+                                                    <Facebook size={20} />
+                                                </a>
+                                            )}
+                                            {tenant.instagram_url && (
+                                                <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer" className="p-3 bg-pink-50 text-pink-600 rounded-xl hover:bg-pink-600 hover:text-white transition-all transform hover:scale-110">
+                                                    <Instagram size={20} />
+                                                </a>
+                                            )}
+                                            {tenant.youtube_url && (
+                                                <a href={tenant.youtube_url} target="_blank" rel="noopener noreferrer" className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all transform hover:scale-110">
+                                                    <Youtube size={20} />
+                                                </a>
+                                            )}
+                                            {tenant.tiktok_url && (
+                                                <a href={tenant.tiktok_url} target="_blank" rel="noopener noreferrer" className="p-3 bg-slate-100 text-slate-900 rounded-xl hover:bg-black hover:text-white transition-all transform hover:scale-110">
+                                                    <Video size={20} />
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {tenant.google_maps_url || (tenant.latitud && tenant.longitud) ? (
+                                    <div>
+                                        <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2 text-sm uppercase tracking-wider opacity-50">
+                                            Encuéntranos
+                                        </h3>
+
+                                        {tenant.latitud && tenant.longitud ? (
+                                            <div className="space-y-3">
+                                                <div className="h-[350px] w-full rounded-2xl overflow-hidden shadow-inner border border-slate-200 relative z-0">
+                                                    <MapContainer
+                                                        center={[Number(tenant.latitud), Number(tenant.longitud)]}
+                                                        zoom={15}
+                                                        scrollWheelZoom={false}
+                                                        style={{ height: '100%', width: '100%' }}
+                                                    >
+                                                        <TileLayer
+                                                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                                        />
+                                                        <Marker position={[Number(tenant.latitud), Number(tenant.longitud)]}>
+                                                            <Popup>
+                                                                <span className="font-bold">{tenant.nombre_empresa}</span>
+                                                                <br />
+                                                                {tenant.direccion}
+                                                            </Popup>
+                                                        </Marker>
+                                                    </MapContainer>
+                                                </div>
+                                                {/* Link button below the map */}
+                                                <a
+                                                    href={`https://www.google.com/maps/search/?api=1&query=${tenant.latitud},${tenant.longitud}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center justify-between w-full py-3 px-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-slate-50 hover:text-teal-600 hover:border-teal-200 transition-all shadow-sm group"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <Map size={20} className="text-slate-400 group-hover:text-teal-500 transition-colors" />
+                                                        <span>Abrir en Google Maps</span>
+                                                    </div>
+                                                    <ArrowLeft className="rotate-180 text-slate-300 group-hover:text-teal-500 transition-colors" size={16} />
+                                                </a>
+                                            </div>
+                                        ) : (
+                                            <a
+                                                href={tenant.google_maps_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="group flex items-center gap-3 w-full p-4 bg-teal-50 text-teal-700 rounded-2xl hover:bg-teal-600 hover:text-white transition-all"
+                                            >
+                                                <div className="h-10 w-10 bg-white/50 rounded-full flex items-center justify-center group-hover:bg-white/20">
+                                                    <Map size={20} />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="font-bold text-sm">Ver Ubicación</p>
+                                                    <p className="text-xs opacity-80">Abrir en Google Maps</p>
+                                                </div>
+                                                <ArrowLeft className="rotate-180" size={16} />
+                                            </a>
+                                        )}
+                                    </div>
+                                ) : null}
+                            </div>
+                        )}
                     </aside>
 
                     {/* Catalog Grid */}

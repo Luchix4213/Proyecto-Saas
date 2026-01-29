@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { tenantsService } from '../../services/tenantsService';
 import type { Tenant, UpdateTenantData } from '../../services/tenantsService';
 import { getImageUrl } from '../../utils/imageUtils';
-import { Save, Building2, Phone, Mail, MapPin, Upload, DollarSign, Store, Tag, AlertTriangle, ChevronDown } from 'lucide-react';
+import { Save, Building2, Phone, Mail, MapPin, Upload, DollarSign, Store, Tag, AlertTriangle, ChevronDown, Facebook, Instagram, Youtube, Video, Map } from 'lucide-react';
 import { ScheduleEditor } from '../../components/tenants/ScheduleEditor';
+import { MapPicker } from '../../components/common/MapPicker';
 import { useForm, Controller } from 'react-hook-form';
 import { rubrosService, type Rubro } from '../../services/rubrosService';
 import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
@@ -19,6 +20,13 @@ interface FormInputs {
     impuesto_porcentaje: number;
     horario_atencion: string;
     rubros: number[];
+    facebook_url?: string;
+    instagram_url?: string;
+    youtube_url?: string;
+    tiktok_url?: string;
+    google_maps_url?: string;
+    latitud?: number;
+    longitud?: number;
 }
 
 const MyTenantPage = () => {
@@ -39,7 +47,7 @@ const MyTenantPage = () => {
         title: '',
         message: '',
         type: 'info',
-        onConfirm: () => {},
+        onConfirm: () => { },
     });
 
     // Auxiliary state
@@ -98,7 +106,14 @@ const MyTenantPage = () => {
                 moneda: data.moneda,
                 impuesto_porcentaje: Number(data.impuesto_porcentaje),
                 horario_atencion: data.horario_atencion || '',
-                rubros: data.rubros?.map((r: any) => r.rubro_id) || []
+                rubros: data.rubros?.map((r: any) => r.rubro_id) || [],
+                facebook_url: data.facebook_url || '',
+                instagram_url: data.instagram_url || '',
+                youtube_url: data.youtube_url || '',
+                tiktok_url: data.tiktok_url || '',
+                google_maps_url: data.google_maps_url || '',
+                latitud: data.latitud ? Number(data.latitud) : undefined,
+                longitud: data.longitud ? Number(data.longitud) : undefined,
             });
 
             if (data.logo_url) {
@@ -212,30 +227,30 @@ const MyTenantPage = () => {
                     <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative group">
                         {/* Banner Upload Area */}
                         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-indigo-500 to-purple-600 group/banner cursor-pointer overflow-hidden">
-                             {previewBanner ? (
+                            {previewBanner ? (
                                 <img
                                     src={previewBanner}
                                     alt="Banner"
                                     className="w-full h-full object-cover opacity-80 group-hover/banner:opacity-50 transition-all duration-700 group-hover/banner:scale-110"
                                 />
-                             ) : (
+                            ) : (
                                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 transition-transform duration-700 group-hover/banner:scale-110"></div>
-                             )}
+                            )}
 
-                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/banner:opacity-100 transition-opacity z-10">
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/banner:opacity-100 transition-opacity z-10">
                                 <div className="bg-black/40 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 backdrop-blur-sm">
                                     <Upload size={12} /> Cambiar Portada
                                 </div>
                                 <span className="text-white/80 text-[10px] bg-black/30 px-2 py-0.5 rounded mt-1 backdrop-blur-sm">
                                     Recomendado: 1200x400px
                                 </span>
-                             </div>
-                             <input
+                            </div>
+                            <input
                                 type="file"
                                 accept="image/*"
                                 onChange={handleBannerChange}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
-                             />
+                            />
                         </div>
 
                         <div className="pt-16 pb-8 px-6 text-center relative">
@@ -270,8 +285,8 @@ const MyTenantPage = () => {
                             <div className="flex justify-center gap-2">
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wide
                                     ${tenant?.estado === 'ACTIVA' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                      tenant?.estado === 'PENDIENTE' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                      'bg-red-50 text-red-600 border-red-100'}`}>
+                                        tenant?.estado === 'PENDIENTE' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                            'bg-red-50 text-red-600 border-red-100'}`}>
                                     {tenant?.estado}
                                 </span>
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100 uppercase tracking-wide">
@@ -280,7 +295,7 @@ const MyTenantPage = () => {
                             </div>
                         </div>
 
-                         <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                        <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
                             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Resumen de Suscripción</h4>
                             <div className="flex justify-between items-center text-sm mb-1">
                                 <span className="text-slate-600">Costo Mensual</span>
@@ -299,8 +314,8 @@ const MyTenantPage = () => {
                             <Tag size={18} className="text-indigo-500" />
                             Rubros y Categorías
                         </h3>
-                         <div className="flex flex-wrap gap-2">
-                             <Controller
+                        <div className="flex flex-wrap gap-2">
+                            <Controller
                                 name="rubros"
                                 control={control}
                                 render={({ field }) => (
@@ -327,7 +342,7 @@ const MyTenantPage = () => {
                                         })}
                                     </>
                                 )}
-                             />
+                            />
                         </div>
                     </div>
                 </div>
@@ -384,7 +399,7 @@ const MyTenantPage = () => {
                                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Teléfono / WhatsApp</label>
                                         <div className="flex flex-col sm:flex-row gap-2">
                                             {/* Country Code Selector */}
-                                             <div className="relative w-full sm:w-32 shrink-0">
+                                            <div className="relative w-full sm:w-32 shrink-0">
                                                 <select
                                                     value={countryCode}
                                                     onChange={(e) => setCountryCode(e.target.value)}
@@ -481,10 +496,115 @@ const MyTenantPage = () => {
                                     )}
                                 />
                             </div>
+
+                            {/* Section: Social Media & Location */}
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-800 mb-5 pb-2 border-b border-slate-100 flex items-center gap-2">
+                                    Redes Sociales y Ubicación
+                                </h3>
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2 group">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Facebook</label>
+                                            <div className="relative">
+                                                <Facebook className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
+                                                <input
+                                                    type="text"
+                                                    {...register('facebook_url')}
+                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-medium text-slate-700"
+                                                    placeholder="https://facebook.com/..."
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2 group">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Instagram</label>
+                                            <div className="relative">
+                                                <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-pink-600 transition-colors" size={18} />
+                                                <input
+                                                    type="text"
+                                                    {...register('instagram_url')}
+                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 outline-none transition-all font-medium text-slate-700"
+                                                    placeholder="https://instagram.com/..."
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2 group">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">YouTube</label>
+                                            <div className="relative">
+                                                <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-red-600 transition-colors" size={18} />
+                                                <input
+                                                    type="text"
+                                                    {...register('youtube_url')}
+                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition-all font-medium text-slate-700"
+                                                    placeholder="https://youtube.com/..."
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2 group">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">TikTok</label>
+                                            <div className="relative">
+                                                <Video className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-black transition-colors" size={18} />
+                                                <input
+                                                    type="text"
+                                                    {...register('tiktok_url')}
+                                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-500/20 focus:border-slate-800 outline-none transition-all font-medium text-slate-700"
+                                                    placeholder="https://tiktok.com/..."
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 group">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Ubicación</label>
+                                            <span className="text-[10px] text-indigo-500 font-bold bg-indigo-50 px-2 py-0.5 rounded-full">
+                                                Selecciona en el mapa
+                                            </span>
+                                        </div>
+
+                                        <Controller
+                                            name="latitud"
+                                            control={control}
+                                            render={({ field: { value: lat, onChange: setLat } }) => (
+                                                <Controller
+                                                    name="longitud"
+                                                    control={control}
+                                                    render={({ field: { value: lng, onChange: setLng } }) => (
+                                                        <MapPicker
+                                                            lat={lat || 0}
+                                                            lng={lng || 0}
+                                                            onChange={(newLat, newLng) => {
+                                                                setLat(newLat);
+                                                                setLng(newLng);
+                                                                // Auto-generate Google Maps URL
+                                                                const mapLink = `https://www.google.com/maps?q=${newLat},${newLng}`;
+                                                                reset({ ...getValues(), latitud: newLat, longitud: newLng, google_maps_url: mapLink });
+                                                            }}
+                                                        />
+                                                    )}
+                                                />
+                                            )}
+                                        />
+
+                                        <div className="relative mt-2">
+                                            <Map className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                            <input
+                                                type="text"
+                                                {...register('google_maps_url')}
+                                                className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none transition-all font-medium text-slate-700 text-sm"
+                                                placeholder="https://goo.gl/maps/..."
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Footer Actions */}
-                          <div className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6">
                             <p className="text-xs text-slate-400 text-center sm:text-left order-2 sm:order-1">
                                 Última actualización: {new Date().toLocaleDateString()}
                             </p>

@@ -138,7 +138,7 @@ async function main() {
       nombre_empresa: 'TechStore Bolivia',
       email: 'contacto@techstore.bo',
       slug: 'techstore-bolivia',
-      plan_id: planFree.plan_id,
+      plan_id: planPremium.plan_id,
       estado: EstadoEmpresa.ACTIVA,
       moneda: 'BOB',
       direccion: 'Av. Heroinas esq. Ayacucho, Cochabamba',

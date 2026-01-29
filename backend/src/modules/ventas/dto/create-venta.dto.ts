@@ -1,6 +1,6 @@
 import { IsArray, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { MetodoPago, TipoVenta } from '@prisma/client';
+import { MetodoPago, TipoVenta, TipoEntrega } from '@prisma/client';
 
 class DetalleVentaItemDto {
   @IsInt()
@@ -49,4 +49,24 @@ export class CreateVentaDto {
 
   @IsOptional()
   qr_pago?: string;
+
+  @IsOptional()
+  @IsEnum(TipoEntrega)
+  tipo_entrega?: TipoEntrega;
+
+  @IsOptional()
+  @IsNumber()
+  latitud?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitud?: number;
+
+  @IsOptional()
+  @IsString()
+  direccion_envio?: string;
+
+  @IsOptional()
+  @IsString()
+  ubicacion_maps?: string;
 }

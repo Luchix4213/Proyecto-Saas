@@ -23,7 +23,14 @@ export class TenantsService {
       paterno_contacto,
       password_contacto,
       horario_atencion,
-      rubros
+      rubros,
+      facebook_url,
+      instagram_url,
+      youtube_url,
+      tiktok_url,
+      google_maps_url,
+      latitud,
+      longitud
     } = createTenantDto;
 
     // Verificar si el email del usuario ya existe
@@ -46,7 +53,7 @@ export class TenantsService {
 
     // Force FREE plan
     const planDb = await this.prisma.plan.findFirst({
-      where: { nombre_plan: 'FREE' }
+      where: { nombre_plan: 'MICRO-PLAN' }
     });
     if (!planDb) {
       throw new NotFoundException('Plan no encontrado');
@@ -66,6 +73,13 @@ export class TenantsService {
           rubros: rubros ? { connect: rubros.map((id) => ({ rubro_id: id })) } : undefined,
           plan_id: planDb.plan_id,
           estado: EstadoEmpresa.ACTIVA, // Admin crea empresas ya activas por defecto
+          facebook_url,
+          instagram_url,
+          youtube_url,
+          tiktok_url,
+          google_maps_url,
+          latitud: latitud ? Number(latitud) : null,
+          longitud: longitud ? Number(longitud) : null,
         }
       });
 
@@ -88,14 +102,14 @@ export class TenantsService {
       // 4. Crear Suscripción Inicial
       await prisma.suscripcion.create({
         data: {
-            tenant_id: newTenant.tenant_id,
-            plan_id: planDb.plan_id,
-            fecha_inicio: new Date(),
-            fecha_fin: new Date(new Date().setMonth(new Date().getMonth() + 1)), // 1 mes por defecto
-            monto: planDb.precio_mensual,
-            metodo_pago: 'TRANSFERENCIA',
-            estado: 'ACTIVA',
-            referencia: 'Suscripción Inicial (Admin)'
+          tenant_id: newTenant.tenant_id,
+          plan_id: planDb.plan_id,
+          fecha_inicio: new Date(),
+          fecha_fin: new Date(new Date().setMonth(new Date().getMonth() + 1)), // 1 mes por defecto
+          monto: planDb.precio_mensual,
+          metodo_pago: 'TRANSFERENCIA',
+          estado: 'ACTIVA',
+          referencia: 'Suscripción Inicial (Admin)'
         }
       });
 
@@ -125,17 +139,24 @@ export class TenantsService {
     return this.prisma.tenant.findFirst({
       where: { slug, estado: 'ACTIVA' },
       select: {
-          tenant_id: true,
-          nombre_empresa: true,
-          slug: true,
-          rubros: true,
-          logo_url: true,
-          banner_url: true,
-          direccion: true,
-          telefono: true,
-          email: true,
-          horario_atencion: true,
-          moneda: true
+        tenant_id: true,
+        nombre_empresa: true,
+        slug: true,
+        rubros: true,
+        logo_url: true,
+        banner_url: true,
+        direccion: true,
+        telefono: true,
+        email: true,
+        horario_atencion: true,
+        moneda: true,
+        facebook_url: true,
+        instagram_url: true,
+        youtube_url: true,
+        tiktok_url: true,
+        google_maps_url: true,
+        latitud: true,
+        longitud: true,
       }
     });
   }
@@ -146,31 +167,38 @@ export class TenantsService {
     const isId = !isNaN(id);
 
     return this.prisma.tenant.findFirst({
-        where: {
-            OR: [
-                { slug: identifier },
-                ...(isId ? [{ tenant_id: id }] : [])
-            ],
-            estado: 'ACTIVA'
+      where: {
+        OR: [
+          { slug: identifier },
+          ...(isId ? [{ tenant_id: id }] : [])
+        ],
+        estado: 'ACTIVA'
+      },
+      select: {
+        tenant_id: true,
+        nombre_empresa: true,
+        slug: true,
+        rubros: {
+          select: {
+            rubro_id: true,
+            nombre: true
+          }
         },
-        select: {
-            tenant_id: true,
-            nombre_empresa: true,
-            slug: true,
-            rubros: {
-                select: {
-                    rubro_id: true,
-                    nombre: true
-                }
-            },
-            logo_url: true,
-            banner_url: true,
-            direccion: true,
-            telefono: true,
-            email: true,
-            horario_atencion: true,
-            moneda: true
-        }
+        logo_url: true,
+        banner_url: true,
+        direccion: true,
+        telefono: true,
+        email: true,
+        horario_atencion: true,
+        moneda: true,
+        facebook_url: true,
+        instagram_url: true,
+        youtube_url: true,
+        tiktok_url: true,
+        google_maps_url: true,
+        latitud: true,
+        longitud: true,
+      }
     });
   }
 
@@ -201,6 +229,9 @@ export class TenantsService {
       where: {
         estado: 'ACTIVA',
         email: { not: 'system@saas.com' }, // Exclude system tenant
+        plan: {
+          ventas_online: true,
+        },
         ...(rubro ? {
           rubros: {
             some: {
@@ -213,17 +244,24 @@ export class TenantsService {
         } : {})
       },
       select: {
-          tenant_id: true,
-          nombre_empresa: true,
-          slug: true,
-          rubros: true,
-          logo_url: true,
-          banner_url: true,
-          direccion: true,
-          telefono: true,
-          email: true,
-          horario_atencion: true,
-          moneda: true
+        tenant_id: true,
+        nombre_empresa: true,
+        slug: true,
+        rubros: true,
+        logo_url: true,
+        banner_url: true,
+        direccion: true,
+        telefono: true,
+        email: true,
+        horario_atencion: true,
+        moneda: true,
+        facebook_url: true,
+        instagram_url: true,
+        youtube_url: true,
+        tiktok_url: true,
+        google_maps_url: true,
+        latitud: true,
+        longitud: true,
       },
       orderBy: {
         fecha_registro: 'desc',

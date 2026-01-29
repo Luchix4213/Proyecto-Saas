@@ -1,6 +1,6 @@
 import { IsEmail, IsEnum, IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import { MetodoPago } from '@prisma/client';
+import { MetodoPago, TipoEntrega } from '@prisma/client';
 
 class CheckoutItemDto {
   @IsNumber()
@@ -78,4 +78,16 @@ export class CheckoutDto {
   @IsString()
   @IsOptional()
   comprobante_pago?: string;
+
+  @IsOptional()
+  @IsEnum(TipoEntrega)
+  tipo_entrega?: TipoEntrega;
+
+  @IsOptional()
+  @IsNumber()
+  latitud?: number;
+
+  @IsOptional()
+  @IsNumber()
+  longitud?: number;
 }

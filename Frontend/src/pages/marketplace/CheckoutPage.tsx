@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../store/useCartStore';
-import { ShoppingBag, ArrowLeft, CreditCard, QrCode, User, Mail, CreditCard as IdCard, CheckCircle2, Package, MapPin, Navigation } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, CreditCard, QrCode, User, Mail, CreditCard as IdCard, CheckCircle2, Package, MapPin, Navigation, Bike, Store } from 'lucide-react';
 import api from '../../api/axios';
 import { getImageUrl } from '../../utils/imageUtils';
 import { useToast } from '../../context/ToastContext';
+import { MapPicker } from '../../components/common/MapPicker';
 
 export const CheckoutPage = () => {
   const { addToast } = useToast();
@@ -31,6 +32,9 @@ export const CheckoutPage = () => {
     metodo_pago: 'QR',
     direccion_envio: '',
     ubi_maps_envio: '',
+    tipo_entrega: 'RECOJO', // RECOJO | DELIVERY
+    latitud: 0,
+    longitud: 0,
   });
 
   const [file, setFile] = useState<File | null>(null);
@@ -62,7 +66,9 @@ export const CheckoutPage = () => {
   );
 
   // Calculate total for current store
-  const total = currentStoreItems.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+  const itemsTotal = currentStoreItems.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+  const deliveryCost = formData.tipo_entrega === 'DELIVERY' ? 50 : 0;
+  const total = itemsTotal + deliveryCost;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -123,28 +129,7 @@ export const CheckoutPage = () => {
     }
   };
 
-  const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      addToast('Tu navegador no soporta geolocalización.', 'error');
-      return;
-    }
-
-    setLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        setFormData(prev => ({ ...prev, ubi_maps_envio: mapsLink }));
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error getting location:', error);
-        addToast('No pudimos obtener tu ubicación. Por favor asegúrate de dar permisos en tu navegador.', 'error');
-        setLoading(false);
-      },
-      { enableHighAccuracy: true }
-    );
-  };
+  /* handleGetLocation removed, logic moved to MapPicker */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,8 +152,16 @@ export const CheckoutPage = () => {
       formPayload.append('telefono', formData.telefono);
       formPayload.append('nit_ci', formData.nit_ci);
       formPayload.append('metodo_pago', formData.metodo_pago);
-      formPayload.append('direccion_envio', formData.direccion_envio);
-      formPayload.append('ubi_maps_envio', formData.ubi_maps_envio);
+      formPayload.append('tipo_entrega', formData.tipo_entrega);
+
+      if (formData.tipo_entrega === 'DELIVERY') {
+        formPayload.append('direccion_envio', formData.direccion_envio);
+        formPayload.append('ubicacion_maps', formData.ubi_maps_envio);
+        formPayload.append('latitud', String(formData.latitud));
+        formPayload.append('longitud', String(formData.longitud));
+        formPayload.append('costo_envio', '50');
+      }
+
       formPayload.append('productos', JSON.stringify(currentStoreItems.map(i => ({
         producto_id: i.producto_id,
         cantidad: i.cantidad,
@@ -498,55 +491,92 @@ export const CheckoutPage = () => {
 
                   <div className="space-y-6 pt-2">
                     <h3 className="text-xl font-bold text-slate-900 flex items-center gap-3 border-b border-slate-100 pb-4">
-                      <MapPin size={20} className="text-teal-500" /> Detalles de Entrega
+                      <Bike size={20} className="text-teal-500" /> Método de Entrega
                     </h3>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Dirección de Envío</label>
-                      <div className="relative group">
-                         <div className="absolute top-4 left-4 text-slate-400 group-focus-within:text-teal-500 transition-colors pointer-events-none">
-                            <MapPin size={20} />
-                         </div>
-                        <textarea
-                          name="direccion_envio"
-                          required
-                          value={formData.direccion_envio}
-                          onChange={handleInputChange}
-                          rows={3}
-                          className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium resize-none shadow-sm"
-                          placeholder="Ej: Av. Principal #123, Edificio Azul, Piso 2, Apto 2B (Referencia: Frente al parque)"
-                        />
-                      </div>
+                    {/* Delivery Selector */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, tipo_entrega: 'RECOJO' }))}
+                        className={`p-6 rounded-[1.5rem] border-2 transition-all flex flex-col items-center gap-3 ${formData.tipo_entrega === 'RECOJO'
+                          ? 'border-teal-500 bg-teal-50/30 text-teal-700'
+                          : 'border-slate-100 bg-white text-slate-400 hover:bg-slate-50'
+                          }`}
+                      >
+                        <Store size={32} />
+                        <span className="font-bold">Recojo en Tienda</span>
+                        <span className="text-xs bg-slate-100 px-2 py-1 rounded-full text-slate-500 font-bold">Gratis</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, tipo_entrega: 'DELIVERY' }))}
+                        className={`p-6 rounded-[1.5rem] border-2 transition-all flex flex-col items-center gap-3 ${formData.tipo_entrega === 'DELIVERY'
+                          ? 'border-teal-500 bg-teal-50/30 text-teal-700'
+                          : 'border-slate-100 bg-white text-slate-400 hover:bg-slate-50'
+                          }`}
+                      >
+                        <Bike size={32} />
+                        <span className="font-bold">Delivery</span>
+                        <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-bold">+50.00 Bs</span>
+                      </button>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Ubicación GPS (Opcional)</label>
-                      <div className="flex gap-2">
-                        <div className="relative group flex-1">
-                          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors pointer-events-none">
-                            <MapPin size={20} />
-                          </div>
-                          <input
-                            type="url"
-                            name="ubi_maps_envio"
-                            value={formData.ubi_maps_envio}
-                            onChange={handleInputChange}
-                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all placeholder:text-slate-300 font-medium shadow-sm text-sm"
-                            placeholder="Enlace de Maps o Ubicación"
-                          />
+                    {formData.tipo_entrega === 'DELIVERY' && (
+                      <div className="bg-slate-50/50 p-6 rounded-[2rem] space-y-6 border border-slate-100 animate-fade-in">
+                        <div className="flex items-start gap-3 p-4 bg-teal-50 rounded-xl text-teal-800 text-sm mb-2">
+                          <MapPin size={18} className="mt-0.5 flex-shrink-0" />
+                          <p>Por favor selecciona tu ubicación exacta en el mapa y detalla tu dirección para asegurar una entrega rápida.</p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={handleGetLocation}
-                          disabled={loading}
-                          className="px-6 bg-teal-500 text-white rounded-2xl font-bold hover:bg-teal-600 transition-all shadow-lg shadow-teal-500/20 active:scale-95 flex items-center gap-2 whitespace-nowrap"
-                        >
-                          <Navigation size={18} className={loading ? 'animate-pulse' : ''} />
-                          <span className="hidden sm:inline">Usar mi GPS</span>
-                        </button>
+
+                        {/* Map Picker */}
+                        <div className="space-y-2">
+                          <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Ubicación Exacta</label>
+                          <MapPicker
+                            lat={Number(formData.latitud)}
+                            lng={Number(formData.longitud)}
+                            onChange={(lat, lng) => {
+                              setFormData(prev => ({
+                                ...prev,
+                                latitud: lat,
+                                longitud: lng,
+                                ubi_maps_envio: `https://www.google.com/maps?q=${lat},${lng}`
+                              }));
+                            }}
+                          />
+                          <p className="text-[10px] text-slate-400 pl-4 text-right">
+                            {formData.latitud !== 0 ? 'Ubicación seleccionada ✓' : 'Toca el mapa para seleccionar'}
+                          </p>
+                        </div>
+
+                        <div className="space-y-4">
+                          <label className="text-xs font-black text-slate-400 uppercase tracking-widest pl-2">Detalles de Dirección</label>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="relative group">
+                              <input
+                                type="text"
+                                className="w-full px-4 py-4 bg-white border border-slate-200 rounded-xl"
+                                placeholder="Ciudad / Municipio"
+                              />
+                            </div>
+                          </div>
+                          <div className="relative group">
+                            <div className="absolute top-4 left-4 text-slate-400 pointer-events-none">
+                              <Navigation size={20} />
+                            </div>
+                            <textarea
+                              name="direccion_envio"
+                              required={formData.tipo_entrega === 'DELIVERY'}
+                              value={formData.direccion_envio}
+                              onChange={handleInputChange}
+                              rows={3}
+                              className="w-full pl-12 pr-4 py-3.5 bg-white border-none rounded-[1.25rem] focus:ring-2 focus:ring-teal-500/20 outline-none shadow-sm font-medium resize-none placeholder:text-slate-300"
+                              placeholder="Describe tu dirección: Zona, Calle, Número, Referencias..."
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-[10px] text-slate-400 pl-4">Ayuda al repartidor a llegar más rápido enviando tu ubicación exacta.</p>
-                    </div>
+                    )}
                   </div>
 
                   <div className="pt-8 relative">
@@ -561,17 +591,17 @@ export const CheckoutPage = () => {
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                       />
                       <div className="flex flex-col items-center gap-3">
-                         <div className={`p-4 rounded-full transition-colors ${file ? 'bg-teal-100 text-teal-600' : 'bg-slate-100 text-slate-400 group-hover:bg-white group-hover:shadow-md'}`}>
-                             {file ? <CheckCircle2 size={32} /> : <Package size={32} />}
-                         </div>
-                         <div className="space-y-1">
-                             <p className={`font-bold text-lg ${file ? 'text-teal-700' : 'text-slate-600'}`}>
-                                {file ? '¡Comprobante cargado!' : 'Sube tu comprobante'}
-                             </p>
-                             <p className="text-sm text-slate-400">
-                                {file ? file.name : 'Arrastra o haz clic para seleccionar'}
-                             </p>
-                         </div>
+                        <div className={`p-4 rounded-full transition-colors ${file ? 'bg-teal-100 text-teal-600' : 'bg-slate-100 text-slate-400 group-hover:bg-white group-hover:shadow-md'}`}>
+                          {file ? <CheckCircle2 size={32} /> : <Package size={32} />}
+                        </div>
+                        <div className="space-y-1">
+                          <p className={`font-bold text-lg ${file ? 'text-teal-700' : 'text-slate-600'}`}>
+                            {file ? '¡Comprobante cargado!' : 'Sube tu comprobante'}
+                          </p>
+                          <p className="text-sm text-slate-400">
+                            {file ? file.name : 'Arrastra o haz clic para seleccionar'}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>

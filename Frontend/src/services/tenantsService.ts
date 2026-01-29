@@ -23,6 +23,13 @@ export interface Tenant {
         reportes_avanzados: boolean;
     };
     usuarios?: any[];
+    facebook_url?: string;
+    instagram_url?: string;
+    youtube_url?: string;
+    tiktok_url?: string;
+    google_maps_url?: string;
+    latitud?: number;
+    longitud?: number;
 }
 
 export interface CreateTenantData {
@@ -52,6 +59,13 @@ export interface UpdateTenantData {
     email?: string;
     logo?: File;
     banner?: File;
+    facebook_url?: string;
+    instagram_url?: string;
+    youtube_url?: string;
+    tiktok_url?: string;
+    google_maps_url?: string;
+    latitud?: number;
+    longitud?: number;
 }
 
 export const tenantsService = {
@@ -98,6 +112,13 @@ export const tenantsService = {
         if (data.email) formData.append('email', data.email);
         if (data.logo) formData.append('logo', data.logo);
         if (data.banner) formData.append('banner', data.banner);
+        if (data.facebook_url) formData.append('facebook_url', data.facebook_url);
+        if (data.instagram_url) formData.append('instagram_url', data.instagram_url);
+        if (data.youtube_url) formData.append('youtube_url', data.youtube_url);
+        if (data.tiktok_url) formData.append('tiktok_url', data.tiktok_url);
+        if (data.google_maps_url) formData.append('google_maps_url', data.google_maps_url);
+        if (data.latitud) formData.append('latitud', data.latitud.toString());
+        if (data.longitud) formData.append('longitud', data.longitud.toString());
 
         const response = await api.patch(`/tenants/${id}`, formData, {
             headers: {

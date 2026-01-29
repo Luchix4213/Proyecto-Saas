@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
-import { Truck, CheckCircle, XCircle, User, FileText, Smartphone, ShoppingBag, Eye, Printer } from 'lucide-react';
+import { Truck, CheckCircle, XCircle, User, FileText, Smartphone, ShoppingBag, Eye, Printer, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmDialog, type DialogType } from '../../components/common/ConfirmDialog';
 import { AestheticHeader } from '../../components/common/AestheticHeader';
@@ -15,6 +15,9 @@ interface Venta {
     estado: string;
     estado_entrega: string;
     tipo_venta: string;
+    tipo_entrega?: 'RECOJO' | 'DELIVERY';
+    direccion_envio?: string;
+    ubicacion_maps?: string;
     comprobante_pago?: string;
     comprobante_pdf?: string;
     cliente?: {
@@ -46,7 +49,7 @@ export const OnlineSalesPage = () => {
         title: '',
         message: '',
         type: 'info',
-        onConfirm: () => {},
+        onConfirm: () => { },
     });
 
     // Lightbox State
@@ -112,12 +115,33 @@ export const OnlineSalesPage = () => {
         });
     };
 
+
+
+    const handleDispatch = (id: number) => {
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Despachar Pedido',
+            message: '¿Confirmas que el pedido ha sido despachado y está en camino? Se enviará un correo al cliente.',
+            type: 'info',
+            onConfirm: async () => {
+                try {
+                    await api.patch(`/ventas/${id}/en-camino`);
+                    loadSales();
+                    addToast('Pedido marcado en camino', 'success');
+                    setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+                } catch (error) {
+                    addToast('Error al actualizar estado', 'error');
+                }
+            }
+        });
+    };
+
     const handleDeliver = (id: number) => {
         setConfirmConfig({
             isOpen: true,
             title: 'Marcar Entregado',
             message: '¿Confirmas que el pedido ha sido entregado al cliente?',
-            type: 'info',
+            type: 'success',
             onConfirm: async () => {
                 try {
                     await api.patch(`/ventas/${id}/entregar`);
@@ -139,6 +163,8 @@ export const OnlineSalesPage = () => {
     return (
         <div className="relative min-h-[80vh] w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8 animate-fade-in-up">
             {/* Ambient Backgrounds */}
+
+
             <div className="absolute top-0 left-10 -mt-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute bottom-0 right-10 -mb-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -330,12 +356,27 @@ export const OnlineSalesPage = () => {
                                                             </div>
                                                         )}
                                                         {sale.estado === 'PAGADA' && sale.estado_entrega !== 'ENTREGADO' && (
-                                                            <button
-                                                                onClick={(e) => { e.stopPropagation(); handleDeliver(sale.venta_id); }}
-                                                                className="px-6 py-2.5 bg-slate-900 border border-transparent rounded-2xl shadow-xl shadow-slate-900/20 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-slate-800 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center gap-2"
-                                                            >
-                                                                <Truck size={14} /> Entregar
-                                                            </button>
+                                                            <>
+                                                                {/* Mostrar Botón Despachar si es Delivery y está pendiente */}
+                                                                {(sale.estado_entrega === 'PENDIENTE' && (sale.tipo_entrega === 'DELIVERY' || !!sale.direccion_envio)) && (
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); handleDispatch(sale.venta_id); }}
+                                                                        className="px-6 py-2.5 bg-blue-600 border border-transparent rounded-2xl shadow-xl shadow-blue-900/20 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-blue-500 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center gap-2"
+                                                                    >
+                                                                        <Truck size={14} /> Despachar
+                                                                    </button>
+                                                                )}
+
+                                                                {/* Mostrar Botón Entregar si ya está en camino O es Recojo en tienda */}
+                                                                {(sale.estado_entrega === 'EN_CAMINO' || (sale.estado_entrega === 'PENDIENTE' && sale.tipo_entrega === 'RECOJO')) && (
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); handleDeliver(sale.venta_id); }}
+                                                                        className="px-6 py-2.5 bg-emerald-600 border border-transparent rounded-2xl shadow-xl shadow-emerald-900/20 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-emerald-500 transition-all hover:-translate-y-0.5 active:scale-95 flex items-center gap-2"
+                                                                    >
+                                                                        <CheckCircle size={14} /> Entregar
+                                                                    </button>
+                                                                )}
+                                                            </>
                                                         )}
                                                     </div>
                                                 </td>
@@ -385,7 +426,35 @@ export const OnlineSalesPage = () => {
                                 </div>
                             </div>
 
-                             <div className="grid grid-cols-2 gap-4 mb-6">
+                            {/* Delivery Info Section */}
+                            {(selectedSale.tipo_entrega === 'DELIVERY' || !!selectedSale.direccion_envio) && (
+                                <div className="bg-teal-50/50 border border-teal-100 rounded-2xl p-6 mb-6">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Truck size={18} className="text-teal-600" />
+                                        <h3 className="font-black text-slate-900 uppercase tracking-widest text-xs">Datos de Envío</h3>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Dirección</p>
+                                            <p className="font-medium text-slate-700 text-sm bg-white p-3 rounded-xl border border-teal-100 shadow-sm">
+                                                {selectedSale.direccion_envio || 'No especificada'}
+                                            </p>
+                                        </div>
+                                        {selectedSale.ubicacion_maps && (
+                                            <a
+                                                href={selectedSale.ubicacion_maps}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-center gap-2 w-full py-3 bg-teal-500 text-white rounded-xl font-bold hover:bg-teal-600 transition-all shadow-lg shadow-teal-500/20 active:scale-95"
+                                            >
+                                                <MapPin size={18} /> Ver Ubicación en Mapa
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-4 mb-6">
                                 {selectedSale.comprobante_pago && (
                                     <button
                                         onClick={() => {

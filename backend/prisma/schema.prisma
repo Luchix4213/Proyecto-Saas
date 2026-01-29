@@ -106,6 +106,15 @@ model Tenant {
   estado              EstadoEmpresa @default(PENDIENTE)
   fecha_registro      DateTime      @default(now())
 
+  // Social Media & Location
+  facebook_url        String?
+  instagram_url       String?
+  youtube_url         String?
+  tiktok_url          String?
+  google_maps_url     String?
+  latitud             Decimal?      @db.Decimal(10, 8)
+  longitud            Decimal?      @db.Decimal(11, 8)
+
   plan_id Int
   plan    Plan @relation(fields: [plan_id], references: [plan_id])
 
@@ -292,6 +301,12 @@ model DetalleCompra {
   fecha_vencimiento DateTime?
 }
 
+
+enum TipoEntrega {
+  RECOJO
+  DELIVERY
+}
+
 model Venta {
   venta_id         Int           @id @default(autoincrement())
   tenant_id        Int
@@ -303,6 +318,7 @@ model Venta {
   fecha_venta      DateTime      @default(now())
   total            Decimal       @db.Decimal(10, 2)
   tipo_venta       TipoVenta     @default(FISICA)
+  tipo_entrega     TipoEntrega   @default(RECOJO) // Nuevo campo
   metodo_pago      MetodoPago    @default(EFECTIVO)
   estado_entrega   EstadoEntrega @default(PENDIENTE)
   qr_pago          String? // URL o base64
@@ -328,6 +344,8 @@ model Venta {
   // 3. Logística (E-commerce)
   direccion_envio    String? // Texto o JSON
   ubicacion_maps     String? // Link de Google Maps
+  latitud            Decimal?  @db.Decimal(10, 8) // Nuevo campo
+  longitud           Decimal?  @db.Decimal(11, 8) // Nuevo campo
   costo_envio        Decimal?  @db.Decimal(10, 2)
   observaciones      String?
   codigo_seguimiento String?

@@ -8,10 +8,17 @@ export class EmailService {
   private readonly logger = new Logger(EmailService.name);
 
   constructor(private configService: ConfigService) {
-    const host = this.configService.get<string>('SMTP_HOST');
-    const port = this.configService.get<number>('SMTP_PORT');
     const user = this.configService.get<string>('SMTP_USER');
     const pass = this.configService.get<string>('SMTP_PASS');
+
+    // Smart Default for Gmail if HOST is missing
+    let host = this.configService.get<string>('SMTP_HOST');
+    const port = this.configService.get<number>('SMTP_PORT'); // Restore port variable
+
+    if (!host && user && user.includes('@gmail.com')) {
+      host = 'smtp.gmail.com';
+      this.logger.log('SMTP_HOST not found, inferring Gmail host: smtp.gmail.com');
+    }
 
     if (host && user && pass) {
       this.transporter = nodemailer.createTransport({

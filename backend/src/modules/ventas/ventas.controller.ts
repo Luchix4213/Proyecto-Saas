@@ -117,6 +117,13 @@ export class VentasController {
     return this.ventasService.rejectPayment(+id, req.user.tenant_id);
   }
 
+  @Patch(':id/en-camino')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN, RolUsuario.VENDEDOR)
+  setEnCamino(@Request() req, @Param('id') id: string) {
+    return this.ventasService.setEnCamino(+id, req.user.tenant_id);
+  }
+
   @Patch(':id/entregar')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN, RolUsuario.VENDEDOR)

@@ -43,6 +43,34 @@ export class CreateTenantDto {
     @IsNumber({}, { each: true })
     rubros?: number[]; // IDs de los rubros
 
+    @IsOptional()
+    @IsString()
+    facebook_url?: string;
+
+    @IsOptional()
+    @IsString()
+    instagram_url?: string;
+
+    @IsOptional()
+    @IsString()
+    youtube_url?: string;
+
+    @IsOptional()
+    @IsString()
+    tiktok_url?: string;
+
+    @IsOptional()
+    @IsString()
+    google_maps_url?: string;
+
+    @IsOptional()
+    @IsNumber()
+    latitud?: number;
+
+    @IsOptional()
+    @IsNumber()
+    longitud?: number;
+
     // Datos del usuario admin inicial
     @IsString()
     @IsNotEmpty()

@@ -37,14 +37,14 @@ export class UpdateTenantDto {
 
     @IsOptional()
     @Transform(({ value }) => {
-      if (typeof value === 'string') {
-        try {
-           return JSON.parse(value);
-        } catch {
-           return [];
+        if (typeof value === 'string') {
+            try {
+                return JSON.parse(value);
+            } catch {
+                return [];
+            }
         }
-      }
-      return value;
+        return value;
     })
     @IsNumber({}, { each: true })
     rubros?: number[]; // IDs de los rubros
@@ -59,4 +59,34 @@ export class UpdateTenantDto {
     @IsOptional()
     @IsEnum(EstadoEmpresa)
     estado?: EstadoEmpresa;
+
+    @IsOptional()
+    @IsString()
+    facebook_url?: string;
+
+    @IsOptional()
+    @IsString()
+    instagram_url?: string;
+
+    @IsOptional()
+    @IsString()
+    youtube_url?: string;
+
+    @IsOptional()
+    @IsString()
+    tiktok_url?: string;
+
+    @IsOptional()
+    @IsString()
+    google_maps_url?: string;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    latitud?: number;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    longitud?: number;
 }
