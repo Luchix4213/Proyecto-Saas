@@ -91,7 +91,7 @@ export const OwnerStack = () => {
       <Stack.Screen name="CategoryForm" component={CategoryFormScreen} />
       <Stack.Screen name="BusinessSettings" component={BusinessSettingsScreen} />
       <Stack.Screen name="Subscription" component={SubscriptionScreen} />
-      <Stack.Screen name="Subscription" component={SubscriptionScreen} />
+
       <Stack.Screen name="Clients" component={ClientsScreen} />
       <Stack.Screen name="ClientForm" component={ClientFormScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />

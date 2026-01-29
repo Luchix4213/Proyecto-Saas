@@ -115,11 +115,15 @@ Implementaremos un esquema de **Navegación Condicional**:
   - [x] **Usuarios Globales**: Búsqueda de usuarios para soporte.
   - [x] **Audit Log**: Visor de actividad crítica del sistema.
 
-- [ ] **Consumidor (Public Portal)**:
-  - [ ] **Home Tienda**: Listado de productos destacados y categorías.
-  - [ ] **Detalle Producto**: Vista inmersiva con selección de variantes.
-  - [ ] **Carrito**: Resumen de orden y selección de entrega/retiro.
-  - [ ] **Checkout**: Integración de pagos y confirmación.
+- [x] **Consumidor (Public Portal)**:
+  - [x] **Home Tienda**: Listado de productos destacados y categorías (Storefront & Marketplace modes).
+  - [x] **Detalle Producto**: Vista inmersiva con favoritos y carrito.
+  - [x] **Carrito**: Resumen de orden y selección de entrega/retiro.
+  - [x] **Checkout**: Integración de pagos QR, validación de NIT y subida de comprobantes.
+  - [x] **Búsqueda (Search)**: Búsqueda global de tiendas y productos por categorías (Rubros).
+  - [x] **Perfil (Profile)**: Gestión de dirección y datos de facturación (persistencia local).
+  - [x] **Mis Pedidos**: Historial local de compras realizadas.
+  - [x] **Favoritos**: Lista de deseos persistente en dispositivo.
 
 ---
 
@@ -127,7 +131,7 @@ Implementaremos un esquema de **Navegación Condicional**:
 
 1.  **Refactor de Componentes**: Crear librerías de componentes reutilizables (`Card`, `Stat`, `Button`) que usen consistentemente el tema.
 2.  **Módulo de Ventas (Vendedor)**: Implementar el flujo de POS/Nueva Venta con búsqueda de productos y carrito (Prioridad Alta).
-3.  **Portal Público (E-commerce)**: Desarrollar la experiencia de compra para clientes finales.
+3.  ✅ **Portal Público (E-commerce)**: Experiencia de compra completa implementada (Home, Search, Cart, Checkout, Profile).
 
 ---
 
