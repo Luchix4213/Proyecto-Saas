@@ -1,22 +1,101 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
-import { Text, Surface, useTheme, IconButton } from 'react-native-paper';
+import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { Text, Surface, useTheme, IconButton, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { AestheticHeader } from '../../../components/v2/AestheticHeader';
-import { Bell, Info, AlertCircle, CheckCircle, X } from 'lucide-react-native';
+import { Bell, Info, AlertCircle, CheckCircle, X, ShoppingBag, Package } from 'lucide-react-native';
+import { productsService } from '../../../api/productsService';
+import { salesService } from '../../../api/salesService';
 
-// Mock data (replace with real service later)
-const MOCK_NOTIFICATIONS = [
-  { id: '1', title: 'Bienvenido de nuevo', message: 'Has iniciado sesión exitosamente.', type: 'info', time: 'Hace 5 min' },
-  { id: '2', title: 'Venta realizada', message: 'Se ha registrado una nueva venta #1234.', type: 'success', time: 'Hace 1 hora' },
-  { id: '3', title: 'Stock bajo', message: 'El producto "Coca Cola" se está agotando.', type: 'warning', time: 'Hace 2 horas' },
-];
+interface NotificationItem {
+    id: string;
+    title: string;
+    message: string;
+    type: 'info' | 'success' | 'warning' | 'error';
+    time: string;
+    rawDate?: Date;
+}
 
 export const NotificationsScreen = () => {
     const navigation = useNavigation();
     const theme = useTheme();
-    const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            loadNotifications();
+        }, [])
+    );
+
+    const loadNotifications = async () => {
+        try {
+            const today = new Date().toISOString().split('T')[0];
+
+            const [products, sales] = await Promise.all([
+                productsService.getAll(),
+                salesService.getAll({ inicio: today })
+            ]);
+
+            const newNotifications: NotificationItem[] = [];
+
+            // 1. Check Low Stock
+            products.forEach(p => {
+                if (p.stock_actual <= p.stock_minimo) {
+                    newNotifications.push({
+                        id: `stock-${p.producto_id}`,
+                        title: 'Stock Bajo',
+                        message: `El producto "${p.nombre}" tiene solo ${p.stock_actual} unidades.`,
+                        type: 'warning',
+                        time: 'Ahora',
+                        rawDate: new Date()
+                    });
+                }
+            });
+
+            // 2. Check Recent Sales
+            sales.forEach(s => {
+                const timeStr = new Date(s.fecha_venta).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                newNotifications.push({
+                    id: `sale-${s.venta_id}`,
+                    title: 'Nueva Venta',
+                    message: `Venta #${s.venta_id} registrada por Bs ${Number(s.total).toFixed(2)}.`,
+                    type: 'success',
+                    time: timeStr,
+                    rawDate: new Date(s.fecha_venta)
+                });
+            });
+
+            // Sort by recent
+            newNotifications.sort((a, b) => (b.rawDate?.getTime() || 0) - (a.rawDate?.getTime() || 0));
+
+            // Add Welcome if empty or just as a persistent info
+            if (newNotifications.length === 0) {
+                 newNotifications.push({
+                    id: 'welcome',
+                    title: 'Todo en orden',
+                    message: 'No hay alertas críticas ni ventas recientes hoy.',
+                    type: 'info',
+                    time: 'Ahora',
+                    rawDate: new Date()
+                });
+            }
+
+            setNotifications(newNotifications);
+        } catch (error) {
+            console.error('Error loading notifications', error);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadNotifications();
+    };
 
     const getIcon = (type: string) => {
         switch(type) {
@@ -31,7 +110,7 @@ export const NotificationsScreen = () => {
         setNotifications(prev => prev.filter(n => n.id !== id));
     };
 
-    const renderItem = ({ item }: { item: any }) => {
+    const renderItem = ({ item }: { item: NotificationItem }) => {
         const { icon: Icon, color, bg } = getIcon(item.type);
         return (
             <Surface style={styles.card} elevation={0}>
@@ -45,14 +124,24 @@ export const NotificationsScreen = () => {
                     </View>
                     <Text style={styles.message}>{item.message}</Text>
                 </View>
-                <IconButton
-                    icon={() => <X size={16} color="#94a3b8" />}
-                    onPress={() => handleDismiss(item.id)}
-                    style={{ margin: 0 }}
-                />
+                {item.id !== 'welcome' && (
+                    <IconButton
+                        icon={() => <X size={16} color="#94a3b8" />}
+                        onPress={() => handleDismiss(item.id)}
+                        style={{ margin: 0, width: 20, height: 20 }}
+                    />
+                )}
             </Surface>
         );
     };
+
+    if (loading && !refreshing) {
+        return (
+             <View style={{ flex: 1, backgroundColor: '#f8fafc', justifyContent: 'center' }}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+             </View>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -63,6 +152,7 @@ export const NotificationsScreen = () => {
                 keyExtractor={item => item.id}
                 renderItem={renderItem}
                 contentContainerStyle={styles.list}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
                 ListEmptyComponent={
                     <View style={styles.empty}>
                         <Bell size={48} color="#cbd5e1" />
@@ -97,9 +187,9 @@ const styles = StyleSheet.create({
     },
     content: { flex: 1, marginRight: 8 },
     header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-    title: { fontSize: 15, fontWeight: '700', color: '#1e293b' },
+    title: { fontSize: 13, fontWeight: '700', color: '#1e293b' },
     time: { fontSize: 11, color: '#94a3b8' },
-    message: { fontSize: 13, color: '#64748b', lineHeight: 20 },
+    message: { fontSize: 13, color: '#64748b', lineHeight: 18 },
     empty: { alignItems: 'center', marginTop: 100, gap: 16 },
     emptyText: { color: '#94a3b8', fontSize: 16, fontWeight: '600' }
 });

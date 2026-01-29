@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { AestheticHeader } from '../../../components/v2/AestheticHeader';
 import { Trash2, Minus, Plus, ArrowRight, ShoppingBag, XCircle } from 'lucide-react-native';
 import { useCartStore } from '../../../store/cartStore';
+import { getApiImageUrl } from '../../../utils/imageUtils';
 
 export const CartScreen = () => {
     const navigation = useNavigation<any>();
@@ -23,7 +24,7 @@ export const CartScreen = () => {
 
     const renderItem = ({ item }: { item: any }) => (
         <View style={styles.cartItem}>
-            <Image source={{ uri: item.imagen_url || 'https://via.placeholder.com/150' }} style={styles.itemImage} />
+            <Image source={{ uri: getApiImageUrl(item.imagen_url) || 'https://via.placeholder.com/150' }} style={styles.itemImage} />
             <View style={styles.itemDetails}>
                 <Text style={styles.itemName} numberOfLines={1}>{item.nombre}</Text>
                 <Text style={styles.itemPrice}>Bs {item.precio?.toFixed(2)}</Text>

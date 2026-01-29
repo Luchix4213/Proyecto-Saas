@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Search, MapPin, ArrowLeft, Clock, TrendingUp, X } from 'lucide-react-native';
 import { consumerService, PublicTenant } from '../../../api/consumerService';
 import { AestheticHeader } from '../../../components/v2/AestheticHeader';
+import { getApiImageUrl } from '../../../utils/imageUtils';
 
 export const SearchScreen = () => {
     const navigation = useNavigation<any>();
@@ -65,7 +66,7 @@ export const SearchScreen = () => {
             style={styles.resultItem}
             onPress={() => navigation.navigate('StoreHome', { tenantSlug: item.slug || item.tenant_id.toString(), tenantName: item.nombre_empresa })}
         >
-            <Image source={{ uri: item.logo_url || 'https://via.placeholder.com/60' }} style={styles.resultImage} />
+            <Image source={{ uri: getApiImageUrl(item.logo_url) || 'https://via.placeholder.com/60' }} style={styles.resultImage} />
             <View style={styles.resultInfo}>
                 <Text style={styles.resultTitle}>{item.nombre_empresa}</Text>
                 <Text style={styles.resultSubtitle}>{item.rubro || 'Comercio'}</Text>

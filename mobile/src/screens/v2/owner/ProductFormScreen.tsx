@@ -7,6 +7,7 @@ import { productsService, Product } from '../../../api/productsService';
 import { categoriesService, Category } from '../../../api/categoriesService';
 import { Package, Camera, Save, X, Tag, DollarSign, Layers, ChevronDown } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { getApiImageUrl } from '../../../utils/imageUtils';
 
 export const ProductFormScreen = () => {
   const navigation = useNavigation<any>();
@@ -17,15 +18,18 @@ export const ProductFormScreen = () => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [formData, setFormData] = useState<Partial<Product>>({
+  const [formData, setFormData] = useState<Partial<Product> & { stock?: number; imagen_url?: string }>({
     nombre: editingProduct?.nombre || '',
     descripcion: editingProduct?.descripcion || '',
     precio: editingProduct?.precio || 0,
-    stock: editingProduct?.stock || 0,
+    stock_actual: editingProduct?.stock_actual || 0,
     stock_minimo: editingProduct?.stock_minimo || 5,
     categoria_id: editingProduct?.categoria_id,
   });
   const [images, setImages] = useState<any[]>([]);
+
+  // Helper to handle legacy check
+  const principalImage = editingProduct?.imagenes?.find(i => i.es_principal)?.url || editingProduct?.imagenes?.[0]?.url;
 
   useEffect(() => {
     fetchCategories();
@@ -73,7 +77,7 @@ export const ProductFormScreen = () => {
         precio: formData.precio,
         categoria_id: formData.categoria_id,
         stock_minimo: formData.stock_minimo,
-        stock_actual: formData.stock, // Map frontend stock to backend stock_actual
+        stock_actual: formData.stock_actual, // Map frontend stock to backend stock_actual
       };
 
       // Remove undefined/null values if necessary, though optional fields are fine if undefined
@@ -138,9 +142,9 @@ export const ProductFormScreen = () => {
               </View>
             ))}
 
-            {editingProduct?.imagen_url && images.length === 0 && (
+            {principalImage && images.length === 0 && (
                  <View style={styles.imageWrapper}>
-                    <Image source={{ uri: editingProduct.imagen_url }} style={styles.image} />
+                    <Image source={{ uri: getApiImageUrl(principalImage) || '' }} style={styles.image} />
                  </View>
             )}
           </ScrollView>
@@ -201,8 +205,8 @@ export const ProductFormScreen = () => {
                 <TextInput
                     mode="outlined"
                     placeholder="0"
-                    value={formData.stock?.toString()}
-                    onChangeText={text => setFormData({...formData, stock: parseInt(text) || 0})}
+                    value={formData.stock_actual?.toString()}
+                    onChangeText={text => setFormData({...formData, stock_actual: parseInt(text) || 0})}
                     style={styles.input}
                     outlineStyle={styles.inputOutline}
                     keyboardType="numeric"

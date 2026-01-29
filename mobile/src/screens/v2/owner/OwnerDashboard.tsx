@@ -4,6 +4,8 @@ import { Text, useTheme, ActivityIndicator, Surface, IconButton } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AestheticHeader } from '../../../components/v2/AestheticHeader';
 import { reportsService, DashboardStats } from '../../../api/reportsService';
+import { tenantsService } from '../../../api/tenantsService';
+import { useAuthStore } from '../../../store/authStore';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import {
   TrendingUp,
@@ -22,16 +24,25 @@ export const OwnerDashboard = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [companyName, setCompanyName] = useState<string>('');
 
+  const { user } = useAuthStore();
   const theme = useTheme();
   const navigation = useNavigation<any>();
 
   const fetchStats = async () => {
     try {
-      const data = await reportsService.getDashboardStats();
-      setStats(data);
+      const [statsData, tenantData] = await Promise.all([
+        reportsService.getDashboardStats(),
+        user?.tenant_id ? tenantsService.getMyTenant() : Promise.resolve(null)
+      ]);
+
+      setStats(statsData);
+      if (tenantData) {
+        setCompanyName(tenantData.nombre_empresa);
+      }
     } catch (error) {
-      console.error('Error fetching dashboard stats', error);
+      console.error('Error fetching dashboard data', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -59,7 +70,10 @@ export const OwnerDashboard = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <AestheticHeader subtitle="Buenos días," />
+      <AestheticHeader
+        subtitle={companyName ? `Panel de ${companyName}` : "Panel de Gestión"}
+        title={user?.nombre_completo}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
@@ -114,10 +128,10 @@ export const OwnerDashboard = () => {
         <Text style={styles.sectionTitle}>Acciones Rápidas</Text>
         <View style={styles.actionGrid}>
             {[
+                { label: 'Nueva Venta', icon: ShoppingBag, screen: 'POSCatalog', color: '#16a34a' },
                 { label: 'Producto', icon: Plus, screen: 'ProductForm', color: '#6366f1' },
                 { label: 'Compra', icon: Store, screen: 'PurchaseForm', color: '#10b981' },
                 { label: 'Reportes', icon: Wallet, screen: 'StaffPerformance', color: '#f59e0b' },
-                { label: 'Clientes', icon: Users, screen: 'Clients', color: '#ec4899' },
             ].map((action, i) => (
                 <TouchableOpacity
                     key={i}

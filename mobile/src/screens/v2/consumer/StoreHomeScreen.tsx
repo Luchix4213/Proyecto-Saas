@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ShoppingCart, Store as StoreIcon, Clock, MapPin, Search, Heart } from 'lucide-react-native';
 import { consumerService, PublicTenant, PublicProduct, PublicCategory } from '../../../api/consumerService';
+import { productsService } from '../../../api/productsService';
+import { getApiImageUrl } from '../../../utils/imageUtils';
 import { useCartStore } from '../../../store/cartStore';
 
 export const StoreHomeScreen = () => {
@@ -47,7 +49,34 @@ export const StoreHomeScreen = () => {
                 setCategories(categoryData);
             } else {
                 const data = await consumerService.getFeaturedTenants(undefined, query);
-                setTenants(data);
+                // For Home, we want global products as well? The user asked for "products of any company" in home.
+                // Assuming "Home" means the initial screen where featured tenants are shown.
+                // Currently it shows tenants. User asked "en el inicio me cargue solo productos de cualquier empresa".
+                // So instead of featured tenants, we should show global products?
+                // The implementation plan says "Use getGlobalProducts".
+                // Converting this screen to show Products in the main view instead of Tenants.
+
+                const globalProducts = await productsService.getGlobalProducts(selectedCategoryId || undefined);
+                // Map Product[] to PublicProduct[]
+                const mappedProducts: PublicProduct[] = globalProducts.map(p => ({
+                    producto_id: p.producto_id,
+                    nombre: p.nombre,
+                    precio: p.precio,
+                    imagen_url: p.imagenes?.find(i => i.es_principal)?.url || p.imagenes?.[0]?.url || '',
+                    categoria_id: p.categoria_id,
+                    categoria: p.categoria ? {
+                        nombre: p.categoria.nombre,
+                    } : undefined,
+                    descripcion: p.descripcion || null,
+                    stock_actual: p.stock_actual,
+
+                    // Extra fields for navigation, we might need to cast or ignore TS warning if strict
+                    tenant_id: p.tenant?.tenant_id,
+                    tenant_slug: p.tenant?.slug,
+                } as unknown as PublicProduct); // Cast to include extra fields
+                setProducts(mappedProducts);
+                // cleaning tenants as we are showing products now
+                setTenants([]);
             }
         } catch (error) {
             console.error('Error loading data', error);
@@ -58,34 +87,17 @@ export const StoreHomeScreen = () => {
 
     // Data is already filtered by backend
     const filteredProducts = products;
-    const filteredTenants = tenants;
+    // const filteredTenants = tenants; // Unused if we show products
 
+    // Helper for images
+    const getImg = (url?: string | null) => getApiImageUrl(url) || 'https://via.placeholder.com/150';
+
+    // We don't need renderTenant if we are showing global products in home
+    /*
     const renderTenant = ({ item }: { item: PublicTenant }) => (
-        <TouchableOpacity
-            style={styles.tenantCardContainer}
-            onPress={() => navigation.push('StoreHome', { tenantSlug: item.slug || item.tenant_id.toString(), tenantName: item.nombre_empresa })}
-        >
-            <Surface style={styles.tenantCard} elevation={2}>
-                <Image
-                    source={{ uri: item.banner_url || 'https://via.placeholder.com/300x100' }}
-                    style={styles.tenantBanner}
-                    resizeMode="cover"
-                />
-                <View style={styles.tenantInfo}>
-                    <View style={styles.tenantHeader}>
-                         <Image
-                            source={{ uri: item.logo_url || 'https://via.placeholder.com/50' }}
-                            style={styles.tenantLogo}
-                        />
-                        <View style={{ flex: 1, marginLeft: 10 }}>
-                            <Text style={styles.tenantName}>{item.nombre_empresa}</Text>
-                            <Text style={styles.tenantCategory}>{item.rubro || 'Comercio General'}</Text>
-                        </View>
-                    </View>
-                </View>
-            </Surface>
-        </TouchableOpacity>
+         // ... existing code ...
     );
+    */
 
     const renderProduct = ({ item }: { item: PublicProduct }) => (
         <TouchableOpacity
@@ -96,7 +108,7 @@ export const StoreHomeScreen = () => {
             <Surface style={styles.productCard} elevation={1}>
                 <View style={styles.imageContainer}>
                     <Image
-                        source={{ uri: item.imagen_url || 'https://via.placeholder.com/150' }}
+                        source={{ uri: getImg(item.imagen_url) }}
                         style={styles.productImage}
                         resizeMode="cover"
                     />
@@ -248,22 +260,20 @@ export const StoreHomeScreen = () => {
                 ) : (
                     <View>
                         <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Comercios Cercanos</Text>
-                            <TouchableOpacity>
-                                <Text style={{ color: theme.colors.primary, fontSize: 12, fontWeight: '700' }}>Ver todo</Text>
-                            </TouchableOpacity>
+                            <Text style={styles.sectionTitle}>Explorar Mercado</Text>
                         </View>
                         <FlatList
-                            data={filteredTenants}
-                            renderItem={renderTenant}
-                            keyExtractor={item => item.tenant_id.toString()}
+                            data={filteredProducts}
+                            renderItem={renderProduct}
+                            keyExtractor={item => item.producto_id.toString()}
+                            numColumns={2}
                             scrollEnabled={false}
-                            contentContainerStyle={{ paddingHorizontal: 20 }}
+                            columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 20 }}
                             ListEmptyComponent={
                                 <View style={styles.emptyContainer}>
                                     <Search size={48} color="#e2e8f0" />
-                                    <Text style={styles.emptyTitle}>No encontramos tiendas</Text>
-                                    <Text style={styles.emptySubtitle}>Intenta con otros términos o categorías.</Text>
+                                    <Text style={styles.emptyTitle}>No encontramos productos</Text>
+                                    <Text style={styles.emptySubtitle}>Intenta con otros términos.</Text>
                                 </View>
                             }
                         />

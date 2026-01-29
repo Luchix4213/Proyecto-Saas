@@ -8,6 +8,8 @@ import { categoriesService, Category } from '../../../api/categoriesService';
 import { Package, AlertCircle, ChevronRight, Filter, Search, Tag } from 'lucide-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
+import { getApiImageUrl } from '../../../utils/imageUtils';
+
 export const InventoryScreen = () => {
   const navigation = useNavigation<any>();
   const [products, setProducts] = useState<Product[]>([]);
@@ -60,8 +62,12 @@ export const InventoryScreen = () => {
         onPress={() => navigation.navigate('ProductForm', { product: item })}
       >
         <View style={styles.imageContainer}>
+
           {item.imagenes && item.imagenes.length > 0 ? (
-            <Image source={{ uri: item.imagenes.find(img => img.es_principal)?.url || item.imagenes[0].url }} style={styles.productImage} />
+            <Image
+              source={{ uri: getApiImageUrl(item.imagenes.find(img => img.es_principal)?.url || item.imagenes[0].url) || '' }}
+              style={styles.productImage}
+            />
           ) : (
             <Package size={28} color="#94a3b8" />
           )}
