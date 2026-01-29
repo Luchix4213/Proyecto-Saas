@@ -117,7 +117,11 @@ export class ProductosService {
           OR: [
             { slug: tenantSlug },
             ...(isId ? [{ tenant_id: id }] : [])
-          ]
+          ],
+          // Only if tenant has sales enabled
+          plan: {
+               ventas_online: true
+          }
         },
         estado: 'ACTIVO',
         stock_actual: { gt: 0 },
@@ -134,7 +138,10 @@ export class ProductosService {
               estado: 'ACTIVO',
               stock_actual: { gt: 0 },
               tenant: {
-                  estado: 'ACTIVA' // Only active tenants
+                  estado: 'ACTIVA', // Only active tenants
+                  plan: {
+                      ventas_online: true
+                  }
               },
               ...(categoryId ? { categoria_id: categoryId } : {})
           },

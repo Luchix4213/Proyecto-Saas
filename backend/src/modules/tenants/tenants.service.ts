@@ -203,6 +203,10 @@ export class TenantsService {
       where: {
         estado: 'ACTIVA',
         email: { not: 'system@saas.com' }, // Exclude system tenant
+        // Only tenants with 'ventas_online' enabled in their plan
+        plan: {
+            ventas_online: true
+        },
         OR: [
           ...(rubro ? [{
             rubros: {

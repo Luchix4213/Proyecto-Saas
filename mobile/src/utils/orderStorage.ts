@@ -10,6 +10,18 @@ export interface LocalOrder {
     estado: string;
     store_name: string;
     store_slug: string;
+    items: Array<{
+        producto_id: number;
+        nombre: string;
+        precio: number;
+        cantidad: number;
+        imagen_url?: string;
+    }>;
+    details?: {
+        direccion: string;
+        metodo_entrega: string;
+        metodo_pago: string;
+    };
 }
 
 export const orderStorage = {

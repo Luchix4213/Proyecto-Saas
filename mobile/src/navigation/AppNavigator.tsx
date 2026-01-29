@@ -3,18 +3,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, View } from 'react-native';
 import { useAuthStore } from '../store/authStore';
-import { MainScreen } from '../screens/MainScreen';
 
-import { CatalogScreen } from '../screens/CatalogScreen';
-import { InventoryScreen } from '../screens/InventoryScreen';
-import { CartScreen } from '../screens/CartScreen';
-import { ClientsScreen } from '../screens/ClientsScreen';
+import { VendorStack } from './vendor/VendorStack';
+import { OwnerStack } from './owner/OwnerStack';
+import { AdminStack } from './admin/AdminStack';
 
-import { VendorStack } from './stacks/VendorStack';
-import { OwnerStack } from './stacks/OwnerStack';
-import { AdminStack } from './stacks/AdminStack';
-
-import { AuthStack } from './stacks/AuthStack';
+import { AuthStack } from './auth/AuthStack';
 
 const Stack = createNativeStackNavigator();
 
