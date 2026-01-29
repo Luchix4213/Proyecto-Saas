@@ -39,16 +39,7 @@ export class CreateVentaDto {
   @IsPositive()
   monto_recibido?: number;
 
-  @IsOptional()
-  @IsString()
-  nit_facturacion?: string;
 
-  @IsOptional()
-  @IsString()
-  razon_social?: string;
-
-  @IsOptional()
-  qr_pago?: string;
 
   @IsOptional()
   @IsEnum(TipoEntrega)

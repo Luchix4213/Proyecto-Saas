@@ -46,6 +46,7 @@ import { CheckoutPage } from './pages/marketplace/CheckoutPage';
 import { GlobalProductsPage } from './pages/marketplace/GlobalProductsPage';
 import { OwnerDashboardPage } from './pages/owner/OwnerDashboardPage';
 import { SellerDashboardPage } from './pages/seller/SellerDashboardPage';
+import { ConfirmationPage } from './pages/public/ConfirmationPage';
 
 // Dashboard route component to conditionally render based on role
 import { useAuth } from './context/AuthContext';
@@ -64,6 +65,11 @@ function App() {
             {/* ===================== */}
             {/* MARKETPLACE (PÚBLICO) */}
             {/* ===================== */}
+            {/* ===================== */}
+            {/* PUBLIC CONFIRMATION */}
+            {/* ===================== */}
+            <Route path="/pedidos/confirmar" element={<ConfirmationPage />} />
+
             <Route element={<MarketplaceLayout />}>
               <Route path="/" element={<LandingPage />} />
               <Route path="/stores" element={<LandingPage />} />

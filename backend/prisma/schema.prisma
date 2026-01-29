@@ -319,42 +319,38 @@ model Venta {
   fecha_venta      DateTime      @default(now())
   total            Decimal       @db.Decimal(10, 2)
   tipo_venta       TipoVenta     @default(FISICA)
-  tipo_entrega     TipoEntrega   @default(RECOJO) // Nuevo campo
+  tipo_entrega     TipoEntrega   @default(RECOJO)
   metodo_pago      MetodoPago    @default(EFECTIVO)
   estado_entrega   EstadoEntrega @default(PENDIENTE)
-  qr_pago          String? // URL o base64
   comprobante_pago String? // URL de la foto subida por el cliente
-  comprobante_pdf  String? // URL
+  comprobante_pdf  String? // URL del Recibo
   estado           EstadoVenta   @default(REGISTRADA)
   total_descuento  Decimal       @default(0) @db.Decimal(10, 2)
 
   // --- NUEVOS CAMPOS MÓDULO COMERCIAL ---
 
-  // 1. Facturación
-  estado_facturacion EstadoFacturacion @default(PENDIENTE)
-  nro_factura        String?
-  razon_social       String?
-  nit_facturacion    String?
-
-  // 2. Detalle de Pago
+  // 1. Detalle de Pago
   monto_recibido Decimal?  @db.Decimal(10, 2)
   cambio         Decimal?  @db.Decimal(10, 2)
-  transaccion_id String? // Para pagos online/tarjeta
   fecha_pago     DateTime?
 
-  // 3. Logística (E-commerce)
+  // 2. Logística (E-commerce)
   direccion_envio    String? // Texto o JSON
   ubicacion_maps     String? // Link de Google Maps
-  latitud            Decimal?  @db.Decimal(10, 8) // Nuevo campo
-  longitud           Decimal?  @db.Decimal(11, 8) // Nuevo campo
+  latitud            Decimal?  @db.Decimal(10, 8)
+  longitud           Decimal?  @db.Decimal(11, 8)
   costo_envio        Decimal?  @db.Decimal(10, 2)
-  observaciones      String?
-  codigo_seguimiento String?
-  courier            String?
   fecha_despacho     DateTime?
   fecha_entrega      DateTime?
 
-  // 4. Auditoría
+  // 4. Sistema de Confirmación (Delivery)
+  estado_confirmacion   EstadoConfirmacion @default(PENDIENTE)
+  token_confirmacion    String?            @unique
+  expiracion_confirmacion DateTime?
+  fecha_confirmacion    DateTime?
+  comentario_confirmacion String?
+
+  // 5. Auditoría
   usuario_venta_id Int? // Usuario que registró la venta (apunta a Usuario)
 
   detalles DetalleVenta[]
@@ -400,3 +396,12 @@ model AuditLog {
   @@index([tenant_id])
   @@index([usuario_id])
 }
+
+enum EstadoConfirmacion {
+  PENDIENTE
+  CONFIRMADO
+  RECLAMO
+  SIN_RESPUESTA
+}
+
+

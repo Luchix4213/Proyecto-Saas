@@ -17,10 +17,14 @@ export interface CreateVentaData {
     productos: { producto_id: number; cantidad: number; descuento?: number }[];
     tipo_venta: 'FISICA' | 'ONLINE';
     metodo_pago: 'EFECTIVO' | 'QR' | 'TRANSFERENCIA';
-    qr_pago?: string;
+    // qr_pago removed
     monto_recibido?: number;
-    nit_facturacion?: string;
-    razon_social?: string;
+
+    // Delivery fields (if needed for manual creation, but usually for Checkout)
+    tipo_entrega?: 'RECOJO' | 'DELIVERY';
+    latitud?: number;
+    longitud?: number;
+    costo_envio?: number;
 }
 
 export interface Venta {
@@ -35,10 +39,7 @@ export interface Venta {
     estado: 'REGISTRADA' | 'PAGADA' | 'CANCELADA';
 
     // Fiscal
-    estado_facturacion: 'PENDIENTE' | 'EMITIDA' | 'ANULADA';
-    nit_facturacion?: string;
-    razon_social?: string;
-    nro_factura?: string;
+    // Fiscal fields removed
     comprobante_pdf?: string;
     comprobante_pago?: string;
 
@@ -49,15 +50,16 @@ export interface Venta {
     fecha_pago?: string;
 
     // Logística
+    // Logística
+    tipo_entrega?: 'RECOJO' | 'DELIVERY';
     direccion_envio?: string;
     ubicacion_maps?: string;
+    latitud?: number;
+    longitud?: number;
     costo_envio?: number;
-    codigo_seguimiento?: string;
-    courier?: string;
     fecha_despacho?: string;
     fecha_entrega?: string;
     estado_entrega: 'PENDIENTE' | 'EN_CAMINO' | 'ENTREGADO';
-    observaciones?: string;
 
     cliente?: {
         nombre: string;
@@ -84,6 +86,22 @@ export const salesService = {
         return response.data;
     },
 
+    // Public Confirmation Methods
+    verifyToken: async (token: string) => {
+        const response = await api.get(`/public/ventas/verify-token?token=${token}`);
+        return response.data;
+    },
+
+    confirmDelivery: async (token: string, status: 'CONFIRMADO' | 'RECLAMO', comment?: string) => {
+        const response = await api.post('/public/ventas/confirm', { token, status, comment });
+        return response.data;
+    },
+
+    requestConfirmation: async (ventaId: number) => {
+        const response = await api.post(`/ventas/${ventaId}/solicitar-confirmacion`);
+        return response.data;
+    },
+
     create: async (data: CreateVentaData) => {
         const response = await api.post<Venta>('/ventas', data);
         return response.data;
@@ -94,8 +112,5 @@ export const salesService = {
         return response.data;
     },
 
-    emitInvoice: async (id: number) => {
-        const response = await api.patch<Venta>(`/ventas/${id}/emitir-factura`);
-        return response.data;
-    }
+
 };

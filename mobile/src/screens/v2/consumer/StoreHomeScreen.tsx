@@ -58,22 +58,24 @@ export const StoreHomeScreen = () => {
 
                 const globalProducts = await productsService.getGlobalProducts(selectedCategoryId || undefined);
                 // Map Product[] to PublicProduct[]
-                const mappedProducts: PublicProduct[] = globalProducts.map(p => ({
-                    producto_id: p.producto_id,
-                    nombre: p.nombre,
-                    precio: p.precio,
-                    imagen_url: p.imagenes?.find(i => i.es_principal)?.url || p.imagenes?.[0]?.url || '',
-                    categoria_id: p.categoria_id,
-                    categoria: p.categoria ? {
-                        nombre: p.categoria.nombre,
-                    } : undefined,
-                    descripcion: p.descripcion || null,
-                    stock_actual: p.stock_actual,
+                const mappedProducts: PublicProduct[] = globalProducts.map(p => {
+                    return {
+                        producto_id: p.producto_id,
+                        nombre: p.nombre,
+                        precio: p.precio,
+                        imagen_url: p.imagenes?.find(i => i.es_principal)?.url || p.imagenes?.[0]?.url || '',
+                        categoria_id: p.categoria_id,
+                        categoria: p.categoria ? {
+                            nombre: p.categoria.nombre,
+                        } : undefined,
+                        descripcion: p.descripcion || null,
+                        stock_actual: p.stock_actual,
 
-                    // Extra fields for navigation, we might need to cast or ignore TS warning if strict
-                    tenant_id: p.tenant?.tenant_id,
-                    tenant_slug: p.tenant?.slug,
-                } as unknown as PublicProduct); // Cast to include extra fields
+                        // Extra fields for navigation
+                        tenant_id: p.tenant?.tenant_id,
+                        tenant_slug: p.tenant?.slug,
+                    } as unknown as PublicProduct;
+                });
                 setProducts(mappedProducts);
                 // cleaning tenants as we are showing products now
                 setTenants([]);
@@ -204,14 +206,14 @@ export const StoreHomeScreen = () => {
 
             {/* Search Section */}
             <TouchableOpacity style={styles.searchSection} onPress={() => navigation.navigate('SearchTab')} activeOpacity={0.9}>
-                    <Searchbar
-                        placeholder={isStorefront ? `Buscar en ${tenantName}...` : "Buscar tiendas..."}
-                        onChangeText={setSearchQuery}
-                        value={searchQuery}
-                        style={{ backgroundColor: 'white', elevation: 0, borderWidth: 1, borderColor: '#f1f5f9' }}
-                        inputStyle={{ fontSize: 14 }}
-                        iconColor={theme.colors.primary}
-                    />
+                <Searchbar
+                    placeholder={isStorefront ? `Buscar en ${tenantName}...` : "Buscar tiendas..."}
+                    onChangeText={setSearchQuery}
+                    value={searchQuery}
+                    style={{ backgroundColor: 'white', elevation: 0, borderWidth: 1, borderColor: '#f1f5f9' }}
+                    inputStyle={{ fontSize: 14 }}
+                    iconColor={theme.colors.primary}
+                />
             </TouchableOpacity>
 
             {/* Content */}

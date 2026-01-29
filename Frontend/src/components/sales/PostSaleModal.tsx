@@ -53,8 +53,8 @@ export const PostSaleModal: React.FC<PostSaleModalProps> = ({ sale, onClose, onN
                                         <Printer size={24} />
                                     </div>
                                     <div className="text-left">
-                                        <p className="font-bold text-slate-800 text-lg group-hover:text-emerald-700">Imprimir Comprobante</p>
-                                        <p className="text-xs text-slate-500 font-medium">Ticket / Factura</p>
+                                        <p className="font-bold text-slate-800 text-lg group-hover:text-emerald-700">Imprimir Recibo</p>
+                                        <p className="text-xs text-slate-500 font-medium">Comprobante de Venta</p>
                                     </div>
                                 </div>
                                 <ArrowRight size={20} className="text-slate-300 group-hover:text-emerald-500 transform group-hover:translate-x-1 transition-all" />
@@ -65,7 +65,7 @@ export const PostSaleModal: React.FC<PostSaleModalProps> = ({ sale, onClose, onN
 
                         {/* Primary Actions */}
                         <div className="grid grid-cols-2 gap-4">
-                             <Link
+                            <Link
                                 to="/app/ventas/historial"
                                 className="flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors"
                             >

@@ -146,10 +146,11 @@ export class VentasController {
     res.send(buffer);
   }
 
-  @Patch(':id/emitir-factura')
+
+  @Post(':id/solicitar-confirmacion')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(RolUsuario.PROPIETARIO, RolUsuario.ADMIN, RolUsuario.VENDEDOR)
-  emitInvoice(@Request() req, @Param('id') id: string) {
-    return this.ventasService.emitInvoice(+id, req.user.tenant_id);
+  requestConfirmation(@Param('id') id: string) {
+    return this.ventasService.sendConfirmationRequest(+id);
   }
 }

@@ -2,7 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateVentaDto } from './dto/create-venta.dto';
 import { CheckoutDto } from './dto/checkout.dto';
-import { EstadoEntrega, EstadoFacturacion, EstadoGenerico, EstadoVenta, TipoVenta, TipoEntrega } from '@prisma/client';
+import { EstadoEntrega, EstadoGenerico, EstadoVenta, TipoVenta, TipoEntrega, EstadoConfirmacion } from '@prisma/client';
+import { randomBytes } from 'crypto';
 import { VentasPdfService } from './ventas-pdf.service';
 import { EmailService } from '../../common/services/email.service';
 import { CapacidadService } from '../suscripciones/capacidad.service';
@@ -91,8 +92,8 @@ export class VentasService {
   }
 
   async create(tenantId: number, userId: number, createVentaDto: CreateVentaDto) {
-    const { cliente_id, productos, tipo_venta, metodo_pago, qr_pago,
-      monto_recibido, nit_facturacion, razon_social } = createVentaDto;
+    const { cliente_id, productos, tipo_venta, metodo_pago,
+      monto_recibido, tipo_entrega, latitud, longitud, direccion_envio, ubicacion_maps } = createVentaDto;
 
     const nuevaVenta = await this.prisma.$transaction(async (prisma) => {
       let totalVenta = 0;
@@ -137,6 +138,14 @@ export class VentasService {
         });
       }
 
+
+      // Delivery Cost Logic
+      let costoEnvio = 0;
+      if (tipo_entrega === TipoEntrega.DELIVERY) {
+        costoEnvio = 50;
+        totalVenta += costoEnvio;
+      }
+
       // 3. Crear Venta
       return await prisma.venta.create({
         data: {
@@ -145,13 +154,15 @@ export class VentasService {
           cliente_id: cliente_id || null,
           tipo_venta: tipo_venta,
           metodo_pago: metodo_pago,
-          qr_pago: qr_pago,
+          tipo_entrega: tipo_entrega,
+          costo_envio: costoEnvio,
+          latitud: latitud ? Number(latitud) : null,
+          longitud: longitud ? Number(longitud) : null,
+          direccion_envio: direccion_envio,
+          ubicacion_maps: ubicacion_maps,
           // Nuevos campos comerciales
           monto_recibido: monto_recibido ? Number(monto_recibido) : null,
           cambio: (monto_recibido && totalVenta) ? Number(monto_recibido) - totalVenta : null,
-          nit_facturacion: nit_facturacion,
-          razon_social: razon_social,
-          estado_facturacion: EstadoFacturacion.PENDIENTE,
           usuario_venta_id: userId,
 
           total: totalVenta,
@@ -316,7 +327,7 @@ export class VentasService {
 
   async createOnlineSale(tenantId: number, clienteId: number | null, checkoutDto: CheckoutDto) {
     const { productos, metodo_pago, nombre, email, nit_ci,
-      direccion_envio, ubicacion_maps, latitud, longitud, costo_envio, nit_facturacion, razon_social } = checkoutDto;
+      direccion_envio, ubicacion_maps, latitud, longitud, costo_envio, tipo_entrega } = checkoutDto;
 
     const tieneAcceso = await this.capacidadService.verificarAcceso(tenantId, 'ventas_online');
     if (!tieneAcceso) {
@@ -411,15 +422,12 @@ export class VentasService {
 
 
           // Nuevos campos comerciales (Logística y Facturación)
-          tipo_entrega: checkoutDto.tipo_entrega as any, // Cast to any to avoid strict enum issues if import missing, or use proper Enum if available. checkoutDto usually has string.
+          tipo_entrega: tipo_entrega as any,
           direccion_envio: direccion_envio,
           ubicacion_maps: ubicacion_maps,
           latitud: latitud ? Number(latitud) : null,
           longitud: longitud ? Number(longitud) : null,
           costo_envio: costo_envio ? Number(costo_envio) : null,
-          nit_facturacion: nit_facturacion,
-          razon_social: razon_social,
-          estado_facturacion: EstadoFacturacion.PENDIENTE,
           fecha_despacho: null,
           fecha_entrega: null,
 
@@ -493,8 +501,6 @@ export class VentasService {
               <h1>¡Tu pedido está en camino!</h1>
               <p>Hola ${venta.cliente.nombre},</p>
               <p>Tu pedido #${ventaId} ha salido de nuestra tienda y está en camino a tu dirección.</p>
-              ${venta.courier ? `<p>Courier: ${venta.courier}</p>` : ''}
-              ${venta.codigo_seguimiento ? `<p>Tracking: ${venta.codigo_seguimiento}</p>` : ''}
               <p>Gracias por comprar en <strong>${venta.tenant.nombre_empresa}</strong>.</p>
             `;
         await this.emailService.sendEmail(
@@ -519,29 +525,7 @@ export class VentasService {
     });
   }
 
-  async emitInvoice(ventaId: number, tenantId: number) {
-    const venta = await this.prisma.venta.findFirst({
-      where: { venta_id: ventaId, tenant_id: tenantId }
-    });
 
-    if (!venta) throw new NotFoundException('Venta no encontrada');
-
-    const updated = await this.prisma.venta.update({
-      where: { venta_id: ventaId },
-      data: {
-        estado_facturacion: EstadoFacturacion.EMITIDA,
-        // Generate a dummy invoice number if not present? Or assume SIAT integration later.
-        // For now just update status as requested.
-      }
-    });
-
-    // Regenerate PDF to Reflect "FACTURA" title
-    // Don't resend email for now (or maybe we should? "Your Invoice is ready")
-    // For now, no email to keep it simple.
-    await this.generateAndSavePdf(ventaId, tenantId, false);
-
-    return updated;
-  }
 
   async getPdf(ventaId: number, tenantId: number): Promise<Buffer> {
     const venta = await this.prisma.venta.findFirst({
@@ -559,5 +543,123 @@ export class VentasService {
     // Force type casting or ensure types align, VentasPdfService expects VentaWithDetails
     // which aligns with the include above.
     return this.ventasPdfService.generateSalePdf(venta as any);
+  }
+  async generateConfirmationToken(ventaId: number) {
+    const token = randomBytes(32).toString('hex');
+    // Expire in 72 hours
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 72);
+
+    return this.prisma.venta.update({
+      where: { venta_id: ventaId },
+      data: {
+        token_confirmacion: token,
+        expiracion_confirmacion: expires,
+        estado_confirmacion: EstadoConfirmacion.PENDIENTE
+      }
+    });
+  }
+
+  async sendConfirmationRequest(ventaId: number) {
+    const venta = await this.prisma.venta.findUnique({
+      where: { venta_id: ventaId },
+      include: { cliente: true, tenant: true }
+    });
+
+    if (!venta || !venta.cliente?.email) {
+      throw new BadRequestException('Venta sin cliente o email no disponible');
+    }
+
+    const updated = await this.generateConfirmationToken(ventaId);
+
+    // Construct public link (adjust domain as needed, using localhost for dev)
+    const link = `http://localhost:5173/pedidos/confirmar?token=${updated.token_confirmacion}`;
+
+    const html = `
+      <h1>¿Recibiste tu pedido?</h1>
+      <p>Hola ${venta.cliente.nombre},</p>
+      <p>Tu pedido #${ventaId} ha sido marcado como enviado/entregado.</p>
+      
+      <div style="margin: 24px 0;">
+        <a href="${link}" style="background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+          ✅ Sí, recibí todo correctamente
+        </a>
+      </div>
+
+      <p>¿Hubo algún problema?</p>
+      <p><a href="${link}" style="color: #64748b;">Reportar un problema</a></p>
+
+      <p style="font-size: 12px; color: #94a3b8; margin-top: 24px;">
+        Este enlace expirará en 72 horas.
+      </p>
+    `;
+
+    try {
+      await this.emailService.sendEmail(
+        venta.cliente.email,
+        `Confirma la entrega de tu pedido #${ventaId}`,
+        html
+      );
+    } catch (e) {
+      console.error('Error sending confirmation email:', e);
+      throw new BadRequestException('Error al enviar correo');
+    }
+
+    return { success: true, message: 'Solicitud de confirmación enviada' };
+  }
+
+  async validateConfirmationToken(token: string) {
+    const venta = await this.prisma.venta.findFirst({
+      where: { token_confirmacion: token },
+      include: { cliente: true, tenant: true, detalles: { include: { producto: true } } }
+    });
+
+    if (!venta) throw new NotFoundException('Pedido no encontrado');
+
+    const now = new Date();
+    if (venta.expiracion_confirmacion && venta.expiracion_confirmacion < now) {
+      throw new BadRequestException('El enlace de confirmación ha expirado');
+    }
+
+    if (venta.estado_confirmacion !== EstadoConfirmacion.PENDIENTE) {
+      // Already processed, still return info but maybe flag it?
+      // For simple UX, just return data, frontend handles "Already confirmed" message
+    }
+
+    return {
+      venta_id: venta.venta_id,
+      cliente: `${venta.cliente?.nombre} ${venta.cliente?.paterno || ''}`.trim(),
+      total: venta.total,
+      fecha: venta.fecha_venta,
+      items: venta.detalles.length,
+      estado_confirmacion: venta.estado_confirmacion,
+      tenant_nombre: venta.tenant.nombre_empresa
+    };
+  }
+
+  async processConfirmation(token: string, status: EstadoConfirmacion, comment?: string) {
+    const venta = await this.prisma.venta.findFirst({
+      where: { token_confirmacion: token }
+    });
+
+    if (!venta) throw new NotFoundException('Pedido no encontrado');
+
+    // Logic: If CONFIRMADO, we allow auto-updating delivery status
+    let updateData: any = {
+      estado_confirmacion: status,
+      fecha_confirmacion: new Date(),
+      comentario_confirmacion: comment
+    };
+
+    if (status === EstadoConfirmacion.CONFIRMADO) {
+      updateData.estado_entrega = EstadoEntrega.ENTREGADO;
+      // Optionally update payment status if it was "pay on delivery"? 
+      // updateData.estado = EstadoVenta.PAGADA; // Uncomment if desired
+    }
+
+    return this.prisma.venta.update({
+      where: { venta_id: venta.venta_id },
+      data: updateData
+    });
   }
 }

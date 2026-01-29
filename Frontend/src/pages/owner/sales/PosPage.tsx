@@ -107,8 +107,7 @@ export const PosPage = () => {
                 cliente_id: data.client?.cliente_id,
                 // New Commercial Fields
                 monto_recibido: data.montoRecibido,
-                nit_facturacion: data.nitFacturacion,
-                razon_social: data.razonSocial,
+
                 productos: cart.map(item => ({
                     producto_id: item.producto_id,
                     cantidad: item.cartQuantity,

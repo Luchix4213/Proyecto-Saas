@@ -3,7 +3,7 @@ import {
     Search, Calendar, ShoppingBag,
     Monitor, User, Eye,
     RefreshCw, X, Package,
-    FileText, MapPin, Truck, Banknote
+    FileText, MapPin, Truck, Banknote, Send
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AestheticHeader } from '../../../components/common/AestheticHeader';
@@ -57,6 +57,16 @@ export const SalesHistoryPage = () => {
         }
     };
 
+    const handleEmailConfirmation = async (saleId: number) => {
+        try {
+            await salesService.requestConfirmation(saleId);
+            addToast('Solicitud de confirmación enviada', 'success');
+        } catch (error) {
+            console.error(error);
+            addToast('Error al enviar solicitud', 'error');
+        }
+    };
+
     const filteredSales = sales.filter(s =>
         s.venta_id.toString().includes(searchTerm) ||
         (s.cliente?.nombre && s.cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -89,11 +99,10 @@ export const SalesHistoryPage = () => {
                             <button
                                 key={type}
                                 onClick={() => setFilterType(type)}
-                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all ${
-                                    filterType === type
+                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-bold transition-all ${filterType === type
                                     ? 'bg-white text-slate-900 shadow-md border border-slate-200/50'
                                     : 'text-slate-500 hover:text-slate-700'
-                                }`}
+                                    }`}
                             >
                                 {type === 'FISICA' ? <Monitor size={14} /> : type === 'ONLINE' ? <ShoppingBag size={14} /> : null}
                                 {type === 'FISICA' ? 'Venta Física' : type === 'ONLINE' ? 'Pedido Online' : 'Todo'}
@@ -130,7 +139,7 @@ export const SalesHistoryPage = () => {
             {/* Main Content Area */}
             <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-slate-100 overflow-hidden min-h-[500px]">
                 <div className="p-8 border-b border-slate-100">
-                     <div className="relative w-full group">
+                    <div className="relative w-full group">
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={22} />
                         <input
                             type="text"
@@ -196,21 +205,19 @@ export const SalesHistoryPage = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-6 text-center">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                                sale.tipo_venta === 'FISICA'
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${sale.tipo_venta === 'FISICA'
                                                 ? 'bg-amber-100 text-amber-700'
                                                 : 'bg-indigo-100 text-indigo-700'
-                                            }`}>
+                                                }`}>
                                                 {sale.tipo_venta === 'FISICA' ? <Monitor size={10} /> : <ShoppingBag size={10} />}
                                                 {sale.tipo_venta === 'FISICA' ? 'Física' : 'Online'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-6 text-center">
-                                            <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                                                sale.estado === 'PAGADA' ? 'bg-emerald-100 text-emerald-700' :
+                                            <span className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${sale.estado === 'PAGADA' ? 'bg-emerald-100 text-emerald-700' :
                                                 sale.estado === 'CANCELADA' ? 'bg-red-100 text-red-700' :
-                                                'bg-amber-100 text-amber-700'
-                                            }`}>
+                                                    'bg-amber-100 text-amber-700'
+                                                }`}>
                                                 {sale.estado}
                                             </span>
                                         </td>
@@ -309,20 +316,14 @@ export const SalesHistoryPage = () => {
                                                     </p>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <span className="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded-lg border border-slate-200">
-                                                            NIT: {selectedSale.nit_facturacion || selectedSale.cliente?.nit_ci || 'S/N'}
+                                                            NIT/CI: {selectedSale.cliente?.nit_ci || 'S/N'}
                                                         </span>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${
-                                                    selectedSale.estado_facturacion === 'EMITIDA' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-500'
-                                                }`}>
-                                                    <FileText size={12} />
-                                                    {selectedSale.estado_facturacion || 'PENDIENTE'}
-                                                </span>
-                                                <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-100">
+                                                <div className="flex flex-wrap gap-2">
                                                     {selectedSale.comprobante_pago && (
                                                         <button
                                                             onClick={() => {
@@ -343,27 +344,8 @@ export const SalesHistoryPage = () => {
                                                             className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 transition-colors"
                                                         >
                                                             <FileText size={14} />
-                                                            {selectedSale.estado_facturacion === 'EMITIDA' ? 'Ver Factura' : 'Ver Recibo'}
+                                                            Ver Recibo
                                                         </a>
-                                                    )}
-
-                                                    {selectedSale.estado_facturacion !== 'EMITIDA' && (
-                                                        <button
-                                                            onClick={async () => {
-                                                                try {
-                                                                    const updated = await salesService.emitInvoice(selectedSale.venta_id);
-                                                                    setSelectedSale(updated);
-                                                                    setSales(prev => prev.map(s => s.venta_id === updated.venta_id ? updated : s));
-                                                                    addToast('Factura emitida exitosamente', 'success');
-                                                                } catch (e) {
-                                                                    console.error(e);
-                                                                    addToast('Error al emitir factura', 'error');
-                                                                }
-                                                            }}
-                                                            className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg hover:bg-indigo-100 border border-indigo-100 transition-colors"
-                                                        >
-                                                            <FileText size={14} /> Emitir Factura
-                                                        </button>
                                                     )}
                                                 </div>
                                             </div>
@@ -372,21 +354,19 @@ export const SalesHistoryPage = () => {
                                         <div className="bg-slate-50 rounded-2xl p-4 flex items-center justify-between">
                                             <div>
                                                 <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Estado Venta</p>
-                                                <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                                                    selectedSale.estado === 'PAGADA' ? 'bg-emerald-100 text-emerald-700' :
+                                                <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-black uppercase tracking-wider ${selectedSale.estado === 'PAGADA' ? 'bg-emerald-100 text-emerald-700' :
                                                     selectedSale.estado === 'CANCELADA' ? 'bg-red-100 text-red-700' :
-                                                    'bg-amber-100 text-amber-700'
-                                                }`}>
+                                                        'bg-amber-100 text-amber-700'
+                                                    }`}>
                                                     {selectedSale.estado}
                                                 </span>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Canal</p>
-                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${
-                                                    selectedSale.tipo_venta === 'FISICA'
+                                                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${selectedSale.tipo_venta === 'FISICA'
                                                     ? 'bg-amber-100 text-amber-700'
                                                     : 'bg-indigo-100 text-indigo-700'
-                                                }`}>
+                                                    }`}>
                                                     {selectedSale.tipo_venta === 'FISICA' ? <Monitor size={12} /> : <ShoppingBag size={12} />}
                                                     {selectedSale.tipo_venta === 'FISICA' ? 'Física' : 'Online'}
                                                 </span>
@@ -429,6 +409,12 @@ export const SalesHistoryPage = () => {
                                                         {selectedSale.direccion_envio || 'Recogida en tienda'}
                                                     </p>
                                                 </div>
+                                                {selectedSale.costo_envio && (
+                                                    <div className="mb-3 flex justify-between items-center">
+                                                        <p className="text-sm font-medium text-slate-600">Costo Envío</p>
+                                                        <p className="text-sm font-bold text-slate-800">BOB {Number(selectedSale.costo_envio).toFixed(2)}</p>
+                                                    </div>
+                                                )}
                                                 {selectedSale.ubicacion_maps && (
                                                     <a
                                                         href={selectedSale.ubicacion_maps}
@@ -439,6 +425,15 @@ export const SalesHistoryPage = () => {
                                                         <MapPin size={12} /> Ver en Mapa
                                                     </a>
                                                 )}
+                                                {/* Confirmation Trigger */}
+                                                <div className="mt-3">
+                                                    <button
+                                                        onClick={() => handleEmailConfirmation(selectedSale.venta_id)}
+                                                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-white border border-indigo-200 text-indigo-700 rounded-xl text-xs font-bold hover:bg-indigo-50 transition-all shadow-sm"
+                                                    >
+                                                        <Send size={14} /> Solicitar Confirmación de Entrega
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -501,7 +496,7 @@ export const SalesHistoryPage = () => {
                 onClose={() => setIsPreviewOpen(false)}
                 altText={selectedSale ? `Comprobante Venta #${selectedSale.venta_id}` : ''}
             />
-        </div>
+        </div >
     );
 };
 

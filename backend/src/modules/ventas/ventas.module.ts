@@ -9,9 +9,11 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { AutenticacionModule } from '../autenticacion/autenticacion.module';
 import { SuscripcionesModule } from '../suscripciones/suscripciones.module';
 
+import { PublicVentasController } from './public-ventas.controller';
+
 @Module({
   imports: [ConfigModule, PrismaModule, AutenticacionModule, SuscripcionesModule],
-  controllers: [VentasController],
+  controllers: [VentasController, PublicVentasController],
   providers: [VentasService, VentasPdfService, EmailService],
   exports: [VentasService],
 })

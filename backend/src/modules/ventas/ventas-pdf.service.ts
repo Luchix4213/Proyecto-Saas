@@ -13,7 +13,7 @@ type VentaWithDetails = Venta & {
 export class VentasPdfService {
     async generateSalePdf(venta: VentaWithDetails): Promise<Buffer> {
         const isOnline = venta.tipo_venta === 'ONLINE';
-        const isFactura = venta.estado_facturacion === 'EMITIDA';
+        const isFactura = false; // Facturación eliminada
 
         const pdfBuffer: Buffer = await new Promise((resolve) => {
             const doc = new PDFDocument({
@@ -73,8 +73,8 @@ export class VentasPdfService {
             .font('Helvetica-Bold')
             .text('CLIENTE:', 50, 180)
             .font('Helvetica')
-            .text(venta.razon_social || venta.cliente?.nombre || 'General', 50, 195)
-            .text(`NIT/CI: ${venta.nit_facturacion || venta.cliente?.nit_ci || 'S/N'}`, 50, 208)
+            .text(venta.cliente?.nombre || 'General', 50, 195)
+            .text(`NIT/CI: ${venta.cliente?.nit_ci || 'S/N'}`, 50, 208)
             .text(`Fecha: ${new Date(venta.fecha_venta).toLocaleDateString()}`, 50, 221);
 
         this.generateA4Table(doc, venta);
@@ -86,13 +86,7 @@ export class VentasPdfService {
     }
 
     private drawFiscalBoxA4(doc: PDFKit.PDFDocument, venta: VentaWithDetails) {
-        doc.roundedRect(350, 120, 200, 80, 10).strokeColor('#e2e8f0').stroke();
-        doc
-            .fontSize(9)
-            .fillColor('#475569')
-            .text('NIT:', 365, 135).text('1020304050', 440, 135)
-            .text('Nro. Factura:', 365, 150).text(venta.nro_factura || `00${venta.venta_id}`, 440, 150)
-            .text('Autorización:', 365, 165).text('3484019000', 440, 165);
+        // Deprecated
     }
 
     private generateA4Table(doc: PDFKit.PDFDocument, venta: VentaWithDetails) {
@@ -149,7 +143,7 @@ export class VentasPdfService {
                 .fontSize(7)
                 .font('Helvetica')
                 .text(`NIT: 1020304050`, { align: 'center' })
-                .text(`NRO: ${venta.nro_factura || '00' + venta.venta_id}`, { align: 'center' })
+                .text(`NRO: ${'00' + venta.venta_id}`, { align: 'center' })
                 .moveDown(0.5);
         } else {
             doc
@@ -165,8 +159,8 @@ export class VentasPdfService {
         doc.text('-------------------------------------------', { align: 'center' });
 
         // Handle Anonymous Client Logic
-        let clienteNombre = venta.razon_social || venta.cliente?.nombre || 'SIN NOMBRE';
-        let clienteNit = venta.nit_facturacion || venta.cliente?.nit_ci || '0';
+        let clienteNombre = venta.cliente?.nombre || 'SIN NOMBRE';
+        let clienteNit = venta.cliente?.nit_ci || '0';
 
         doc.text(`Cliente: ${clienteNombre}`, { align: 'left' });
         doc.text(`NIT/CI: ${clienteNit}`, { align: 'left' });
