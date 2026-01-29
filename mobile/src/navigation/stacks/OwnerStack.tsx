@@ -20,6 +20,9 @@ import { ClientsScreen } from '../../screens/v2/owner/ClientsScreen';
 import { LayoutDashboard, Package, ShoppingBag, Menu } from 'lucide-react-native';
 import { ClientFormScreen } from '../../screens/v2/owner/ClientFormScreen';
 import { NotificationsScreen } from '../../screens/v2/owner/NotificationsScreen';
+import { POSCatalogScreen } from '../../screens/v2/sales/POSCatalogScreen';
+import { POSCartScreen } from '../../screens/v2/sales/POSCartScreen';
+import { POSCheckoutScreen } from '../../screens/v2/sales/POSCheckoutScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -95,6 +98,11 @@ export const OwnerStack = () => {
       <Stack.Screen name="Clients" component={ClientsScreen} />
       <Stack.Screen name="ClientForm" component={ClientFormScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
+
+      {/* POS / Sales Module */}
+      <Stack.Screen name="POSCatalog" component={POSCatalogScreen} />
+      <Stack.Screen name="POSCart" component={POSCartScreen} />
+      <Stack.Screen name="POSCheckout" component={POSCheckoutScreen} />
     </Stack.Navigator>
   );
 };

@@ -6,6 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Camera, Save, MapPin, Phone, Mail, Store } from 'lucide-react-native';
 import { tenantsService, Tenant } from '../../../api/tenantsService';
 import * as ImagePicker from 'expo-image-picker';
+import { getApiImageUrl } from '../../../utils/imageUtils';
 import { AestheticHeader } from '../../../components/v2/AestheticHeader';
 
 export const BusinessSettingsScreen = () => {
@@ -36,10 +37,7 @@ export const BusinessSettingsScreen = () => {
             setEmail(data.email || '');
 
             if (data.logo_url) {
-                const fullUrl = data.logo_url.startsWith('http')
-                    ? data.logo_url
-                    : `${process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000'}${data.logo_url}`;
-                setLogo(fullUrl);
+                setLogo(getApiImageUrl(data.logo_url));
             }
         } catch (error) {
             console.error(error);

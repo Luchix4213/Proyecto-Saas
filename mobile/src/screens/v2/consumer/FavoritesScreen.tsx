@@ -7,6 +7,7 @@ import { Heart, ArrowLeft, ShoppingBag } from 'lucide-react-native';
 import { AestheticHeader } from '../../../components/v2/AestheticHeader';
 
 import { useFavoritesStore, FavoriteItem } from '../../../store/favoritesStore';
+import { getApiImageUrl } from '../../../utils/imageUtils';
 
 export const FavoritesScreen = () => {
     const navigation = useNavigation<any>();
@@ -15,7 +16,7 @@ export const FavoritesScreen = () => {
 
     const renderFavoriteItem = ({ item }: { item: FavoriteItem }) => (
         <Surface style={styles.card} elevation={1}>
-            <Image source={{ uri: item.image }} style={styles.image} />
+            <Image source={{ uri: getApiImageUrl(item.image) || 'https://via.placeholder.com/150' }} style={styles.image} />
             <View style={styles.info}>
                 <Text style={styles.name}>{item.name}</Text>
                 <Text style={styles.store}>{item.store}</Text>

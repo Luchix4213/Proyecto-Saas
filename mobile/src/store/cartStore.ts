@@ -7,6 +7,7 @@ interface CartItem {
   cantidad: number;
   imagen_url?: string;
   tenant_slug: string;
+  stock_actual: number;
 }
 
 interface CartState {
@@ -43,7 +44,10 @@ export const useCartStore = create<CartState>((set, get) => ({
     const existingItem = currentItems.find((i) => i.producto_id === product.producto_id);
 
     if (existingItem) {
-      get().updateQuantity(product.producto_id, 1);
+      // Check if we can add more
+      if (existingItem.cantidad < product.stock_actual) {
+        get().updateQuantity(product.producto_id, 1);
+      }
     } else {
       const newItem: CartItem = {
         producto_id: product.producto_id,
@@ -51,7 +55,8 @@ export const useCartStore = create<CartState>((set, get) => ({
         precio: Number(product.precio),
         cantidad: 1,
         imagen_url: product.imagen_url,
-        tenant_slug: tenantSlug
+        tenant_slug: tenantSlug,
+        stock_actual: product.stock_actual
       };
       const newItems = [...currentItems, newItem];
       set({ items: newItems, total: calculateTotal(newItems) });
@@ -72,7 +77,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   updateQuantity: (productoId, delta) => {
     const newItems = get().items.map((item) => {
       if (item.producto_id === productoId) {
-        const newQty = Math.max(1, item.cantidad + delta);
+        const newQty = Math.min(item.stock_actual, Math.max(1, item.cantidad + delta));
         return { ...item, cantidad: newQty };
       }
       return item;

@@ -7,6 +7,7 @@ import { ArrowLeft, Heart, Minus, Plus, ShoppingCart, Share2, Star, CheckCircle 
 import { useCartStore } from '../../../store/cartStore';
 import { useFavoritesStore } from '../../../store/favoritesStore';
 import { storageUtils } from '../../../utils/storageUtils';
+import { getApiImageUrl } from '../../../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -86,7 +87,7 @@ export const ProductDetailScreen = () => {
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Image Header */}
                 <View style={styles.imageContainer}>
-                    <Image source={{ uri: product.imagen_url || 'https://via.placeholder.com/300' }} style={styles.image} resizeMode="cover" />
+                    <Image source={{ uri: getApiImageUrl(product.imagen_url) || 'https://via.placeholder.com/300' }} style={styles.image} resizeMode="cover" />
                     <View style={styles.headerActions}>
                         <IconButton
                             icon={() => <ArrowLeft size={24} color="#1e293b" />}

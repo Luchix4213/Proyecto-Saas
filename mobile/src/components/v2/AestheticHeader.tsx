@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View } from 'react-native';
 import { Text, IconButton, useTheme, Avatar, Surface } from 'react-native-paper';
-import { Bell, Menu, ChevronLeft } from 'lucide-react-native';
+import { Bell, ChevronLeft } from 'lucide-react-native';
 import { Alert } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
 import { useNavigation } from '@react-navigation/native';
@@ -12,10 +12,10 @@ interface AestheticHeaderProps {
   onNotificationsPress?: () => void;
   onMenuPress?: () => void;
   showBack?: boolean;
+  rightAction?: React.ReactNode;
 }
 
-export const AestheticHeader = ({ title, subtitle, onNotificationsPress, onMenuPress, showBack }: AestheticHeaderProps) => {
-  const theme = useTheme();
+export const AestheticHeader = ({ title, subtitle, onNotificationsPress, showBack, rightAction }: AestheticHeaderProps) => {
   const { user } = useAuthStore();
   const navigation = useNavigation();
 
@@ -32,50 +32,65 @@ export const AestheticHeader = ({ title, subtitle, onNotificationsPress, onMenuP
   };
 
   return (
-    <View style={{
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-      paddingVertical: 16,
-      backgroundColor: '#f8fafc'
-    }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        paddingTop: 20,
+        backgroundColor: '#0d9488', // Fallback to solid color
+      }}
+    >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {showBack ? (
-            <Surface style={{ borderRadius: 50, backgroundColor: 'white', borderWidth: 1, borderColor: '#f1f5f9', marginRight: 12 }} elevation={0}>
+            <Surface style={{ borderRadius: 50, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', marginRight: 12 }} elevation={0}>
                 <IconButton
-                    icon={() => <ChevronLeft size={24} color="#0f172a" />}
+                    icon={() => <ChevronLeft size={24} color="white" />}
                     onPress={() => navigation.goBack()}
                     style={{ margin: 0, height: 42, width: 42 }}
                 />
             </Surface>
         ) : (
-            <Avatar.Text
-            size={42}
-            label={getInitials(user?.nombre_completo || '')}
-            style={{ backgroundColor: '#0f172a' }}
-            labelStyle={{ color: 'white', fontWeight: '800', fontSize: 16 }}
-            />
+            <View style={{
+                height: 42,
+                width: 42,
+                borderRadius: 21,
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.3)'
+            }}>
+                <Text style={{ color: 'white', fontWeight: '800', fontSize: 16 }}>
+                    {getInitials(user?.nombre_completo || '')}
+                </Text>
+            </View>
         )}
 
         <View style={{ marginLeft: showBack ? 0 : 14 }}>
-          <Text style={{ fontSize: 12, color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.8)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.5 }}>
             {subtitle || 'Panel de Gestión'}
           </Text>
-          <Text style={{ fontSize: 20, fontWeight: '900', color: '#0f172a', marginTop: 1 }}>
+          <Text style={{ fontSize: 18, fontWeight: '900', color: 'white', marginTop: 1 }}>
             {title || user?.nombre_completo?.split(' ')[0]}
           </Text>
         </View>
       </View>
 
       <View style={{ flexDirection: 'row', gap: 4 }}>
-        <Surface style={{ borderRadius: 12, backgroundColor: 'white', borderWidth: 1, borderColor: '#f1f5f9' }} elevation={0}>
-            <IconButton
-              icon={() => <Bell size={20} color="#64748b" />}
-              onPress={handleNotifications}
-              style={{ margin: 0 }}
-            />
-        </Surface>
+        {rightAction ? (
+            rightAction
+        ) : (
+            <Surface style={{ borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }} elevation={0}>
+                <IconButton
+                icon={() => <Bell size={20} color="white" />}
+                onPress={handleNotifications}
+                style={{ margin: 0 }}
+                />
+            </Surface>
+        )}
       </View>
     </View>
   );

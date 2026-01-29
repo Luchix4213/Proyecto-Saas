@@ -11,6 +11,7 @@ import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { storageUtils } from '../../../utils/storageUtils';
 import { orderStorage } from '../../../utils/orderStorage';
+import { getApiImageUrl } from '../../../utils/imageUtils';
 
 export const CheckoutScreen = () => {
     const navigation = useNavigation<any>();
@@ -40,8 +41,8 @@ export const CheckoutScreen = () => {
     const [comprobante, setComprobante] = useState<string | null>(null);
 
     // Get base URL for images
-    const getBaseUrl = () => process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000';
-    const getImageUrl = (url: string) => url.startsWith('http') ? url : `${getBaseUrl()}${url}`;
+    // const getBaseUrl = () => process.env.EXPO_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3000';
+    // const getImageUrl = (url: string) => url.startsWith('http') ? url : `${getBaseUrl()}${url}`;
 
     useEffect(() => {
         loadData();
@@ -447,7 +448,7 @@ export const CheckoutScreen = () => {
                         <View style={styles.qrModalBody}>
                             {tenant?.qr_pago_url ? (
                                 <Image
-                                    source={{ uri: getImageUrl(tenant.qr_pago_url) }}
+                                    source={{ uri: getApiImageUrl(tenant.qr_pago_url) || '' }}
                                     style={styles.fullQr}
                                     resizeMode="contain"
                                 />

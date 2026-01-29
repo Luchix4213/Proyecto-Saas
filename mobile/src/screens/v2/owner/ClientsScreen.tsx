@@ -68,8 +68,7 @@ export const ClientsScreen = () => {
       <TouchableOpacity
         style={styles.touchable}
         onPress={() => {
-            // Future: navigation.navigate('ClientForm', { client: item })
-            Alert.alert('Info', 'Edición de cliente próximamente');
+            navigation.navigate('ClientForm', { client: item });
         }}
       >
         <View style={styles.contentRow}>
