@@ -3,9 +3,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const CLIENT_DATA_KEY = 'kipu_client_data';
 
 export interface ClientData {
-    nombre_completo: string;
+    nombre: string;
+    paterno?: string;
+    materno?: string;
     nit_ci: string;
     celular?: string;
+    email?: string;
     direccion?: string;
     referencia?: string;
 }

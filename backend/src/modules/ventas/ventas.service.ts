@@ -579,7 +579,7 @@ export class VentasService {
       <h1>¿Recibiste tu pedido?</h1>
       <p>Hola ${venta.cliente.nombre},</p>
       <p>Tu pedido #${ventaId} ha sido marcado como enviado/entregado.</p>
-      
+
       <div style="margin: 24px 0;">
         <a href="${link}" style="background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
           ✅ Sí, recibí todo correctamente
@@ -653,7 +653,7 @@ export class VentasService {
 
     if (status === EstadoConfirmacion.CONFIRMADO) {
       updateData.estado_entrega = EstadoEntrega.ENTREGADO;
-      // Optionally update payment status if it was "pay on delivery"? 
+      // Optionally update payment status if it was "pay on delivery"?
       // updateData.estado = EstadoVenta.PAGADA; // Uncomment if desired
     }
 

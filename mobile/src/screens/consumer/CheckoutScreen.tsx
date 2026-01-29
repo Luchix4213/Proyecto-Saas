@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Alert, TouchableOpacity, Image, Modal } from 'react-native';
-import { Text, Surface, Button, TextInput, Divider, ActivityIndicator, useTheme, IconButton } from 'react-native-paper';
+import { Text, Surface, Button, TextInput, ActivityIndicator, useTheme, IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { AestheticHeader } from '../..//components/v2/AestheticHeader';
-import { MapPin, Truck, Store, CreditCard, Banknote, CheckCircle, Navigation, User, Info, Camera, X, Image as ImageIcon } from 'lucide-react-native';
+import { Truck, Store, CreditCard, Banknote, CheckCircle, Navigation, User, Info, Camera, Image as ImageIcon } from 'lucide-react-native';
 import { useCartStore } from '../..//store/cartStore';
-import { consumerService, PublicProduct } from '../..//api/consumerService';
+import { consumerService } from '../..//api/consumerService';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
 import { storageUtils } from '../..//utils/storageUtils';
@@ -31,7 +31,10 @@ export const CheckoutScreen = () => {
     const [deliveryMethod, setDeliveryMethod] = useState('delivery');
     const [paymentMethod, setPaymentMethod] = useState('cash');
 
-    const [nombreCliente, setNombreCliente] = useState('');
+    const [email, setEmail] = useState('');
+    const [nombre, setNombre] = useState('');
+    const [paterno, setPaterno] = useState('');
+    const [materno, setMaterno] = useState('');
     const [nitCliente, setNitCliente] = useState('');
     const [celular, setCelular] = useState('');
     const [direccion, setDireccion] = useState('');
@@ -52,11 +55,14 @@ export const CheckoutScreen = () => {
 
             const saved = await storageUtils.getClientData();
             if (saved) {
-                setNombreCliente(saved.nombre_completo || '');
+                setNombre(saved.nombre || '');
+                setPaterno(saved.paterno || '');
+                setMaterno(saved.materno || '');
                 setNitCliente(saved.nit_ci || '');
                 setCelular(saved.celular || '');
                 setDireccion(saved.direccion || '');
                 setReferencia(saved.referencia || '');
+                if (saved.email) setEmail(saved.email);
             }
         } catch (error) {
             console.error('Error loading checkout data', error);
@@ -75,8 +81,11 @@ export const CheckoutScreen = () => {
         try {
             const client = await consumerService.checkClient(tenantSlug, nitCliente);
             if (client) {
-                setNombreCliente(client.nombre_completo || client.nombre || '');
-                setCelular(client.celular || client.telefono || '');
+                setNombre(client.nombre || '');
+                setPaterno(client.paterno || '');
+                setMaterno(client.materno || '');
+                setCelular(client.telefono || '');
+                if (client.email) setEmail(client.email);
             }
             setStep('details');
         } catch (error) {
@@ -98,6 +107,21 @@ export const CheckoutScreen = () => {
             let location = await Location.getCurrentPositionAsync({});
             const mapsLink = `https://www.google.com/maps?q=${location.coords.latitude},${location.coords.longitude}`;
             setUbiMaps(mapsLink);
+
+            // Reverse Geocoding
+            const reverseGeocode = await Location.reverseGeocodeAsync({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude
+            });
+
+            if (reverseGeocode && reverseGeocode.length > 0) {
+                const address = reverseGeocode[0];
+                const fullAddress = [address.street, address.streetNumber, address.district, address.city].filter(Boolean).join(', ');
+                if (fullAddress) {
+                    setDireccion(fullAddress);
+                }
+            }
+
         } catch (error) {
             Alert.alert('Error', 'No se pudo obtener la ubicación.');
         } finally {
@@ -123,10 +147,14 @@ export const CheckoutScreen = () => {
             Alert.alert('Faltan datos', 'Ingresa la dirección de envío.');
             return;
         }
-        if (!nombreCliente) {
+        if (!nombre) {
              Alert.alert('Faltan datos', 'Ingresa tu nombre.');
              return;
         }
+        if (!email) {
+            Alert.alert('Faltan datos', 'Ingresa tu correo electrónico.');
+            return;
+       }
         if (paymentMethod === 'qr' && !comprobante) {
             Alert.alert('Falta comprobante', 'Sube la imagen de tu pago QR para continuar.');
             return;
@@ -135,13 +163,16 @@ export const CheckoutScreen = () => {
         setLoading(true);
         try {
             const formData = new FormData();
-            formData.append('nombre', nombreCliente);
+            formData.append('nombre', nombre);
+            formData.append('paterno', paterno);
+            formData.append('materno', materno);
+            formData.append('email', email);
             formData.append('nit_ci', nitCliente || '0');
             formData.append('celular', celular || '');
             formData.append('tipo_entrega', deliveryMethod === 'delivery' ? 'DELIVERY' : 'RECOJO');
             formData.append('direccion_entrega', deliveryMethod === 'delivery' ? `${direccion} (${referencia})` : '');
             formData.append('ubi_maps_envio', ubiMaps || '');
-            formData.append('metodo_pago', paymentMethod === 'qr' ? 'QR' : 'EFECTIVO');
+            formData.append('metodo_pago', paymentMethod === 'qr' ? 'QR' : 'TRANSFERENCIA');
             formData.append('productos', JSON.stringify(items.map(i => ({
                 producto_id: i.producto_id,
                 cantidad: i.cantidad
@@ -158,9 +189,12 @@ export const CheckoutScreen = () => {
             await consumerService.checkout(tenantSlug, formData);
 
             await storageUtils.saveClientData({
-                nombre_completo: nombreCliente,
+                nombre: nombre,
+                paterno: paterno,
+                materno: materno,
                 nit_ci: nitCliente,
                 celular: celular,
+                email: email,
                 direccion: direccion,
                 referencia: referencia
             });
@@ -184,7 +218,7 @@ export const CheckoutScreen = () => {
                 details: {
                     direccion: deliveryMethod === 'delivery' ? `${direccion} (${referencia})` : 'Recojo en tienda',
                     metodo_entrega: deliveryMethod === 'delivery' ? 'DELIVERY' : 'RECOJO',
-                    metodo_pago: paymentMethod === 'qr' ? 'QR' : 'EFECTIVO'
+                    metodo_pago: paymentMethod === 'qr' ? 'QR' : 'TRANSFERENCIA'
                 }
             });
 
@@ -275,24 +309,60 @@ export const CheckoutScreen = () => {
                                  <Text style={{ color: theme.colors.primary, fontSize: 12, fontWeight: '700' }}>Cambiar NIT</Text>
                              </TouchableOpacity>
                         </View>
+
+                        {/* Name Fields */}
                         <View style={styles.formSection}>
                             <TextInput
                                 mode="outlined"
-                                label="Nombre Completo / Razón Social"
-                                value={nombreCliente}
-                                onChangeText={setNombreCliente}
+                                label="Nombre"
+                                value={nombre}
+                                onChangeText={setNombre}
                                 style={styles.input}
                                 outlineStyle={styles.inputOutline}
                             />
-                            <TextInput
-                                mode="outlined"
-                                label="Celular (Opcional)"
-                                value={celular}
-                                onChangeText={setCelular}
-                                style={styles.input}
-                                outlineStyle={styles.inputOutline}
-                                keyboardType="phone-pad"
-                            />
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                                <TextInput
+                                    mode="outlined"
+                                    label="Apellido Paterno"
+                                    value={paterno}
+                                    onChangeText={setPaterno}
+                                    style={[styles.input, { flex: 1 }]}
+                                    outlineStyle={styles.inputOutline}
+                                />
+                                <TextInput
+                                    mode="outlined"
+                                    label="Apellido Materno"
+                                    value={materno}
+                                    onChangeText={setMaterno}
+                                    style={[styles.input, { flex: 1 }]}
+                                    outlineStyle={styles.inputOutline}
+                                />
+                            </View>
+                        </View>
+
+                        {/* Contact Fields */}
+                        <View style={styles.formSection}>
+                             <View style={{ flexDirection: 'row', gap: 8 }}>
+                                <TextInput
+                                    mode="outlined"
+                                    label="Celular / Teléfono"
+                                    value={celular}
+                                    onChangeText={setCelular}
+                                    style={[styles.input, { flex: 1 }]}
+                                    outlineStyle={styles.inputOutline}
+                                    keyboardType="phone-pad"
+                                />
+                                <TextInput
+                                    mode="outlined"
+                                    label="Email (Requerido)"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    style={[styles.input, { flex: 1 }]}
+                                    outlineStyle={styles.inputOutline}
+                                />
+                             </View>
                         </View>
 
                         <View style={styles.formSection}>
@@ -306,6 +376,9 @@ export const CheckoutScreen = () => {
                                         <Truck size={24} color={deliveryMethod === 'delivery' ? 'white' : '#64748b'} />
                                     </View>
                                     <Text style={[styles.selectorLabel, deliveryMethod === 'delivery' && styles.selectorLabelActive]}>Delivery</Text>
+                                    <View style={{ backgroundColor: '#ccfbf1', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+                                         <Text style={{ fontSize: 10, color: '#0f766e', fontWeight: 'bold' }}>+50 Bs</Text>
+                                    </View>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
@@ -315,30 +388,24 @@ export const CheckoutScreen = () => {
                                     <View style={[styles.selectorIconBox, deliveryMethod === 'pickup' && { backgroundColor: theme.colors.primary }]}>
                                         <Store size={24} color={deliveryMethod === 'pickup' ? 'white' : '#64748b'} />
                                     </View>
-                                    <Text style={[styles.selectorLabel, deliveryMethod === 'pickup' && styles.selectorLabelActive]}>Retiro</Text>
+                                    <Text style={[styles.selectorLabel, deliveryMethod === 'pickup' && styles.selectorLabelActive]}>Retiro en Tienda</Text>
+                                     <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 }}>
+                                         <Text style={{ fontSize: 10, color: '#64748b', fontWeight: 'bold' }}>GRATIS</Text>
+                                    </View>
                                 </TouchableOpacity>
                             </View>
                         </View>
 
                         {deliveryMethod === 'delivery' && (
                             <View style={styles.formSection}>
+                                <View style={{ flexDirection: 'row', gap: 8, padding: 12, backgroundColor: '#f0fdf4', borderRadius: 12, marginBottom: 12 }}>
+                                    <Navigation size={20} color="#15803d" />
+                                    <Text style={{ flex: 1, fontSize: 12, color: '#15803d' }}>
+                                        Por favor selecciona tu ubicación exacta en el mapa y detalla tu dirección.
+                                    </Text>
+                                </View>
+
                                 <Text style={styles.sectionTitle}>Dirección de Envío</Text>
-                                <TextInput
-                                    mode="outlined"
-                                    label="Ciudad / Zona / Calle"
-                                    value={direccion}
-                                    onChangeText={setDireccion}
-                                    style={styles.input}
-                                    outlineStyle={styles.inputOutline}
-                                />
-                                <TextInput
-                                    mode="outlined"
-                                    label="Referencia (opcional)"
-                                    value={referencia}
-                                    onChangeText={setReferencia}
-                                    style={styles.input}
-                                    outlineStyle={styles.inputOutline}
-                                />
                                 <View style={styles.locationContainer}>
                                     <Button
                                         mode="contained-tonal"
@@ -347,26 +414,26 @@ export const CheckoutScreen = () => {
                                         style={styles.locationBtn}
                                         labelStyle={{ fontSize: 12 }}
                                     >
-                                        {ubiMaps ? 'Ubicación Fijada' : 'Fijar con GPS'}
+                                        {ubiMaps ? 'Ubicación Fijada ✓' : 'Fijar con GPS'}
                                     </Button>
-                                    {ubiMaps && <CheckCircle size={20} color="#10b981" />}
                                 </View>
+
+                                <TextInput
+                                    mode="outlined"
+                                    label="Detalles: Zona, Calle, Nro..."
+                                    value={direccion}
+                                    onChangeText={setDireccion}
+                                    multiline
+                                    numberOfLines={3}
+                                    style={[styles.input, { marginTop: 12 }]}
+                                    outlineStyle={styles.inputOutline}
+                                />
                             </View>
                         )}
 
                         <View style={styles.formSection}>
                             <Text style={styles.sectionTitle}>Forma de Pago</Text>
                             <View style={styles.cardSelectorRow}>
-                                <TouchableOpacity
-                                    style={[styles.selectorCard, paymentMethod === 'cash' && styles.selectorCardActive]}
-                                    onPress={() => setPaymentMethod('cash')}
-                                >
-                                    <View style={[styles.selectorIconBox, paymentMethod === 'cash' && { backgroundColor: theme.colors.primary }]}>
-                                        <Banknote size={24} color={paymentMethod === 'cash' ? 'white' : '#64748b'} />
-                                    </View>
-                                    <Text style={[styles.selectorLabel, paymentMethod === 'cash' && styles.selectorLabelActive]}>Efectivo</Text>
-                                </TouchableOpacity>
-
                                 <TouchableOpacity
                                     style={[styles.selectorCard, paymentMethod === 'qr' && styles.selectorCardActive]}
                                     onPress={() => setPaymentMethod('qr')}
@@ -375,6 +442,16 @@ export const CheckoutScreen = () => {
                                         <CreditCard size={24} color={paymentMethod === 'qr' ? 'white' : '#64748b'} />
                                     </View>
                                     <Text style={[styles.selectorLabel, paymentMethod === 'qr' && styles.selectorLabelActive]}>Pago QR</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.selectorCard, paymentMethod === 'cash' && styles.selectorCardActive]}
+                                    onPress={() => setPaymentMethod('cash')}
+                                >
+                                    <View style={[styles.selectorIconBox, paymentMethod === 'cash' && { backgroundColor: theme.colors.primary }]}>
+                                        <Banknote size={24} color={paymentMethod === 'cash' ? 'white' : '#64748b'} />
+                                    </View>
+                                    <Text style={[styles.selectorLabel, paymentMethod === 'cash' && styles.selectorLabelActive]}>Transferencia</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -408,7 +485,7 @@ export const CheckoutScreen = () => {
                                     </Button>
                                 </Surface>
 
-                                <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Comprobante de Pago</Text>
+                                <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Comprobante de Pago (Requerido)</Text>
                                 <TouchableOpacity onPress={pickComprobante} style={styles.uploadArea}>
                                     {comprobante ? (
                                         <View style={{ width: '100%', height: '100%' }}>
@@ -432,6 +509,19 @@ export const CheckoutScreen = () => {
                             <View style={styles.row}>
                                 <Text style={styles.summaryText}>Total Productos</Text>
                                 <Text style={styles.summaryValue}>Bs {Number(total || 0).toFixed(2)}</Text>
+                            </View>
+                            {deliveryMethod === 'delivery' && (
+                                <View style={[styles.row, { marginTop: 8 }]}>
+                                    <Text style={styles.summaryText}>Envío</Text>
+                                    <Text style={styles.summaryValue}>Bs 50.00</Text>
+                                </View>
+                            )}
+                            <View style={{ height: 1, backgroundColor: '#334155', marginVertical: 12 }} />
+                             <View style={styles.row}>
+                                <Text style={[styles.summaryText, { color: 'white' }]}>Total Final</Text>
+                                <Text style={[styles.summaryValue, { fontSize: 28 }]}>
+                                    Bs {(Number(total || 0) + (deliveryMethod === 'delivery' ? 50 : 0)).toFixed(2)}
+                                </Text>
                             </View>
                         </Surface>
                     </View>
