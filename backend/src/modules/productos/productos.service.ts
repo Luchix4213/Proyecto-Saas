@@ -106,7 +106,7 @@ export class ProductosService {
 
   // --- Public / Marketplace Methods ---
 
-  async findAllPublic(tenantSlug: string, categoryId?: number) {
+  async findAllPublic(tenantSlug: string, categoryId?: number, search?: string) {
     // Check if identifier is numeric ID (to support tenants without valid slug or access by ID)
     const id = parseInt(tenantSlug);
     const isId = !isNaN(id);
@@ -121,7 +121,8 @@ export class ProductosService {
         },
         estado: 'ACTIVO',
         stock_actual: { gt: 0 },
-        ...(categoryId ? { categoria_id: categoryId } : {})
+        ...(categoryId ? { categoria_id: categoryId } : {}),
+        ...(search ? { nombre: { contains: search, mode: 'insensitive' as const } } : {})
       },
       include: { categoria: true, imagenes: { orderBy: { orden: 'asc' } } }
     });

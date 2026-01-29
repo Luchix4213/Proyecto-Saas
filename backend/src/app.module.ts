@@ -27,6 +27,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -37,7 +38,7 @@ import { AuditInterceptor } from './common/interceptors/audit.interceptor';
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
-    AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule, PlanesModule, SuscripcionesModule, RubrosModule, CategoriesModule, ProveedoresModule, AuditModule
+    AutenticacionModule, UsuariosModule, MicroempresasModule, ProductosModule, InventarioModule, VentasModule, ComprasModule, ClientesModule, NotificacionesModule, ReportesModule, PrismaModule, TenantsModule, PlanesModule, SuscripcionesModule, RubrosModule, CategoriesModule, ProveedoresModule, AuditModule, AdminModule
   ],
   controllers: [AppController],
   providers: [

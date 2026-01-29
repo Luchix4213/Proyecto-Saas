@@ -100,6 +100,16 @@ export const LoginScreen = () => {
                 >
                     INICIAR SESIÓN
                 </Button>
+
+                <Button
+                    mode="text"
+                    onPress={() => navigation.navigate('Consumer')}
+                    style={styles.guestBtn}
+                    labelStyle={styles.guestBtnLabel}
+                    icon="store"
+                >
+                    VER TIENDA COMO INVITADO
+                </Button>
             </Surface>
 
             <View style={styles.footer}>
@@ -149,6 +159,8 @@ const styles = StyleSheet.create({
   errorText: { color: '#ef4444', fontSize: 13, textAlign: 'center', fontWeight: '600' },
   loginBtn: { borderRadius: 16, height: 56, justifyContent: 'center', marginTop: 8, backgroundColor: '#0f172a' },
   loginBtnLabel: { fontWeight: '900', fontSize: 16, letterSpacing: 1, color: 'white' },
+  guestBtn: { marginTop: 12 },
+  guestBtnLabel: { fontSize: 13, fontWeight: '700', color: '#64748b' },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 40, gap: 8 },
   footerText: { color: '#64748b', fontSize: 14, fontWeight: '500' },
   registerLink: { color: '#0f172a', fontWeight: '800', fontSize: 14 }

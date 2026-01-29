@@ -30,8 +30,8 @@ export class ProductosController {
 
   // Public Storefront List
   @Get('store/:tenantSlug')
-  findAllPublic(@Param('tenantSlug') tenantSlug: string, @Query('categoryId') categoryId?: string) {
-    return this.productosService.findAllPublic(tenantSlug, categoryId ? +categoryId : undefined);
+  findAllPublic(@Param('tenantSlug') tenantSlug: string, @Query('categoryId') categoryId?: string, @Query('search') search?: string) {
+    return this.productosService.findAllPublic(tenantSlug, categoryId ? +categoryId : undefined, search);
   }
 
   @Get('marketplace/all')

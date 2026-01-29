@@ -11,6 +11,7 @@ export interface Tenant {
   email: string;
   direccion: string | null;
   horario_atencion: string | null;
+  qr_pago_url?: string | null;
   rubro?: string; // or handled via array if backend populated it
   estado: 'ACTIVA' | 'SUSPENDIDO' | 'PENDIENTE' | 'INACTIVA';
   plan_actual?: string;

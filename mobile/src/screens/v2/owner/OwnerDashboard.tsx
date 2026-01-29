@@ -60,7 +60,6 @@ export const OwnerDashboard = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <AestheticHeader subtitle="Buenos días," />
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
@@ -118,7 +117,7 @@ export const OwnerDashboard = () => {
                 { label: 'Producto', icon: Plus, screen: 'ProductForm', color: '#6366f1' },
                 { label: 'Compra', icon: Store, screen: 'PurchaseForm', color: '#10b981' },
                 { label: 'Reportes', icon: Wallet, screen: 'StaffPerformance', color: '#f59e0b' },
-                { label: 'Clientes', icon: Users, screen: null, color: '#ec4899' },
+                { label: 'Clientes', icon: Users, screen: 'Clients', color: '#ec4899' },
             ].map((action, i) => (
                 <TouchableOpacity
                     key={i}

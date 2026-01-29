@@ -103,6 +103,7 @@ model Tenant {
   horario_atencion    String?
   slug                String?       @unique // URL de la tienda: /tienda/mi-slug
   banner_url          String?
+  qr_pago_url         String?
   estado              EstadoEmpresa @default(PENDIENTE)
   fecha_registro      DateTime      @default(now())
 

@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, FlatList, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Text, Surface, useTheme, ActivityIndicator, Chip } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AestheticHeader } from '../../../components/v2/AestheticHeader';
-import { salesService, Sale } from '../../../api/salesService';
+import { salesService, Venta } from '../../../api/salesService';
 import { Receipt, Calendar, User, ChevronRight, DollarSign, Wallet } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export const SalesScreen = () => {
-  const [sales, setSales] = useState<Sale[]>([]);
+  const [sales, setSales] = useState<Venta[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'today' | 'week'>('all');
 
@@ -31,7 +31,7 @@ export const SalesScreen = () => {
     }
   };
 
-  const renderSaleItem = ({ item }: { item: Sale }) => (
+  const renderSaleItem = ({ item }: { item: Venta }) => (
     <Surface style={styles.card} elevation={1}>
       <TouchableOpacity style={styles.touchable}>
         <View style={styles.headerRow}>
@@ -43,7 +43,7 @@ export const SalesScreen = () => {
               <Text style={styles.saleId}>Venta #{item.venta_id}</Text>
               <Text style={styles.dateText}>
                 {(() => {
-                  const date = new Date(item.fecha);
+                  const date = new Date(item.fecha_venta);
                   return isNaN(date.getTime())
                     ? 'Fecha inválida'
                     : format(date, "HH:mm ' - ' d MMM", { locale: es });
@@ -58,17 +58,17 @@ export const SalesScreen = () => {
           <View style={styles.clientInfo}>
             <User size={14} color="#64748b" />
             <Text style={styles.clientName} numberOfLines={1}>
-              {item.cliente?.nombre_razon_social || 'Consumidor Final'}
+              {item.cliente?.nombre || 'Consumidor Final'}
             </Text>
           </View>
           <View style={[styles.paymentBadge, {
-            backgroundColor: item.tipo_pago === 'EFECTIVO' ? '#f0fdf4' : '#eff6ff'
+            backgroundColor: item.metodo_pago === 'EFECTIVO' ? '#f0fdf4' : '#eff6ff'
           }]}>
-            <Wallet size={10} color={item.tipo_pago === 'EFECTIVO' ? '#16a34a' : '#2563eb'} />
+            <Wallet size={10} color={item.metodo_pago === 'EFECTIVO' ? '#16a34a' : '#2563eb'} />
             <Text style={[styles.paymentText, {
-              color: item.tipo_pago === 'EFECTIVO' ? '#16a34a' : '#2563eb'
+              color: item.metodo_pago === 'EFECTIVO' ? '#16a34a' : '#2563eb'
             }]}>
-              {item.tipo_pago}
+              {item.metodo_pago}
             </Text>
           </View>
         </View>
@@ -136,8 +136,6 @@ export const SalesScreen = () => {
     </SafeAreaView>
   );
 };
-
-import { ScrollView } from 'react-native';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },

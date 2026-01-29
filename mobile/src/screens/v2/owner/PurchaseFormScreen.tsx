@@ -3,8 +3,8 @@ import { View, ScrollView, StyleSheet, Alert, TouchableOpacity, Image, FlatList 
 import { Text, TextInput, Button, useTheme, Surface, IconButton, ActivityIndicator, Divider, Portal, Modal, Searchbar } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { purchasesService, PurchaseItem } from '../../../api/purchasesService';
-import { suppliersService, Supplier } from '../../../api/suppliersService';
+import { purchasesService } from '../../../api/purchasesService';
+import { suppliersService, Proveedor } from '../../../api/suppliersService';
 import { productsService, Product } from '../../../api/productsService';
 import { ShoppingCart, Save, X, Building2, Package, Plus, Minus, Camera, DollarSign, ChevronDown, Check, Search } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -14,7 +14,7 @@ export const PurchaseFormScreen = () => {
   const theme = useTheme();
 
   const [loading, setLoading] = useState(false);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [suppliers, setSuppliers] = useState<Proveedor[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
 
   const [showSupplierModal, setShowSupplierModal] = useState(false);
@@ -99,17 +99,41 @@ export const PurchaseFormScreen = () => {
 
     setLoading(true);
     try {
-      const data = {
-        proveedor_id: selectedSupplierId,
-        metodo_pago: 'EFECTIVO',
-        productos: cartItems.map(item => ({
+      if (file) {
+        const formData = new FormData();
+        // Append file
+        formData.append('comprobante', {
+          uri: file.uri,
+          type: 'image/jpeg', // Default or extract from file type
+          name: file.fileName || 'comprobante.jpg',
+        } as any);
+
+        // Append other fields
+        formData.append('proveedor_id', selectedSupplierId.toString());
+        formData.append('metodo_pago', 'EFECTIVO');
+
+        // Append products as stringified JSON because FormData values must be strings
+        // NOTE: Backend must be prepared to parse 'productos' from string if it receives multipart/form-data
+        formData.append('productos', JSON.stringify(cartItems.map(item => ({
           producto_id: item.producto_id,
           cantidad: item.cantidad,
           costo_unitario: item.precio_compra
-        }))
-      };
+        }))));
 
-      await purchasesService.create(data, file);
+        await purchasesService.create(formData);
+      } else {
+        // Send as JSON
+        const data = {
+            proveedor_id: selectedSupplierId,
+            metodo_pago: 'EFECTIVO' as const,
+            productos: cartItems.map(item => ({
+            producto_id: item.producto_id,
+            cantidad: item.cantidad,
+            costo_unitario: item.precio_compra
+            }))
+        };
+        await purchasesService.create(data);
+      }
       Alert.alert('Éxito', 'Compra registrada y stock actualizado.');
       navigation.goBack();
     } catch (error) {
@@ -306,7 +330,7 @@ export const PurchaseFormScreen = () => {
               >
                 <View style={{ flex: 1 }}>
                     <Text style={styles.modalItemText}>{p.nombre}</Text>
-                    <Text style={{ fontSize: 12, color: '#94a3b8' }}>Stock actual: {p.stock}</Text>
+                    <Text style={{ fontSize: 12, color: '#94a3b8' }}>Stock actual: {p.stock_actual}</Text>
                 </View>
                 <Plus size={18} color={theme.colors.primary} />
               </TouchableOpacity>

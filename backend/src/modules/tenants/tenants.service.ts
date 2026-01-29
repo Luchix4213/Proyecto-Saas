@@ -157,6 +157,8 @@ export class TenantsService {
         google_maps_url: true,
         latitud: true,
         longitud: true,
+        qr_pago_url: true
+
       }
     });
   }
@@ -198,6 +200,7 @@ export class TenantsService {
         google_maps_url: true,
         latitud: true,
         longitud: true,
+        qr_pago_url: true
       }
     });
   }
@@ -224,7 +227,7 @@ export class TenantsService {
     });
   }
 
-  async findAllPublic(rubro?: string) {
+  async findAllPublic(rubro?: string, search?: string) {
     return this.prisma.tenant.findMany({
       where: {
         estado: 'ACTIVA',
@@ -232,16 +235,28 @@ export class TenantsService {
         plan: {
           ventas_online: true,
         },
-        ...(rubro ? {
-          rubros: {
-            some: {
-              nombre: {
-                contains: rubro,
-                mode: 'insensitive'
+        OR: [
+          ...(rubro ? [{
+            rubros: {
+              some: {
+                nombre: {
+                  contains: rubro,
+                  mode: 'insensitive' as const
+                }
               }
             }
-          }
-        } : {})
+          }] : []),
+          ...(search ? [
+            { nombre_empresa: { contains: search, mode: 'insensitive' as const } },
+            {
+              rubros: {
+                some: {
+                  nombre: { contains: search, mode: 'insensitive' as const }
+                }
+              }
+            }
+          ] : [])
+        ]
       },
       select: {
         tenant_id: true,
@@ -262,6 +277,7 @@ export class TenantsService {
         google_maps_url: true,
         latitud: true,
         longitud: true,
+        qr_pago_url: true
       },
       orderBy: {
         fecha_registro: 'desc',
