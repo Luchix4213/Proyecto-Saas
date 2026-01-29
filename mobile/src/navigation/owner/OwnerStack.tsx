@@ -23,6 +23,7 @@ import { NotificationsScreen } from '../../screens/owner/NotificationsScreen';
 import { POSCatalogScreen } from '../../screens/sales/POSCatalogScreen';
 import { POSCartScreen } from '../../screens/sales/POSCartScreen';
 import { POSCheckoutScreen } from '../../screens/sales/POSCheckoutScreen';
+import { OnlineOrderDetailScreen } from '../../screens/owner/OnlineOrderDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -103,6 +104,7 @@ export const OwnerStack = () => {
       <Stack.Screen name="POSCatalog" component={POSCatalogScreen} />
       <Stack.Screen name="POSCart" component={POSCartScreen} />
       <Stack.Screen name="POSCheckout" component={POSCheckoutScreen} />
+      <Stack.Screen name="OnlineOrderDetailScreen" component={OnlineOrderDetailScreen} />
     </Stack.Navigator>
   );
 };

@@ -54,7 +54,8 @@ export const useCartStore = create<CartState>((set, get) => ({
         nombre: product.nombre,
         precio: Number(product.precio),
         cantidad: 1,
-        imagen_url: product.imagen_url,
+        // Adapt to new Product interface: check 'imagenes' array first, fallback to 'imagen_url' if legacy object
+        imagen_url: product.imagenes?.[0]?.url || product.imagen_url,
         tenant_slug: tenantSlug,
         stock_actual: product.stock_actual
       };

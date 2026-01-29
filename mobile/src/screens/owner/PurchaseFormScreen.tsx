@@ -55,10 +55,18 @@ export const PurchaseFormScreen = () => {
         producto_id: product.producto_id,
         nombre: product.nombre,
         cantidad: 1,
-        precio_compra: product.precio * 0.7 // Default estimate
+        precio_compra: product.precio * 0.7, // Default estimate
+        lote: '',
+        fecha_vencimiento: ''
       }]);
     }
     setShowProductModal(false);
+  };
+
+  const updateItemField = (id: number, field: string, value: string) => {
+    setCartItems(cartItems.map(item =>
+      item.producto_id === id ? { ...item, [field]: value } : item
+    ));
   };
 
   const updateQuantity = (id: number, delta: number) => {
@@ -112,12 +120,12 @@ export const PurchaseFormScreen = () => {
         formData.append('proveedor_id', selectedSupplierId.toString());
         formData.append('metodo_pago', 'EFECTIVO');
 
-        // Append products as stringified JSON because FormData values must be strings
-        // NOTE: Backend must be prepared to parse 'productos' from string if it receives multipart/form-data
         formData.append('productos', JSON.stringify(cartItems.map(item => ({
           producto_id: item.producto_id,
           cantidad: item.cantidad,
-          costo_unitario: item.precio_compra
+          costo_unitario: item.precio_compra,
+          lote: item.lote,
+          fecha_vencimiento: item.fecha_vencimiento
         }))));
 
         await purchasesService.create(formData);
@@ -127,9 +135,11 @@ export const PurchaseFormScreen = () => {
             proveedor_id: selectedSupplierId,
             metodo_pago: 'EFECTIVO' as const,
             productos: cartItems.map(item => ({
-            producto_id: item.producto_id,
-            cantidad: item.cantidad,
-            costo_unitario: item.precio_compra
+                producto_id: item.producto_id,
+                cantidad: item.cantidad,
+                costo_unitario: item.precio_compra,
+                lote: item.lote,
+                fecha_vencimiento: item.fecha_vencimiento
             }))
         };
         await purchasesService.create(data);
@@ -198,15 +208,17 @@ export const PurchaseFormScreen = () => {
                         <Surface key={item.producto_id} style={styles.cartItem} elevation={0}>
                             <View style={{ flex: 1 }}>
                                 <Text style={styles.itemName}>{item.nombre}</Text>
-                                <View style={styles.priceRow}>
-                                    <Text style={styles.priceLabel}>Compru/u:</Text>
+
+                                {/* Price Row */}
+                                <View style={styles.inputRow}>
+                                    <Text style={styles.inputLabel}>Costo U.:</Text>
                                     <View style={styles.priceInputWrapper}>
                                         <Text style={{ fontSize: 12, color: '#64748b', marginRight: 2 }}>$</Text>
                                         <TextInput
                                             value={item.precio_compra.toString()}
                                             onChangeText={(val) => updatePrice(item.producto_id, val)}
                                             keyboardType="numeric"
-                                            style={styles.priceInput}
+                                            style={styles.smallInput}
                                             dense
                                             mode="flat"
                                             underlineColor="transparent"
@@ -214,6 +226,37 @@ export const PurchaseFormScreen = () => {
                                         />
                                     </View>
                                 </View>
+
+                                {/* Lote & Expiry Row */}
+                                <View style={styles.inputRow}>
+                                    <View style={{ flex: 1, marginRight: 8 }}>
+                                        <Text style={styles.inputLabel}>Lote:</Text>
+                                        <TextInput
+                                            value={item.lote || ''}
+                                            onChangeText={(val) => updateItemField(item.producto_id, 'lote', val)}
+                                            placeholder="Op."
+                                            style={[styles.smallInput, { backgroundColor: '#f1f5f9', borderRadius: 6 }]}
+                                            dense
+                                            mode="flat"
+                                            underlineColor="transparent"
+                                            activeUnderlineColor="transparent"
+                                        />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={styles.inputLabel}>Vence:</Text>
+                                        <TextInput
+                                            value={item.fecha_vencimiento || ''}
+                                            onChangeText={(val) => updateItemField(item.producto_id, 'fecha_vencimiento', val)}
+                                            placeholder="YYYY-MM-DD"
+                                            style={[styles.smallInput, { backgroundColor: '#f1f5f9', borderRadius: 6 }]}
+                                            dense
+                                            mode="flat"
+                                            underlineColor="transparent"
+                                            activeUnderlineColor="transparent"
+                                        />
+                                    </View>
+                                </View>
+
                             </View>
                             <View style={styles.qtyControls}>
                                 <TouchableOpacity onPress={() => updateQuantity(item.producto_id, -1)} style={styles.qtyBtn}>
@@ -417,4 +460,7 @@ const styles = StyleSheet.create({
   modalSearch: { marginTop: 16, height: 44, borderRadius: 12, backgroundColor: '#f1f5f9' },
   modalItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   modalItemText: { fontSize: 15, fontWeight: '600', color: '#334155' },
+  inputRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+  inputLabel: { fontSize: 11, color: '#94a3b8', fontWeight: '700', marginRight: 6, width: 50 },
+  smallInput: { height: 32, fontSize: 13, backgroundColor: 'white', fontWeight: '600', flex: 1 },
 });

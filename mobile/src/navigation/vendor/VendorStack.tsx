@@ -5,6 +5,7 @@ import { POSCatalogScreen } from '../../screens/sales/POSCatalogScreen';
 import { POSCartScreen } from '../../screens/sales/POSCartScreen';
 import { POSCheckoutScreen } from '../../screens/sales/POSCheckoutScreen';
 import { SalesScreen } from '../../screens/owner/SalesScreen';
+import { OnlineOrderDetailScreen } from '../../screens/owner/OnlineOrderDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +25,7 @@ export const VendorStack = () => {
 
       {/* Shared Screens */}
       <Stack.Screen name="Sales" component={SalesScreen} />
+      <Stack.Screen name="OnlineOrderDetailScreen" component={OnlineOrderDetailScreen} />
     </Stack.Navigator>
   );
 };

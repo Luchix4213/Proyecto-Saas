@@ -8,6 +8,7 @@ import { useCartStore } from '../..//store/cartStore';
 import { useFavoritesStore } from '../..//store/favoritesStore';
 import { storageUtils } from '../..//utils/storageUtils';
 import { getApiImageUrl } from '../..//utils/imageUtils';
+import { Product } from '../..//api/productsService';
 
 const { width } = Dimensions.get('window');
 
@@ -18,9 +19,12 @@ export const ProductDetailScreen = () => {
     const { addItem } = useCartStore();
     const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
 
-    // Product comes from API (PublicProduct interface + tenant_slug injected)
-    const product = route.params?.product || {};
-    const tenantName = route.params?.tenantName || product.tenant_slug || 'Tienda';
+    // Product comes from API (Product interface + injected fields from navigation)
+    const product = route.params?.product as Product & { tenant_slug?: string };
+    const tenantName = route.params?.tenantName || product.tenant?.nombre_empresa || 'Tienda';
+
+    // Resolve image URL safely
+    const imageUrl = product.imagenes?.[0]?.url || (product as any).imagen_url;
 
     const [quantity, setQuantity] = useState(1);
     const [showSnackbar, setShowSnackbar] = useState(false);
@@ -35,10 +39,10 @@ export const ProductDetailScreen = () => {
                 id: product.producto_id,
                 name: product.nombre,
                 price: product.precio,
-                image: product.imagen_url,
+                image: imageUrl,
                 store: tenantName,
                 type: 'PRODUCT',
-                slug: product.tenant_slug
+                slug: product.tenant?.slug || product.tenant_slug || ''
             });
         }
     };
@@ -54,28 +58,19 @@ export const ProductDetailScreen = () => {
     };
 
     const handleAddToCart = () => {
-        addItem({
+        const itemToAdd = {
             producto_id: product.producto_id,
             nombre: product.nombre,
             precio: product.precio,
-            imagen_url: product.imagen_url,
-            // Add quantity handling if store supports it natively, currently store just increments
-            // For now, we will just add 1 item 'quantity' times lol or fix store.
-            // Actually store adds 1 if exists.
-            // Let's call addItem multiple times or update store...
-            // Optimization: Update store to accept quantity is better, but for now let's just loop or assume 1.
-            // Wait, I can fix the store in next step or just loop. Looping is dirty.
-            // I'll update store later if needed. For now, let's just add 1.
-        }, product.tenant_slug);
+            imagen_url: imageUrl,
+        };
+        const slug = product.tenant?.slug || product.tenant_slug || '';
+
+        addItem(itemToAdd, slug);
 
         // Hack for multiple quantity addition with current store logic (adds 1 by 1)
         for(let i = 1; i < quantity; i++) {
-             addItem({
-                producto_id: product.producto_id,
-                nombre: product.nombre,
-                precio: product.precio,
-                imagen_url: product.imagen_url,
-             }, product.tenant_slug);
+             addItem(itemToAdd, slug);
         }
 
         setShowSnackbar(true);
@@ -87,7 +82,7 @@ export const ProductDetailScreen = () => {
             <ScrollView showsVerticalScrollIndicator={false}>
                 {/* Image Header */}
                 <View style={styles.imageContainer}>
-                    <Image source={{ uri: getApiImageUrl(product.imagen_url) || 'https://via.placeholder.com/300' }} style={styles.image} resizeMode="cover" />
+                    <Image source={{ uri: getApiImageUrl(imageUrl) || 'https://via.placeholder.com/300' }} style={styles.image} resizeMode="cover" />
                     <View style={styles.headerActions}>
                         <IconButton
                             icon={() => <ArrowLeft size={24} color="#1e293b" />}

@@ -1,47 +1,30 @@
 import client from './client';
-
-export interface PublicTenant {
-    tenant_id: number;
-    nombre_empresa: string;
-    slug: string;
-    logo_url: string | null;
-    banner_url: string | null;
-    rubro?: string;
-}
+// Import or redefine to match core interfaces for consistency
+import { Product } from './productsService';
+import { Tenant } from './tenantsService';
 
 export interface PublicCategory {
     categoria_id: number;
     nombre: string;
 }
 
-export interface PublicProduct {
-    producto_id: number;
-    nombre: string;
-    categoria_id?: number;
-    descripcion: string | null;
-    precio: number;
-    stock_actual: number;
-    imagen_url: string | null;
-    categoria?: {
-        nombre: string;
-    };
-}
+export type PublicTenant = Tenant;
 
 export const consumerService = {
     // Get list of tenants/stores for the marketplace
-    getFeaturedTenants: async (rubro?: string, search?: string): Promise<PublicTenant[]> => {
+    getFeaturedTenants: async (rubro?: string, search?: string): Promise<Tenant[]> => {
         const response = await client.get('/tenants/marketplace', { params: { rubro, search } });
         return response.data;
     },
 
     // Get specific tenant info by slug
-    getTenantBySlug: async (slug: string): Promise<PublicTenant> => {
+    getTenantBySlug: async (slug: string): Promise<Tenant> => {
         const response = await client.get(`/tenants/slug/${slug}`);
         return response.data;
     },
 
     // Get public products for a specific store
-    getStoreProducts: async (slug: string, categoryId?: number, search?: string): Promise<PublicProduct[]> => {
+    getStoreProducts: async (slug: string, categoryId?: number, search?: string): Promise<Product[]> => {
         const response = await client.get(`/productos/store/${slug}`, {
             params: { categoryId, search }
         });

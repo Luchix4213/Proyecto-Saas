@@ -4,8 +4,9 @@ import { Text, Surface, Searchbar, useTheme, Button, IconButton, Badge } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ShoppingCart, Store as StoreIcon, Clock, MapPin, Search, Heart } from 'lucide-react-native';
-import { consumerService, PublicTenant, PublicProduct, PublicCategory } from '../..//api/consumerService';
-import { productsService } from '../..//api/productsService';
+import { consumerService, PublicTenant } from '../..//api/consumerService';
+import { productsService, Product } from '../..//api/productsService'; // Directly import Product
+import { Tenant, tenantsService } from '../..//api/tenantsService'; // Import Tenant from tenantsService
 import { getApiImageUrl } from '../..//utils/imageUtils';
 import { useCartStore } from '../..//store/cartStore';
 
@@ -21,9 +22,9 @@ export const StoreHomeScreen = () => {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
-    const [tenants, setTenants] = useState<PublicTenant[]>([]);
-    const [products, setProducts] = useState<PublicProduct[]>([]);
-    const [categories, setCategories] = useState<PublicCategory[]>([]);
+    const [tenants, setTenants] = useState<any[]>([]); // simplified for now
+    const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
     // Debounce search
@@ -48,38 +49,30 @@ export const StoreHomeScreen = () => {
                 setProducts(productData);
                 setCategories(categoryData);
             } else {
-                const data = await consumerService.getFeaturedTenants(undefined, query);
-                // For Home, we want global products as well? The user asked for "products of any company" in home.
-                // Assuming "Home" means the initial screen where featured tenants are shown.
-                // Currently it shows tenants. User asked "en el inicio me cargue solo productos de cualquier empresa".
-                // So instead of featured tenants, we should show global products?
-                // The implementation plan says "Use getGlobalProducts".
-                // Converting this screen to show Products in the main view instead of Tenants.
-
-                const globalProducts = await productsService.getGlobalProducts(selectedCategoryId || undefined);
-                // Map Product[] to PublicProduct[]
-                const mappedProducts: PublicProduct[] = globalProducts.map(p => ({
-                    producto_id: p.producto_id,
-                    nombre: p.nombre,
-                    precio: p.precio,
-                    imagen_url: p.imagenes?.find(i => i.es_principal)?.url || p.imagenes?.[0]?.url || '',
-                    categoria_id: p.categoria_id,
-                    categoria: p.categoria ? {
-                        nombre: p.categoria.nombre,
-                    } : undefined,
-                    descripcion: p.descripcion || null,
-                    stock_actual: p.stock_actual,
-
-                    // Extra fields for navigation, we might need to cast or ignore TS warning if strict
-                    tenant_id: p.tenant?.tenant_id,
-                    tenant_slug: p.tenant?.slug || p.tenant?.tenant_id?.toString() || '',
-                } as unknown as PublicProduct)); // Cast to include extra fields
-                setProducts(mappedProducts);
-                // cleaning tenants as we are showing products now
-                setTenants([]);
+                // Marketplace Home: Show Featured Stores AND Products
+                console.log('Fetching marketplace data from:', productsService.getGlobalProducts);
+                try {
+                    const [globalProducts, featuredTenants] = await Promise.all([
+                        productsService.getGlobalProducts(selectedCategoryId || undefined),
+                        consumerService.getFeaturedTenants()
+                    ]);
+                    setProducts(globalProducts);
+                    setTenants(featuredTenants);
+                    console.log(`Loaded ${globalProducts.length} products and ${featuredTenants.length} tenants`);
+                } catch (innerError: any) {
+                    console.error('Inner fetch error:', innerError.message, innerError.config?.url);
+                    throw innerError;
+                }
             }
-        } catch (error) {
-            console.error('Error loading data', error);
+        } catch (error: any) {
+            console.error('Error loading data in StoreHomeScreen:', error.message);
+            if (error.response) {
+                console.error('Response data:', error.response.data);
+                console.error('Response status:', error.response.status);
+            } else if (error.request) {
+                console.error('No response received. Possible network/IP issue.');
+                console.error('Request:', error.request);
+            }
         } finally {
             setLoading(false);
         }
@@ -99,7 +92,24 @@ export const StoreHomeScreen = () => {
     );
     */
 
-    const renderProduct = ({ item }: { item: PublicProduct }) => (
+    const renderTenant = ({ item }: { item: PublicTenant }) => (
+        <TouchableOpacity
+            style={styles.tenantCardContainer}
+            onPress={() => navigation.navigate('StoreHome', { tenantSlug: item.slug, tenantName: item.nombre_empresa })}
+        >
+            <View style={styles.tenantCard_v2}>
+                <Image
+                    source={{ uri: getImg(item.logo_url) }}
+                    style={styles.tenantLogo_v2}
+                    resizeMode="cover"
+                />
+                <Text style={styles.tenantName_v2} numberOfLines={1}>{item.nombre_empresa}</Text>
+                <Text style={styles.tenantRubro_v2}>{item.rubros?.[0]?.nombre || 'General'}</Text>
+            </View>
+        </TouchableOpacity>
+    );
+
+    const renderProduct = ({ item }: { item: Product }) => (
         <TouchableOpacity
             style={styles.productCardContainer}
             activeOpacity={0.8}
@@ -107,15 +117,15 @@ export const StoreHomeScreen = () => {
                 product: {
                     ...item,
                     // If we are in specific store, use that slug. If global, use item's slug.
-                    tenant_slug: tenantSlug || (item as any).tenant_slug
+                    tenant_slug: tenantSlug || item.tenant?.slug
                 },
-                tenantName: tenantName || (item as any).tenant_name
+                tenantName: tenantName || item.tenant?.nombre_empresa
             })}
         >
             <Surface style={styles.productCard} elevation={1}>
                 <View style={styles.imageContainer}>
                     <Image
-                        source={{ uri: getImg(item.imagen_url) }}
+                        source={{ uri: getImg(item.imagenes?.[0]?.url) }}
                         style={styles.productImage}
                         resizeMode="cover"
                     />
@@ -132,6 +142,7 @@ export const StoreHomeScreen = () => {
             </Surface>
         </TouchableOpacity>
     );
+
 
     const SkeletonCard = () => (
         <View style={styles.skeletonCard}>
@@ -266,6 +277,26 @@ export const StoreHomeScreen = () => {
                     </View>
                 ) : (
                     <View>
+                        {/* Featured Stores Section */}
+                        {tenants.length > 0 && (
+                            <View style={{ marginBottom: 24 }}>
+                                <View style={styles.sectionHeader}>
+                                    <Text style={styles.sectionTitle}>Tiendas Destacadas</Text>
+                                </View>
+                                <ScrollView
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    contentContainerStyle={{ paddingHorizontal: 20 }}
+                                >
+                                    {tenants.map(item => (
+                                        <View key={item.tenant_id}>
+                                            {renderTenant({ item })}
+                                        </View>
+                                    ))}
+                                </ScrollView>
+                            </View>
+                        )}
+
                         <View style={styles.sectionHeader}>
                             <Text style={styles.sectionTitle}>Explorar Mercado</Text>
                         </View>
@@ -339,5 +370,11 @@ const styles = StyleSheet.create({
     skeletonCard: { width: '48%', marginBottom: 16 },
     skeletonImage: { height: 140, backgroundColor: '#f1f5f9', borderRadius: 20, marginBottom: 8 },
     skeletonText: { height: 12, backgroundColor: '#f1f5f9', borderRadius: 4, marginBottom: 8 },
-    skeletonHeaderCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#f1f5f9' }
+    skeletonHeaderCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#f1f5f9' },
+
+    // New Tenant Styles
+    tenantCard_v2: { width: 100, marginRight: 16, alignItems: 'center' },
+    tenantLogo_v2: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'white', borderWidth: 1, borderColor: '#f1f5f9' },
+    tenantName_v2: { fontSize: 13, fontWeight: '700', color: '#1e293b', marginTop: 8, textAlign: 'center' },
+    tenantRubro_v2: { fontSize: 11, color: '#94a3b8', marginTop: 2 }
 });

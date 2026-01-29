@@ -19,7 +19,7 @@ export interface Product {
     categoria?: Category;
     slug?: string;
     destacado: boolean;
-    imagenes?: ProductImage[];
+    imagenes?: ProductImage[]; // Typed Image Array
     estado: 'ACTIVO' | 'INACTIVO';
     proveedor_id?: number | null;
     proveedor?: {

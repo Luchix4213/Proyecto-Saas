@@ -20,6 +20,12 @@ export const usePushNotifications = () => {
   const responseListener = useRef<any>(null);
 
   async function registerForPushNotificationsAsync() {
+    if (Platform.OS === 'android' && Device.brand === null) {
+        // Likely emulator or specific Expo Go environment where it's known to fail/warn
+        console.log('Skipping push notification registration in this environment.');
+        return;
+    }
+
     let token;
     try {
       if (Device.isDevice) {
