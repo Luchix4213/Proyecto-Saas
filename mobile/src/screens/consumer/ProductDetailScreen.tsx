@@ -63,15 +63,12 @@ export const ProductDetailScreen = () => {
             nombre: product.nombre,
             precio: product.precio,
             imagen_url: imageUrl,
+            stock_actual: product.stock_actual // Ensure stock is passed
         };
         const slug = product.tenant?.slug || product.tenant_slug || '';
 
-        addItem(itemToAdd, slug);
-
-        // Hack for multiple quantity addition with current store logic (adds 1 by 1)
-        for(let i = 1; i < quantity; i++) {
-             addItem(itemToAdd, slug);
-        }
+        // Use the new quantity parameter instead of a loop
+        addItem(itemToAdd, slug, quantity);
 
         setShowSnackbar(true);
         setTimeout(() => navigation.goBack(), 1500);
@@ -125,18 +122,29 @@ export const ProductDetailScreen = () => {
 
             {/* Bottom Action Bar */}
             <Surface style={styles.actionBar} elevation={4}>
-                <View style={styles.quantityControl}>
-                    <IconButton
-                        icon={() => <Minus size={20} color="#64748b" />}
-                        style={styles.qtyBtn}
-                        onPress={() => setQuantity(Math.max(1, quantity - 1))}
-                    />
-                    <Text style={styles.qtyText}>{quantity}</Text>
-                    <IconButton
-                        icon={() => <Plus size={20} color="#64748b" />}
-                        style={styles.qtyBtn}
-                        onPress={() => setQuantity(quantity + 1)}
-                    />
+                <View style={{ alignItems: 'center' }}>
+                    <Text style={[styles.availableStockText, product.stock_actual < 5 && { color: '#ef4444' }]}>
+                        {product.stock_actual} disponibles
+                    </Text>
+                    <View style={styles.quantityControl}>
+                        <IconButton
+                            icon={() => <Minus size={20} color="#64748b" />}
+                            style={styles.qtyBtn}
+                            onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                        />
+                        <Text style={styles.qtyText}>{quantity}</Text>
+                        <IconButton
+                            icon={() => <Plus size={20} color="#64748b" />}
+                            style={styles.qtyBtn}
+                            onPress={() => {
+                                if (quantity < product.stock_actual) {
+                                    setQuantity(quantity + 1);
+                                } else {
+                                    Alert.alert('Límite alcanzado', 'No puedes agregar más de lo disponible en stock.');
+                                }
+                            }}
+                        />
+                    </View>
                 </View>
 
                 <Button
@@ -211,6 +219,7 @@ const styles = StyleSheet.create({
     quantityControl: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 12 },
     qtyBtn: { margin: 0 },
     qtyText: { fontSize: 18, fontWeight: '700', minWidth: 20, textAlign: 'center' },
+    availableStockText: { fontSize: 11, fontWeight: '700', color: '#10b981', marginBottom: 4 },
     addToCartBtn: { flex: 1, borderRadius: 12 },
     snackbar: { backgroundColor: '#1e293b', borderRadius: 12, marginBottom: 100 }
 });

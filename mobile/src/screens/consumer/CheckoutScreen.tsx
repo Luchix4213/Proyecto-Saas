@@ -130,8 +130,37 @@ export const CheckoutScreen = () => {
     };
 
     const pickComprobante = async () => {
+        Alert.alert(
+            'Subir Comprobante',
+            'Selecciona el origen de la imagen',
+            [
+                { text: 'Cámara', onPress: takePhoto },
+                { text: 'Galería', onPress: launchGallery },
+                { text: 'Cancelar', style: 'cancel' }
+            ]
+        );
+    };
+
+    const launchGallery = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 0.7,
+        });
+
+        if (!result.canceled) {
+            setComprobante(result.assets[0].uri);
+        }
+    };
+
+    const takePhoto = async () => {
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permiso denegado', 'Se requiere acceso a la cámara.');
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
             quality: 0.7,
         });
@@ -486,6 +515,25 @@ export const CheckoutScreen = () => {
                                 </Surface>
 
                                 <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Comprobante de Pago (Requerido)</Text>
+                                <View style={styles.imageSelectorButtons}>
+                                    <Button
+                                        mode="contained-tonal"
+                                        icon={() => <Camera size={18} color={theme.colors.primary} />}
+                                        onPress={takePhoto}
+                                        style={styles.sourceBtn}
+                                    >
+                                        Cámara
+                                    </Button>
+                                    <Button
+                                        mode="contained-tonal"
+                                        icon={() => <ImageIcon size={18} color={theme.colors.primary} />}
+                                        onPress={launchGallery}
+                                        style={styles.sourceBtn}
+                                    >
+                                        Galería
+                                    </Button>
+                                </View>
+
                                 <TouchableOpacity onPress={pickComprobante} style={styles.uploadArea}>
                                     {comprobante ? (
                                         <View style={{ width: '100%', height: '100%' }}>
@@ -628,4 +676,6 @@ const styles = StyleSheet.create({
     selectorIconBox: { backgroundColor: '#f8fafc', padding: 10, borderRadius: 12 },
     selectorLabel: { fontSize: 14, fontWeight: '700', color: '#64748b' },
     selectorLabelActive: { color: '#6366f1' },
+    imageSelectorButtons: { flexDirection: 'row', gap: 12, marginTop: 12, marginBottom: 4 },
+    sourceBtn: { flex: 1, borderRadius: 12 },
 });

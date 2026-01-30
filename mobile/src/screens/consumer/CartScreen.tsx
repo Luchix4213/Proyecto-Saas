@@ -30,20 +30,23 @@ export const CartScreen = () => {
                 <Text style={styles.itemPrice}>Bs {Number(item.precio || 0).toFixed(2)}</Text>
 
                 <View style={styles.actionRow}>
-                    <View style={styles.qtyControl}>
-                         <IconButton
-                            icon={() => <Minus size={14} />}
-                            size={14}
-                            style={styles.qtyIcon}
-                            onPress={() => updateQuantity(item.producto_id, -1)}
-                        />
-                         <Text style={styles.qtyText}>{item.cantidad}</Text>
-                         <IconButton
-                            icon={() => <Plus size={14} />}
-                            size={14}
-                            style={styles.qtyIcon}
-                            onPress={() => updateQuantity(item.producto_id, 1)}
-                        />
+                    <View style={{ gap: 4 }}>
+                        <View style={styles.qtyControl}>
+                            <IconButton
+                                icon={() => <Minus size={14} />}
+                                size={14}
+                                style={styles.qtyIcon}
+                                onPress={() => updateQuantity(item.producto_id, -1)}
+                            />
+                            <Text style={styles.qtyText}>{item.cantidad}</Text>
+                            <IconButton
+                                icon={() => <Plus size={14} />}
+                                size={14}
+                                style={styles.qtyIcon}
+                                onPress={() => updateQuantity(item.producto_id, 1)}
+                            />
+                        </View>
+                        <Text style={styles.itemStockMini}>Disponible: {item.stock_actual}</Text>
                     </View>
                     <IconButton
                         icon={() => <Trash2 size={18} color="#ef4444" />}
@@ -141,6 +144,7 @@ const styles = StyleSheet.create({
     qtyControl: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 8 },
     qtyIcon: { margin: 0, width: 28, height: 28 },
     qtyText: { fontSize: 14, fontWeight: '700', marginHorizontal: 4 },
+    itemStockMini: { fontSize: 10, color: '#94a3b8', textAlign: 'center' },
 
     footer: { backgroundColor: 'white', padding: 20, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingBottom: 40, borderWidth: 1, borderColor: '#f1f5f9' },
     summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },

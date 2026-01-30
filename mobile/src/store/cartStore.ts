@@ -12,7 +12,7 @@ interface CartItem {
 
 interface CartState {
   items: CartItem[];
-  addItem: (product: any, tenantSlug: string) => void;
+  addItem: (product: any, tenantSlug: string, quantity?: number) => void;
   removeItem: (productoId: number) => void;
   updateQuantity: (productoId: number, delta: number) => void;
   clearCart: () => void;
@@ -25,13 +25,11 @@ export const useCartStore = create<CartState>((set, get) => ({
   total: 0,
   currentTenantSlug: null,
 
-  addItem: (product, tenantSlug) => {
+  addItem: (product, tenantSlug, quantity = 1) => {
     const { items, currentTenantSlug } = get();
 
     // Reset if adding from a different tenant
     if (currentTenantSlug && currentTenantSlug !== tenantSlug) {
-        // Simple strategy: Clear cart if switching stores
-        // In a real app, you might ask for confirmation
         set({ items: [], currentTenantSlug: tenantSlug, total: 0 });
     }
 
@@ -40,24 +38,28 @@ export const useCartStore = create<CartState>((set, get) => ({
         set({ currentTenantSlug: tenantSlug });
     }
 
-    const currentItems = get().items; // Re-fetch after potential clear
+    const currentItems = get().items;
     const existingItem = currentItems.find((i) => i.producto_id === product.producto_id);
 
     if (existingItem) {
-      // Check if we can add more
-      if (existingItem.cantidad < product.stock_actual) {
-        get().updateQuantity(product.producto_id, 1);
-      }
+      // Use provided quantity or default to 1 if not specified
+      const additionalQty = quantity;
+      const stock = Number(product.stock_actual ?? existingItem.stock_actual ?? 999999);
+      const newQty = Math.min(stock, existingItem.cantidad + additionalQty);
+
+      const newItems = currentItems.map(item =>
+        item.producto_id === product.producto_id ? { ...item, cantidad: newQty } : item
+      );
+      set({ items: newItems, total: calculateTotal(newItems) });
     } else {
       const newItem: CartItem = {
         producto_id: product.producto_id,
         nombre: product.nombre,
         precio: Number(product.precio),
-        cantidad: 1,
-        // Adapt to new Product interface: check 'imagenes' array first, fallback to 'imagen_url' if legacy object
+        cantidad: quantity,
         imagen_url: product.imagenes?.[0]?.url || product.imagen_url,
         tenant_slug: tenantSlug,
-        stock_actual: product.stock_actual
+        stock_actual: Number(product.stock_actual ?? 999999)
       };
       const newItems = [...currentItems, newItem];
       set({ items: newItems, total: calculateTotal(newItems) });
@@ -70,7 +72,6 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({
         items: newItems,
         total: newTotal,
-        // Reset tenant slug if cart becomes empty
         currentTenantSlug: newItems.length === 0 ? null : get().currentTenantSlug
     });
   },
@@ -78,7 +79,9 @@ export const useCartStore = create<CartState>((set, get) => ({
   updateQuantity: (productoId, delta) => {
     const newItems = get().items.map((item) => {
       if (item.producto_id === productoId) {
-        const newQty = Math.min(item.stock_actual, Math.max(1, item.cantidad + delta));
+        const stock = Number(item.stock_actual ?? 999999);
+        const currentQty = Number(item.cantidad || 0);
+        const newQty = Math.min(stock, Math.max(1, currentQty + delta));
         return { ...item, cantidad: newQty };
       }
       return item;

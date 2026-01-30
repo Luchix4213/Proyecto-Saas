@@ -135,9 +135,14 @@ export const StoreHomeScreen = () => {
                 </View>
                 <View style={styles.productInfo}>
                     <Text style={styles.productName} numberOfLines={2}>{item.nombre}</Text>
-                    {item.categoria && (
-                        <Text style={styles.itemCategoryName}>{item.categoria.nombre}</Text>
-                    )}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {item.categoria && (
+                            <Text style={styles.itemCategoryName}>{item.categoria.nombre}</Text>
+                        )}
+                        <Text style={[styles.stockText, item.stock_actual < 5 && { color: '#ef4444' }]}>
+                            Stock: {item.stock_actual}
+                        </Text>
+                    </View>
                 </View>
             </Surface>
         </TouchableOpacity>
@@ -360,6 +365,7 @@ const styles = StyleSheet.create({
     productInfo: { padding: 12 },
     productName: { fontSize: 14, fontWeight: '700', color: '#1e293b', marginBottom: 4, height: 40 },
     itemCategoryName: { fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 },
+    stockText: { fontSize: 10, color: '#10b981', fontWeight: '700' },
     addButton: { marginHorizontal: 10, marginBottom: 10, borderRadius: 8 },
 
     emptyContainer: { alignItems: 'center', marginTop: 40, paddingHorizontal: 40 },
